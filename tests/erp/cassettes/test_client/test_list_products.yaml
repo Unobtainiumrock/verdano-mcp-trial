@@ -1,0 +1,60 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/products
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/72VUW+iQBSF/8pkHvZJNqBi1TfAVJuVtFG3L01jrngXJgxgBtyN2ex/32trDaPG
+        adMGwgvnztycL+cO8/SXl+mWD/nj2Bp53tTq2jZv8RwyJHGKeSUkG4FkpMdUiKDCuFA7KiqE9W6Z
+        IUjSK8w2qKDaKlyuIF9TPUqElLh+2VTicgNRyoc9+toqRX2XcSXykg+fuGv37P3j0Nvmzy0uMYZo
+        d1xACkhBPV5WP47Yua2jkhwk2lNWZIe2cIgq8Rv5v1aNNZgEP3TWIBFRukFgAfnbNcTbHph4TSCL
+        iXengywSEGysEPNGUTo9Y3Q1ZyHCu5O6O5nKeVakO+YjEODeqGiIsNsxEp6ZMsZ3H84tV4uvyKAq
+        mA8lDfS82G6Ye0ZXknyZC7KVIP86V/86l2ubk3s1VbdDUt2k/d1Nzbjhz/lExw23ZaIK6tUIau/m
+        s+ct8GYznSAApYqKjUUeo2oG46ZrTOzg6tubr4OlC2bfl9zD7H5hddwa9wM1QpEzv/gjGVVOiFck
+        f93Z6zufDe7Wm3o6wC1I+IWyGYBB/0sAtMnTAM5n7oMA3asAjm2eOc3PFFSMxrEaz+ah1a6n8no/
+        0D++qBKBjGqZ1LnWSuTpB8Cc9nUyxzhbJ6aMVP4ZlY/7m7hJqvalgTsuGOwffnp51T1ehHz+D1T8
+        NlgwCgAA
+    headers:
+      CF-RAY:
+      - 9f7a05a368fddc9b-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 06 May 2026 18:24:28 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 26757c94-daf2-4459
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+version: 1

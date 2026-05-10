@@ -1,0 +1,56 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/customers
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/52SwU6EMBRFf6Xpxg39AXcMJZY4glLQhTETGDrSpEMJBQ0x/rudoWodCQS2N+/d
+        e15vnz8gL+A19FKaoMSnXoTSW+jAtq+ZlpUUxa6VWqiy40lImNpLcB6ps4ZV7e60XnVCOPBdC6Xs
+        FPvRPh1jvwm2W2NPHn7tcy7EiD1hWQGiw4Hv2d+cf5gTkZQE92YUu4/WSSWvRzJx9qZTmh54pYZi
+        BcDeomz4RJBH9Jk+RmEUJwSOkcT4ZpYk1tfz6hW4x5zr8DUg7t0m8MME0Si1Qc6L1A1COl0yzXil
+        8q7pr9TKqoeQyartkJnCLeS5wodRU8TEU9vprhAAs1q2CqDv+hdhzHU/LJpS1kCZr7AY6uIfvHwB
+        JSfFt+4DAAA=
+    headers:
+      CF-RAY:
+      - 9f7a05a4cad997d9-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 06 May 2026 18:24:28 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - f881b27e-3aac-468d
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+version: 1

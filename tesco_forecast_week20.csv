@@ -1,0 +1,13 @@
+delivery_date,tesco_item,product_description,depot,forecast_cases,promo_flag,notes
+2026-05-11,T-9101,VD Lentil Dal 400g,Daventry Chilled,32,N,
+2026-05-11,T-9102,Chickpea Curry 400g,Daventry Chilled,28,N,
+2026-05-12,T-9103,Thai Green Meal 400g,Daventry Chilled,24,Y,promo bay starting Monday
+2026-05-12,T-9104,Bean Chilli 400g,Daventry Chilled,18,N,
+2026-05-13,T-9201,Tomato Soup 500g,Reading Ambient,40,N,
+2026-05-13,T-9202,Mushroom Soup 500g,Reading Ambient,22,N,
+2026-05-14,T-9203,Carrot & Ginger 500g,Reading Ambient,16,N,
+2026-05-14,T-9301,Protein Bowl 350g,Daventry Chilled,26,N,
+2026-05-15,T-9302,Falafel Bowl 350g,Daventry Chilled,20,N,
+2026-05-15,T-9303,Falafel Bowl Large,Daventry Chilled,18,N,large pack but size omitted by retailer
+2026-05-16,T-9401,Green Smoothie,Daventry Chilled,14,Y,fixture expansion
+2026-05-16,T-9402,Berry Smoothie 250ml,Daventry Chilled,12,N,retailer still uses old barcode internally

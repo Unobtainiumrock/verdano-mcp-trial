@@ -1,0 +1,55 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/open-orders
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/83ST2+CMByA4e/Ss01KFbN4q8ikGci2ohdjGgZNbGR0Qjksxu++EtlpLd4Wz7+3
+        f560+wtQTSkaLkuwACyFHkIemIBWVSXXihddq9Xn7zzYsgxmIQtSuH0x1Yesqr/VksbxUEVv/V5H
+        +dVXlSpyLVU9nBXR16FakZ3JGnHuZCNKXuZamAAjPIfIh15/n0rWogWL/QW0p84Md2uzisRwhpCZ
+        nru81lJ/8yJv+8zD18N1YqHhB6P5dtoziQn07TTkoE3HaYzQDbtLu1X3aLcqiMyKcDXGw3be+p0l
+        EPs23tyhmz3YwzlkWUSo408+OWT+f78bSZY03GRjuqlDlybM8S173eEHa6ESwU0EAAA=
+    headers:
+      CF-RAY:
+      - 9f7a05a89d5feb1e-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 06 May 2026 18:24:29 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 456ac58e-dd64-40f0
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+version: 1

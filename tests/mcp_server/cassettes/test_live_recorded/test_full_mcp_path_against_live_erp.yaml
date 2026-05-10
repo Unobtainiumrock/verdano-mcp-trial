@@ -1,0 +1,1470 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/products
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/72VUW+iQBSF/8pkHvZJNqBi1TfAVJuVtFG3L01jrngXJgxgBtyN2ex/32trDaPG
+        adMGwgvnztycL+cO8/SXl+mWD/nj2Bp53tTq2jZv8RwyJHGKeSUkG4FkpMdUiKDCuFA7KiqE9W6Z
+        IUjSK8w2qKDaKlyuIF9TPUqElLh+2VTicgNRyoc9+toqRX2XcSXykg+fuGv37P3j0Nvmzy0uMYZo
+        d1xACkhBPV5WP47Yua2jkhwk2lNWZIe2cIgq8Rv5v1aNNZgEP3TWIBFRukFgAfnbNcTbHph4TSCL
+        iXengywSEGysEPNGUTo9Y3Q1ZyHCu5O6O5nKeVakO+YjEODeqGiIsNsxEp6ZMsZ3H84tV4uvyKAq
+        mA8lDfS82G6Ye0ZXknyZC7KVIP86V/86l2ubk3s1VbdDUt2k/d1Nzbjhz/lExw23ZaIK6tUIau/m
+        s+ct8GYznSAApYqKjUUeo2oG46ZrTOzg6tubr4OlC2bfl9zD7H5hddwa9wM1QpEzv/gjGVVOiFck
+        f93Z6zufDe7Wm3o6wC1I+IWyGYBB/0sAtMnTAM5n7oMA3asAjm2eOc3PFFSMxrEaz+ah1a6n8no/
+        0D++qBKBjGqZ1LnWSuTpB8Cc9nUyxzhbJ6aMVP4ZlY/7m7hJqvalgTsuGOwffnp51T1ehHz+D1T8
+        NlgwCgAA
+    headers:
+      CF-RAY:
+      - 9f97b1a65fedb1b4-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:01 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 9e84c51e-366c-4aa4
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/customers
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/52SwU6EMBRFf6Xpxg39AXcMJZY4glLQhTETGDrSpEMJBQ0x/rudoWodCQS2N+/d
+        e15vnz8gL+A19FKaoMSnXoTSW+jAtq+ZlpUUxa6VWqiy40lImNpLcB6ps4ZV7e60XnVCOPBdC6Xs
+        FPvRPh1jvwm2W2NPHn7tcy7EiD1hWQGiw4Hv2d+cf5gTkZQE92YUu4/WSSWvRzJx9qZTmh54pYZi
+        BcDeomz4RJBH9Jk+RmEUJwSOkcT4ZpYk1tfz6hW4x5zr8DUg7t0m8MME0Si1Qc6L1A1COl0yzXil
+        8q7pr9TKqoeQyartkJnCLeS5wodRU8TEU9vprhAAs1q2CqDv+hdhzHU/LJpS1kCZr7AY6uIfvHwB
+        JSfFt+4DAAA=
+    headers:
+      CF-RAY:
+      - 9f97b1a7bc198462-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:01 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 8af5fe5d-cb80-4d97
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/warehouses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/4uuVspMUbJSCvfQdfbw9PFxddH18w8K8VDSUcpLzE0FyvjlF5VkKDhnZObkpKYA
+        hUtScwtSixJLSotS45MS80Cak6GStToI0xx9nTxd/UJ0g/1DkU0Lzi8FmuaYm5SZmleC3bREqGRt
+        LABznqYLnQAAAA==
+    headers:
+      CF-RAY:
+      - 9f97b1a98abd99a0-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:01 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - b11af3fe-4b5d-481d
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/inventory
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/6WUX2vDIBTFv4vPFW6Mhi5vNv1jWNIMYzvYGMG2jpUFAnPdHsa++2Qw2IN9UMGn
+        q/i759zDffxC9vWCSrTf4CXnDaYAaIY+9Zt5mS7WDOeTu7wXuBJ106yWeNtJJdwL/aHPoz6MZjhq
+        aywqGbjiOE5H/W5Of8W5q9lhenZ/ECAFBoYhV3BTArjzgL5n//iVqG7j+YR6+CyErwSv4/nZ3MMv
+        wvTXCf5Tn/80SH/X9phd4fN2Ua+2Cvfd7sr8mYefQUgD7a4X8Q14A0CCBsCljOd7AxCk/052Cucs
+        MgA5TR7Amjc8vgFCUg345bPoDZC8gTaybzGJ1Z8VqQFcJPFJEeP/0w8TL1SrAwYAAA==
+    headers:
+      CF-RAY:
+      - 9f97b1aa6ffe3708-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:02 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 04a2f849-e666-4f16
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/open-orders
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/83ST2+CMByA4e/Ss01KFbN4q8ikGci2ohdjGgZNbGR0Qjksxu++EtlpLd4Wz7+3
+        f560+wtQTSkaLkuwACyFHkIemIBWVSXXihddq9Xn7zzYsgxmIQtSuH0x1Yesqr/VksbxUEVv/V5H
+        +dVXlSpyLVU9nBXR16FakZ3JGnHuZCNKXuZamAAjPIfIh15/n0rWogWL/QW0p84Md2uzisRwhpCZ
+        nru81lJ/8yJv+8zD18N1YqHhB6P5dtoziQn07TTkoE3HaYzQDbtLu1X3aLcqiMyKcDXGw3be+p0l
+        EPs23tyhmz3YwzlkWUSo408+OWT+f78bSZY03GRjuqlDlybM8S173eEHa6ESwU0EAAA=
+    headers:
+      CF-RAY:
+      - 9f97b1ab3b5e2734-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:02 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 2a04bf34-f622-40ab
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/products
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/72VUW+iQBSF/8pkHvZJNqBi1TfAVJuVtFG3L01jrngXJgxgBtyN2ex/32trDaPG
+        adMGwgvnztycL+cO8/SXl+mWD/nj2Bp53tTq2jZv8RwyJHGKeSUkG4FkpMdUiKDCuFA7KiqE9W6Z
+        IUjSK8w2qKDaKlyuIF9TPUqElLh+2VTicgNRyoc9+toqRX2XcSXykg+fuGv37P3j0Nvmzy0uMYZo
+        d1xACkhBPV5WP47Yua2jkhwk2lNWZIe2cIgq8Rv5v1aNNZgEP3TWIBFRukFgAfnbNcTbHph4TSCL
+        iXengywSEGysEPNGUTo9Y3Q1ZyHCu5O6O5nKeVakO+YjEODeqGiIsNsxEp6ZMsZ3H84tV4uvyKAq
+        mA8lDfS82G6Ye0ZXknyZC7KVIP86V/86l2ubk3s1VbdDUt2k/d1Nzbjhz/lExw23ZaIK6tUIau/m
+        s+ct8GYznSAApYqKjUUeo2oG46ZrTOzg6tubr4OlC2bfl9zD7H5hddwa9wM1QpEzv/gjGVVOiFck
+        f93Z6zufDe7Wm3o6wC1I+IWyGYBB/0sAtMnTAM5n7oMA3asAjm2eOc3PFFSMxrEaz+ah1a6n8no/
+        0D++qBKBjGqZ1LnWSuTpB8Cc9nUyxzhbJ6aMVP4ZlY/7m7hJqvalgTsuGOwffnp51T1ehHz+D1T8
+        NlgwCgAA
+    headers:
+      CF-RAY:
+      - 9f97b1acbc1dd8a7-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:02 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - e55f96d2-cbe6-4576
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/customers
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/52SwU6EMBRFf6Xpxg39AXcMJZY4glLQhTETGDrSpEMJBQ0x/rudoWodCQS2N+/d
+        e15vnz8gL+A19FKaoMSnXoTSW+jAtq+ZlpUUxa6VWqiy40lImNpLcB6ps4ZV7e60XnVCOPBdC6Xs
+        FPvRPh1jvwm2W2NPHn7tcy7EiD1hWQGiw4Hv2d+cf5gTkZQE92YUu4/WSSWvRzJx9qZTmh54pYZi
+        BcDeomz4RJBH9Jk+RmEUJwSOkcT4ZpYk1tfz6hW4x5zr8DUg7t0m8MME0Si1Qc6L1A1COl0yzXil
+        8q7pr9TKqoeQyartkJnCLeS5wodRU8TEU9vprhAAs1q2CqDv+hdhzHU/LJpS1kCZr7AY6uIfvHwB
+        JSfFt+4DAAA=
+    headers:
+      CF-RAY:
+      - 9f97b1ad890c15e0-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:02 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - c701adc9-94ee-4683
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/warehouses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/4uuVspMUbJSCvfQdfbw9PFxddH18w8K8VDSUcpLzE0FyvjlF5VkKDhnZObkpKYA
+        hUtScwtSixJLSotS45MS80Cak6GStToI0xx9nTxd/UJ0g/1DkU0Lzi8FmuaYm5SZmleC3bREqGRt
+        LABznqYLnQAAAA==
+    headers:
+      CF-RAY:
+      - 9f97b1ae7f4fced7-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:02 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 96870a11-6eaa-48b9
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/inventory
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/6WUX2vDIBTFv4vPFW6Mhi5vNv1jWNIMYzvYGMG2jpUFAnPdHsa++2Qw2IN9UMGn
+        q/i759zDffxC9vWCSrTf4CXnDaYAaIY+9Zt5mS7WDOeTu7wXuBJ106yWeNtJJdwL/aHPoz6MZjhq
+        aywqGbjiOE5H/W5Of8W5q9lhenZ/ECAFBoYhV3BTArjzgL5n//iVqG7j+YR6+CyErwSv4/nZ3MMv
+        wvTXCf5Tn/80SH/X9phd4fN2Ua+2Cvfd7sr8mYefQUgD7a4X8Q14A0CCBsCljOd7AxCk/052Cucs
+        MgA5TR7Amjc8vgFCUg345bPoDZC8gTaybzGJ1Z8VqQFcJPFJEeP/0w8TL1SrAwYAAA==
+    headers:
+      CF-RAY:
+      - 9f97b1afdade7ad0-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:02 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - d65fefc0-09be-4639
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/open-orders
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/83ST2+CMByA4e/Ss01KFbN4q8ikGci2ohdjGgZNbGR0Qjksxu++EtlpLd4Wz7+3
+        f560+wtQTSkaLkuwACyFHkIemIBWVSXXihddq9Xn7zzYsgxmIQtSuH0x1Yesqr/VksbxUEVv/V5H
+        +dVXlSpyLVU9nBXR16FakZ3JGnHuZCNKXuZamAAjPIfIh15/n0rWogWL/QW0p84Md2uzisRwhpCZ
+        nru81lJ/8yJv+8zD18N1YqHhB6P5dtoziQn07TTkoE3HaYzQDbtLu1X3aLcqiMyKcDXGw3be+p0l
+        EPs23tyhmz3YwzlkWUSo408+OWT+f78bSZY03GRjuqlDlybM8S173eEHa6ESwU0EAAA=
+    headers:
+      CF-RAY:
+      - 9f97b1b16bad3023-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:03 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 55d95349-7f28-44a0
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"external_reference":"verdano-dcf62d4d92dc1028f62f18e95dfdb699","sold_to_customer_id":"CUST-TESCO-UK","bill_to_customer_id":"BILL-TESCO-HQ","ship_to_location_id":"SHIP-TESCO-DAV","required_date":"2026-05-13","lines":[{"sku":"VG-CHIL-400","quantity_cases":18}],"notes":"verdano-mcp
+      auto-draft for tesco 2026-W20"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '313'
+      Content-Type:
+      - application/json
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://erp.corvera.ai/erp/order-drafts
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/w2LzQoCIRCA32XOa4y2pXgTlh5g2VMRMqSFEC7obAXRuzfX7+cLqdGdY0ngYZrD
+        aVHO7O0UMMAAnYm3LiZ/SudSH8Je9CyJuKw1vqlVgRJcrgPcWibOKRLLYNAcFR6UxgWdH53XuLMa
+        R7Rn+P0BwiLLWHUAAAA=
+    headers:
+      CF-RAY:
+      - 9f97b1b28e38d3d7-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:03 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 49479779-3399-4a7c
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"external_reference":"verdano-c335f48fdcbe416706090c74462e1478","sold_to_customer_id":"CUST-TESCO-UK","bill_to_customer_id":"BILL-TESCO-HQ","ship_to_location_id":"SHIP-TESCO-DAV","required_date":"2026-05-13","lines":[{"sku":"VG-FALA-350","quantity_cases":20}],"notes":"verdano-mcp
+      auto-draft for tesco 2026-W20"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '313'
+      Content-Type:
+      - application/json
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://erp.corvera.ai/erp/order-drafts
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/w2LzQrCMAyA3yXndWTdnLU3we0BZCdFSrBVAlKhzVQQ391cv58vxEI3CRzBw+G4
+        nxcz7dw4bWcLDVQhWaua9OEqnO/KXvTgSMLPHN5UskINzpcGriWRpBhIdLBoR4Mb0+GCzg/Od9g6
+        7Afbn+D3B93XsxR1AAAA
+    headers:
+      CF-RAY:
+      - 9f97b1b35b28fb3c-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:03 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - e870e8dd-cbff-49b4
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"external_reference":"verdano-1653bb86682f5d2e8a3be146cb09eeff","sold_to_customer_id":"CUST-TESCO-UK","bill_to_customer_id":"BILL-TESCO-HQ","ship_to_location_id":"SHIP-TESCO-DAV","required_date":"2026-05-13","lines":[{"sku":"VG-GRSM-250","quantity_cases":14}],"notes":"verdano-mcp
+      auto-draft for tesco 2026-W20"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '313'
+      Content-Type:
+      - application/json
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://erp.corvera.ai/erp/order-drafts
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/w2LSwrCMBBA7zLrRiZNamN2BekBpCtFwmCiDJQIyVQF8e5m+z5fiIXuEjiCh+Np
+        mhdlJ2sM6hE6qEKy1WbSh6twfjT2opUjCT9zeFPJDbbgcu3gVhJJioGkDT32e4WD0rig89Z5jTs3
+        msNgz/D7A/M7B7x1AAAA
+    headers:
+      CF-RAY:
+      - 9f97b1b48bf0cd36-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:03 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 32b02fc9-53c9-47e7
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"external_reference":"verdano-b35ec0baf030d0847aaee2fb5f665bd3","sold_to_customer_id":"CUST-TESCO-UK","bill_to_customer_id":"BILL-TESCO-HQ","ship_to_location_id":"SHIP-TESCO-DAV","required_date":"2026-05-13","lines":[{"sku":"VG-BRSM-250","quantity_cases":12}],"notes":"verdano-mcp
+      auto-draft for tesco 2026-W20"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '313'
+      Content-Type:
+      - application/json
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://erp.corvera.ai/erp/order-drafts
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/w2LSwoCMQxA75L1VNJS59OdInMAmZUiJdgqgaFCGz8g3t1s3+cLqdJNIicIcDju
+        5sUMe4tusDN00ITk2dTkDzfhclf2opUTCT9KfFMtCjU4Xzq41kySUyTRwaHrDW6NxQXH4MdgcTP5
+        fvJ4gt8fuJo7PXUAAAA=
+    headers:
+      CF-RAY:
+      - 9f97b1b639657ad6-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:03 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - d94cad3d-27d8-40cb
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/products
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/72VUW+iQBSF/8pkHvZJNqBi1TfAVJuVtFG3L01jrngXJgxgBtyN2ex/32trDaPG
+        adMGwgvnztycL+cO8/SXl+mWD/nj2Bp53tTq2jZv8RwyJHGKeSUkG4FkpMdUiKDCuFA7KiqE9W6Z
+        IUjSK8w2qKDaKlyuIF9TPUqElLh+2VTicgNRyoc9+toqRX2XcSXykg+fuGv37P3j0Nvmzy0uMYZo
+        d1xACkhBPV5WP47Yua2jkhwk2lNWZIe2cIgq8Rv5v1aNNZgEP3TWIBFRukFgAfnbNcTbHph4TSCL
+        iXengywSEGysEPNGUTo9Y3Q1ZyHCu5O6O5nKeVakO+YjEODeqGiIsNsxEp6ZMsZ3H84tV4uvyKAq
+        mA8lDfS82G6Ye0ZXknyZC7KVIP86V/86l2ubk3s1VbdDUt2k/d1Nzbjhz/lExw23ZaIK6tUIau/m
+        s+ct8GYznSAApYqKjUUeo2oG46ZrTOzg6tubr4OlC2bfl9zD7H5hddwa9wM1QpEzv/gjGVVOiFck
+        f93Z6zufDe7Wm3o6wC1I+IWyGYBB/0sAtMnTAM5n7oMA3asAjm2eOc3PFFSMxrEaz+ah1a6n8no/
+        0D++qBKBjGqZ1LnWSuTpB8Cc9nUyxzhbJ6aMVP4ZlY/7m7hJqvalgTsuGOwffnp51T1ehHz+D1T8
+        NlgwCgAA
+    headers:
+      CF-RAY:
+      - 9f97b1b80edf8fc5-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:04 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 5c112b4c-9b88-4cea
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/customers
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/52SwU6EMBRFf6Xpxg39AXcMJZY4glLQhTETGDrSpEMJBQ0x/rudoWodCQS2N+/d
+        e15vnz8gL+A19FKaoMSnXoTSW+jAtq+ZlpUUxa6VWqiy40lImNpLcB6ps4ZV7e60XnVCOPBdC6Xs
+        FPvRPh1jvwm2W2NPHn7tcy7EiD1hWQGiw4Hv2d+cf5gTkZQE92YUu4/WSSWvRzJx9qZTmh54pYZi
+        BcDeomz4RJBH9Jk+RmEUJwSOkcT4ZpYk1tfz6hW4x5zr8DUg7t0m8MME0Si1Qc6L1A1COl0yzXil
+        8q7pr9TKqoeQyartkJnCLeS5wodRU8TEU9vprhAAs1q2CqDv+hdhzHU/LJpS1kCZr7AY6uIfvHwB
+        JSfFt+4DAAA=
+    headers:
+      CF-RAY:
+      - 9f97b1b999f3ebe3-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:04 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 5d4e088b-06c4-4a2f
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/warehouses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/4uuVspMUbJSCvfQdfbw9PFxddH18w8K8VDSUcpLzE0FyvjlF5VkKDhnZObkpKYA
+        hUtScwtSixJLSotS45MS80Cak6GStToI0xx9nTxd/UJ0g/1DkU0Lzi8FmuaYm5SZmleC3bREqGRt
+        LABznqYLnQAAAA==
+    headers:
+      CF-RAY:
+      - 9f97b1ba6ab767eb-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:04 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 4e09403f-cdf0-4218
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/inventory
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/6WUX2vDIBTFv4vPFW6Mhi5vNv1jWNIMYzvYGMG2jpUFAnPdHsa++2Qw2IN9UMGn
+        q/i759zDffxC9vWCSrTf4CXnDaYAaIY+9Zt5mS7WDOeTu7wXuBJ106yWeNtJJdwL/aHPoz6MZjhq
+        aywqGbjiOE5H/W5Of8W5q9lhenZ/ECAFBoYhV3BTArjzgL5n//iVqG7j+YR6+CyErwSv4/nZ3MMv
+        wvTXCf5Tn/80SH/X9phd4fN2Ua+2Cvfd7sr8mYefQUgD7a4X8Q14A0CCBsCljOd7AxCk/052Cucs
+        MgA5TR7Amjc8vgFCUg345bPoDZC8gTaybzGJ1Z8VqQFcJPFJEeP/0w8TL1SrAwYAAA==
+    headers:
+      CF-RAY:
+      - 9f97b1bb5d16ad44-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:04 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - d00fd1fa-5063-450d
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/open-orders
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/83ST2+CMByA4e/Ss01KFbN4q8ikGci2ohdjGgZNbGR0Qjksxu++EtlpLd4Wz7+3
+        f560+wtQTSkaLkuwACyFHkIemIBWVSXXihddq9Xn7zzYsgxmIQtSuH0x1Yesqr/VksbxUEVv/V5H
+        +dVXlSpyLVU9nBXR16FakZ3JGnHuZCNKXuZamAAjPIfIh15/n0rWogWL/QW0p84Md2uzisRwhpCZ
+        nru81lJ/8yJv+8zD18N1YqHhB6P5dtoziQn07TTkoE3HaYzQDbtLu1X3aLcqiMyKcDXGw3be+p0l
+        EPs23tyhmz3YwzlkWUSo408+OWT+f78bSZY03GRjuqlDlybM8S173eEHa6ESwU0EAAA=
+    headers:
+      CF-RAY:
+      - 9f97b1bc2b1bcf22-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:04 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - b680cbf0-abbb-40c5
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"external_reference":"verdano-99c0cba99a188cf3c16b0090a909d128","sold_to_customer_id":"CUST-TESCO-UK","bill_to_customer_id":"BILL-TESCO-HQ","ship_to_location_id":"SHIP-TESCO-RDG","required_date":"2026-05-13","lines":[{"sku":"VG-TOMS-500","quantity_cases":40}],"notes":"verdano-mcp
+      auto-draft for tesco 2026-W20"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '313'
+      Content-Type:
+      - application/json
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://erp.corvera.ai/erp/order-drafts
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/w2LzQrCMAyA3yXnVZqwSeltOH0A2UmREmyVgnTQxk0Q391cv58vxMoPCTmCh+k8
+        nmZzpMM0IhJ00ITl3dSkT26Sy1PZyq8cWfJSwsa1KNTgeuvgXhNLioFFB7K0N3YwaGfrfO884m5w
+        SLa/wO8PcFnfunUAAAA=
+    headers:
+      CF-RAY:
+      - 9f97b1bd0be2e9e7-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:05 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 8bd863d7-fa35-47b7
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"external_reference":"verdano-9ea35ea2f1fff2a2d669ed2a1e1d2b92","sold_to_customer_id":"CUST-TESCO-UK","bill_to_customer_id":"BILL-TESCO-HQ","ship_to_location_id":"SHIP-TESCO-RDG","required_date":"2026-05-13","lines":[{"sku":"VG-MUSH-500","quantity_cases":22}],"notes":"verdano-mcp
+      auto-draft for tesco 2026-W20"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '313'
+      Content-Type:
+      - application/json
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://erp.corvera.ai/erp/order-drafts
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/w2LSwrCMBBA7zLrRialHdPs/NADSFeKhMFECUiEZPyAeHdn+z5fiJWvEnIED/vD
+        Zl4MbYcZp52DDpqwPJua9MlNcrkpe/E9R5b8KOHNtSjU4HTu4FITS4qBRYceezI4GosLOj84b+2K
+        JlqPdITfH62L0px1AAAA
+    headers:
+      CF-RAY:
+      - 9f97b1bdfcc016a4-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:05 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 83d8d93d-da4b-4480
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"external_reference":"verdano-a9fbfb3ce792c3ab5d3ee6a96c272b15","sold_to_customer_id":"CUST-TESCO-UK","bill_to_customer_id":"BILL-TESCO-HQ","ship_to_location_id":"SHIP-TESCO-RDG","required_date":"2026-05-13","lines":[{"sku":"VG-CARR-500","quantity_cases":16}],"notes":"verdano-mcp
+      auto-draft for tesco 2026-W20"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '313'
+      Content-Type:
+      - application/json
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://erp.corvera.ai/erp/order-drafts
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/w2LzQoCIRCA32XOa6istnrbiH2A2FMRMqTFQBjo9APRuzfX7+cLueGVE2WIsD/M
+        y6rm0dldWDwM0Bn52cWUD3WmehP2wjtlZHrU9MZWBUpwOg9waQW55IQsg9XWK+2U0aue4jhFYzZb
+        H2xwR/j9AYuPomp1AAAA
+    headers:
+      CF-RAY:
+      - 9f97b1bec9e3f005-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:05 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 2317f575-f8e5-4f5c
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/products
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/72VUW+iQBSF/8pkHvZJNqBi1TfAVJuVtFG3L01jrngXJgxgBtyN2ex/32trDaPG
+        adMGwgvnztycL+cO8/SXl+mWD/nj2Bp53tTq2jZv8RwyJHGKeSUkG4FkpMdUiKDCuFA7KiqE9W6Z
+        IUjSK8w2qKDaKlyuIF9TPUqElLh+2VTicgNRyoc9+toqRX2XcSXykg+fuGv37P3j0Nvmzy0uMYZo
+        d1xACkhBPV5WP47Yua2jkhwk2lNWZIe2cIgq8Rv5v1aNNZgEP3TWIBFRukFgAfnbNcTbHph4TSCL
+        iXengywSEGysEPNGUTo9Y3Q1ZyHCu5O6O5nKeVakO+YjEODeqGiIsNsxEp6ZMsZ3H84tV4uvyKAq
+        mA8lDfS82G6Ye0ZXknyZC7KVIP86V/86l2ubk3s1VbdDUt2k/d1Nzbjhz/lExw23ZaIK6tUIau/m
+        s+ct8GYznSAApYqKjUUeo2oG46ZrTOzg6tubr4OlC2bfl9zD7H5hddwa9wM1QpEzv/gjGVVOiFck
+        f93Z6zufDe7Wm3o6wC1I+IWyGYBB/0sAtMnTAM5n7oMA3asAjm2eOc3PFFSMxrEaz+ah1a6n8no/
+        0D++qBKBjGqZ1LnWSuTpB8Cc9nUyxzhbJ6aMVP4ZlY/7m7hJqvalgTsuGOwffnp51T1ehHz+D1T8
+        NlgwCgAA
+    headers:
+      CF-RAY:
+      - 9f97b1c06ee015e0-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:05 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 710ba1ce-a382-4f5a
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/customers
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/52SwU6EMBRFf6Xpxg39AXcMJZY4glLQhTETGDrSpEMJBQ0x/rudoWodCQS2N+/d
+        e15vnz8gL+A19FKaoMSnXoTSW+jAtq+ZlpUUxa6VWqiy40lImNpLcB6ps4ZV7e60XnVCOPBdC6Xs
+        FPvRPh1jvwm2W2NPHn7tcy7EiD1hWQGiw4Hv2d+cf5gTkZQE92YUu4/WSSWvRzJx9qZTmh54pYZi
+        BcDeomz4RJBH9Jk+RmEUJwSOkcT4ZpYk1tfz6hW4x5zr8DUg7t0m8MME0Si1Qc6L1A1COl0yzXil
+        8q7pr9TKqoeQyartkJnCLeS5wodRU8TEU9vprhAAs1q2CqDv+hdhzHU/LJpS1kCZr7AY6uIfvHwB
+        JSfFt+4DAAA=
+    headers:
+      CF-RAY:
+      - 9f97b1c13c9adf0a-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:05 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 1410644f-ad77-4151
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/warehouses
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/4uuVspMUbJSCvfQdfbw9PFxddH18w8K8VDSUcpLzE0FyvjlF5VkKDhnZObkpKYA
+        hUtScwtSixJLSotS45MS80Cak6GStToI0xx9nTxd/UJ0g/1DkU0Lzi8FmuaYm5SZmleC3bREqGRt
+        LABznqYLnQAAAA==
+    headers:
+      CF-RAY:
+      - 9f97b1c1ff8f3884-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:05 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - e86c2b9a-d4e3-4f59
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/inventory
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/6WUX2vDIBTFv4vPFW6Mhi5vNv1jWNIMYzvYGMG2jpUFAnPdHsa++2Qw2IN9UMGn
+        q/i759zDffxC9vWCSrTf4CXnDaYAaIY+9Zt5mS7WDOeTu7wXuBJ106yWeNtJJdwL/aHPoz6MZjhq
+        aywqGbjiOE5H/W5Of8W5q9lhenZ/ECAFBoYhV3BTArjzgL5n//iVqG7j+YR6+CyErwSv4/nZ3MMv
+        wvTXCf5Tn/80SH/X9phd4fN2Ua+2Cvfd7sr8mYefQUgD7a4X8Q14A0CCBsCljOd7AxCk/052Cucs
+        MgA5TR7Amjc8vgFCUg345bPoDZC8gTaybzGJ1Z8VqQFcJPFJEeP/0w8TL1SrAwYAAA==
+    headers:
+      CF-RAY:
+      - 9f97b1c2bf27fa66-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:05 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 5b6e3977-238f-4fed
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/open-orders
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/83ST2+CMByA4e/Ss01KFbN4q8ikGci2ohdjGgZNbGR0Qjksxu++EtlpLd4Wz7+3
+        f560+wtQTSkaLkuwACyFHkIemIBWVSXXihddq9Xn7zzYsgxmIQtSuH0x1Yesqr/VksbxUEVv/V5H
+        +dVXlSpyLVU9nBXR16FakZ3JGnHuZCNKXuZamAAjPIfIh15/n0rWogWL/QW0p84Md2uzisRwhpCZ
+        nru81lJ/8yJv+8zD18N1YqHhB6P5dtoziQn07TTkoE3HaYzQDbtLu1X3aLcqiMyKcDXGw3be+p0l
+        EPs23tyhmz3YwzlkWUSo408+OWT+f78bSZY03GRjuqlDlybM8S173eEHa6ESwU0EAAA=
+    headers:
+      CF-RAY:
+      - 9f97b1c399c5cf1a-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Sun, 10 May 2026 08:50:06 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - d86c322a-98da-4820
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+version: 1

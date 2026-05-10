@@ -1,0 +1,55 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://erp.corvera.ai/erp/inventory
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/6WUX2vDIBTFv4vPFW6Mhi5vNv1jWNIMYzvYGMG2jpUFAnPdHsa++2Qw2IN9UMGn
+        q/i759zDffxC9vWCSrTf4CXnDaYAaIY+9Zt5mS7WDOeTu7wXuBJ106yWeNtJJdwL/aHPoz6MZjhq
+        aywqGbjiOE5H/W5Of8W5q9lhenZ/ECAFBoYhV3BTArjzgL5n//iVqG7j+YR6+CyErwSv4/nZ3MMv
+        wvTXCf5Tn/80SH/X9phd4fN2Ua+2Cvfd7sr8mYefQUgD7a4X8Q14A0CCBsCljOd7AxCk/052Cucs
+        MgA5TR7Amjc8vgFCUg345bPoDZC8gTaybzGJ1Z8VqQFcJPFJEeP/0w8TL1SrAwYAAA==
+    headers:
+      CF-RAY:
+      - 9f7a05a789017e2a-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 06 May 2026 18:24:29 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 1e2e1315-300f-4fd5
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+version: 1

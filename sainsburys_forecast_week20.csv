@@ -1,0 +1,13 @@
+receipt_week,gtin,item_name,geography,forecast_units,forecast_value_gbp,temperature_band
+2026-W20,5060000010012,Lentil Dahl 400g,All Depots,180,450.00,chilled
+2026-W20,5060000010029,Chickpea Curry 400g,All Depots,156,390.00,chilled
+2026-W20,5060000010036,Thai Green Curry 400g,All Depots,168,420.00,chilled
+2026-W20,5060000010043,Smoky Bean Chilli 400g,All Depots,96,240.00,chilled
+2026-W20,,Tom Basil Soup 0.5kg,All Depots,184,322.00,ambient
+2026-W20,5060000010067,Mushroom Soup 500g,All Depots,160,280.00,ambient
+2026-W20,5060000010074,Carrot Ginger Soup 500g,All Depots,112,196.00,ambient
+2026-W20,5060000010081,Protein Bowl 350g,All Depots,132,396.00,chilled
+2026-W20,5060000010098,Falafel Bowl 350g,All Depots,120,360.00,chilled
+2026-W20,,Falafel Bowl,All Depots,72,252.00,chilled
+2026-W20,5060000010111,Green Smoothie 250ml,All Depots,216,324.00,chilled
+2026-W20,5060000099999,Berry Smoothie 250ml,All Depots,144,216.00,chilled

@@ -1,0 +1,114 @@
+interactions:
+- request:
+    body: '{"external_reference":"verdano-trial-smoke-001","sold_to_customer_id":"CUST-TESCO-UK","bill_to_customer_id":"BILL-TESCO-HQ","ship_to_location_id":"SHIP-TESCO-DAV","required_date":"2026-05-13","lines":[{"sku":"VG-FALA-500","quantity_cases":8}],"notes":"ERP
+      client smoke test"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '275'
+      Content-Type:
+      - application/json
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://erp.corvera.ai/erp/order-drafts
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/w2LSwrCMBBA7zLrRjJpG0x2ovYA0pUiYTBRAiVCMlVBvLuzfZ8vxEp3DjmCh8Np
+        N81qjw6PaBE6aEy8NjHpkxvn8hD2oiVH4vws4U21CJTgcu3gVhNxioFYBqONVXpU2s649ab32m16
+        HAc3nOH3B6HyBe51AAAA
+    headers:
+      CF-RAY:
+      - 9f7a05a97dcb053a-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 06 May 2026 18:24:29 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 7186a84e-1a44-4ec3
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"external_reference":"verdano-trial-smoke-001","sold_to_customer_id":"CUST-TESCO-UK","bill_to_customer_id":"BILL-TESCO-HQ","ship_to_location_id":"SHIP-TESCO-DAV","required_date":"2026-05-13","lines":[{"sku":"VG-FALA-500","quantity_cases":8}],"notes":"ERP
+      client smoke test"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer REDACTED
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '275'
+      Content-Type:
+      - application/json
+      Host:
+      - erp.corvera.ai
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://erp.corvera.ai/erp/order-drafts
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/w2LSwrCMBBA7zLrRjJpG0x2ovYA0pUiYTBRAiVCMlVBvLuzfZ8vxEp3DjmCh8Np
+        N81qjw6PaBE6aEy8NjHpkxvn8hD2oiVH4vws4U21CJTgcu3gVhNxioFYBqONVXpU2s649ab32m16
+        HAc3nOH3B6HyBe51AAAA
+    headers:
+      CF-RAY:
+      - 9f7a05aa1e998188-SJC
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 06 May 2026 18:24:29 GMT
+      Server:
+      - cloudflare
+      Transfer-Encoding:
+      - chunked
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      rndr-id:
+      - 03df763d-f518-4097
+      vary:
+      - Accept-Encoding
+      x-render-origin-server:
+      - uvicorn
+    status:
+      code: 200
+      message: OK
+version: 1
