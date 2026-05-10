@@ -83,6 +83,12 @@ def _deterministic_external_reference(
     return f"verdano-{hashlib.sha256(payload).hexdigest()[:32]}"
 
 
+def _resolve_project_root() -> Path:
+    """Resolve project root from env or CWD, shared by all entry paths."""
+    env_root = os.environ.get("VERDANO_PROJECT_ROOT")
+    return Path(env_root) if env_root else Path.cwd()
+
+
 def build_server(
     project_root: Path | None = None,
     erp_client_factory: ErpClientFactory | None = None,
@@ -92,8 +98,7 @@ def build_server(
     Splitting construction from execution lets tests inject a fake client
     and exercise tool behavior without touching the network.
     """
-    env_root = os.environ.get("VERDANO_PROJECT_ROOT")
-    project_root = project_root or (Path(env_root) if env_root else Path.cwd())
+    project_root = project_root or _resolve_project_root()
     factory = erp_client_factory or Client.from_env
 
     server: FastMCP = FastMCP("verdano-mcp")
@@ -413,12 +418,6 @@ def _run_health_check(project_root: Path) -> int:
     else:
         print("Some checks failed — see above.")
     return 0 if all_ok else 1
-
-
-def _resolve_project_root() -> Path:
-    """Resolve project root from env or CWD, shared by all entry paths."""
-    env_root = os.environ.get("VERDANO_PROJECT_ROOT")
-    return Path(env_root) if env_root else Path.cwd()
 
 
 def run() -> None:
