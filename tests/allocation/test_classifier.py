@@ -38,7 +38,7 @@ def _resolved(sku: str = "VG-TEST", confidence: float = 0.98) -> MappingResult:
     return MappingResult(
         retailer_key=_key(), erp_sku=sku, confidence=confidence,
         state="Resolved",
-        evidence=MappingEvidence(stratum="E1", matched_value="test", collision_count=1),
+        evidence=MappingEvidence(stratum="gtin_current", matched_value="test", collision_count=1),
     )
 
 
@@ -46,7 +46,7 @@ def _needs_verification(sku: str = "VG-TEST") -> MappingResult:
     return MappingResult(
         retailer_key=_key(), erp_sku=sku, confidence=0.50,
         state="NeedsVerification",
-        evidence=MappingEvidence(stratum="E3b", matched_value="test", collision_count=2),
+        evidence=MappingEvidence(stratum="tfidf_overlap", matched_value="test", collision_count=2),
     )
 
 
@@ -155,7 +155,7 @@ def _resolved_frozen() -> MappingResult:
     return MappingResult(
         retailer_key=_key(), erp_sku="VG-FROZEN", confidence=0.98,
         state="Resolved",
-        evidence=MappingEvidence(stratum="E1", matched_value="test", collision_count=1),
+        evidence=MappingEvidence(stratum="gtin_current", matched_value="test", collision_count=1),
     )
 
 

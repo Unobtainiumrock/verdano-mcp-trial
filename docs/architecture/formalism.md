@@ -95,12 +95,14 @@ $$
 
 where each $E_k$ is a relation $V_R \rightharpoonup V_E$ (partial function) producing edges with confidence in a stratum $[\underline{w}_k, \overline{w}_k]$. For the product-resolution problem the cascade is:
 
-| Stratum | Generator | Confidence stratum |
-|---|---|---|
-| $E_1$ | Exact match on `current_gtins` | $[0.95,\ 1.0]$ |
-| $E_2$ | Exact match on `legacy_gtins` | $[0.85,\ 0.95]$ |
-| $E_3$ | Exact match on `aliases` | $[0.70,\ 0.85]$ |
-| $E_4$ | Fuzzy match on canonicalized `name` | $[0.30,\ 0.70]$ |
+| Stratum | Codebase identifier | Generator | Confidence stratum |
+|---|---|---|---|
+| $E_1$ | `gtin_current` | Exact match on `current_gtins` | $[0.95,\ 1.0]$ |
+| $E_2$ | `gtin_legacy` | Exact match on `legacy_gtins` | $[0.85,\ 0.95]$ |
+| $E_3$ | `alias_exact` | Exact match on `aliases` | $[0.70,\ 0.85]$ |
+| $E_4$ | `fuzzy_jw` | Fuzzy match on canonicalized `name` | $[0.30,\ 0.70]$ |
+
+> **Notation note (per D-018).** The formalism uses legacy notation $E_1$–$E_4$ in mathematical expressions; codebase identifiers use semantic names (`gtin_current`, `gtin_legacy`, `alias_exact`, `tfidf_overlap`, `fuzzy_jw`, `llm_augmented`). See the mapping table in [DECISIONS.md D-018](../../DECISIONS.md).
 
 The resolver fires the *first* stratum that produces a candidate; later strata are not consulted for that retailer key.
 

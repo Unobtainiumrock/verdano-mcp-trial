@@ -43,7 +43,7 @@ def test_sainsburys_gtin_rows_resolve_via_e1(
     )
     e1_rows = [
         c for c in result.classifications
-        if c.mapping.evidence is not None and c.mapping.evidence.stratum == "E1"
+        if c.mapping.evidence is not None and c.mapping.evidence.stratum == "gtin_current"
     ]
     # 12 fixture rows total; 2 have blank GTIN (Tom Basil, Falafel Bowl) and
     # 1 (Berry Smoothie 5060000099999) is on legacy_gtins so fires E2 not E1.
@@ -70,7 +70,7 @@ def test_berry_smoothie_fires_legacy_gtin_stratum(
         if c.demand.retailer_key.gtin == "5060000099999"
     )
     assert berry.mapping.evidence is not None
-    assert berry.mapping.evidence.stratum == "E2", (
+    assert berry.mapping.evidence.stratum == "gtin_legacy", (
         "off-pattern GTIN should fall through to legacy stratum"
     )
     # Obsolescence penalty γ = 0.10 → confidence (1-0.10)(1-0.02)/1 = 0.882
@@ -105,7 +105,7 @@ def test_no_gtin_falafel_bowl_routes_to_review(
     assert falafel.mapping.evidence is not None
     # E3b under D-013 supersedes the previous E4 routing — the TF-IDF gate
     # surfaces the ambiguity more cleanly (K_x captures both candidates).
-    assert falafel.mapping.evidence.stratum == "E3b"
+    assert falafel.mapping.evidence.stratum == "tfidf_overlap"
     assert falafel.mapping.evidence.collision_count == 2
     assert falafel.mapping.state == "NeedsVerification"
     assert falafel.classification == "NeedsVerification"

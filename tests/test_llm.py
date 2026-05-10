@@ -101,7 +101,7 @@ class TestLLMEntityResolution:
         assert result is not None
         assert result.erp_sku == "VG-SOUP-400"
         assert result.evidence is not None
-        assert result.evidence.stratum == "E5"
+        assert result.evidence.stratum == "llm_augmented"
 
     def test_e5_handler_returns_none_on_low_confidence(self) -> None:
         from verdano.canonical import RetailerProductKey

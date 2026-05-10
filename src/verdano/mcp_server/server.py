@@ -115,7 +115,7 @@ def _build_handlers(
         from verdano.mapping.resolver import MasterIndex
 
         master = MasterIndex(erp_products)
-        handlers.append(("E5", make_llm_stratum(llm_client, master)))
+        handlers.append(("llm_augmented", make_llm_stratum(llm_client, master)))
     return handlers
 
 

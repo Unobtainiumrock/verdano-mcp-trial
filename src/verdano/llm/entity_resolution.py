@@ -51,7 +51,7 @@ def make_llm_stratum(
 ) -> "StratumHandler":
     """Create an E5 stratum handler backed by the given LLM client."""
 
-    register_stratum("E5", after="E4")
+    register_stratum("llm_augmented", after="fuzzy_jw")
 
     def handler(
         ctx: "ResolverContext", key: RetailerProductKey
@@ -96,6 +96,6 @@ def make_llm_stratum(
         if chosen_sku not in master.products:
             return None
 
-        return ctx.build_result(key, chosen_sku, conf, "E5", key.name, 1)
+        return ctx.build_result(key, chosen_sku, conf, "llm_augmented", key.name, 1)
 
     return handler

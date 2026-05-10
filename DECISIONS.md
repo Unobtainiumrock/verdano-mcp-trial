@@ -319,7 +319,7 @@ with thresholds $[\tau_{\text{low}},\, \tau_{\text{high}}] = [0.5,\, 1.5]$ (conf
 
 ---
 
-## D-013 — Canonicalization upgrades: size-unit normalizer + TF-IDF stratum E3b
+## D-013 — Canonicalization upgrades: size-unit normalizer + TF-IDF stratum `tfidf_overlap` (formerly E3b)
 
 **Date:** 2026-05-10
 **Status:** locked
@@ -339,7 +339,7 @@ where the size rescale is `(\d+(?:\.\d+)?)\s*(kg|l)\b` → `value × 1000` with 
 
 This closes the size half of the deliberate fixture gotcha **"Tom Basil Soup 0.5kg" ↔ "Tomato Soup 500g"** at the lexical layer (the alias-curation half is already handled by the ERP master).
 
-### 2. TF-IDF stratum E3b
+### 2. TF-IDF stratum `tfidf_overlap` (formerly E3b)
 
 A new stratum inserted **between E3 (alias exact) and E4 (Jaro-Winkler² fuzzy)** in the cascade. Per Gemini iteration 5 option 1:
 
@@ -349,7 +349,7 @@ $$
 
 Range $[0, 1]$. Interpret as the fraction of the retailer string's information content supported by ERP product $P$'s vocabulary (canonical name + aliases).
 
-**Cascade firing rule:** E3b fires when E3 misses and the top TF-IDF score $\geq \tau_{\text{tfidf}}$ (default 0.5, configurable). Below the threshold, fall through to E4. **Confidence emitted** = `top_score × (1 − ε) / K_x^α`, applying the same Fellegi-Sunter ambiguity penalty as E3 (so tied candidates collapse to NeedsVerification).
+**Cascade firing rule:** `tfidf_overlap` fires when `alias_exact` misses and the top TF-IDF score $\geq \tau_{\text{tfidf}}$ (default 0.5, configurable). Below the threshold, fall through to `fuzzy_jw`. **Confidence emitted** = `top_score × (1 − ε) / K_x^α`, applying the same Fellegi-Sunter ambiguity penalty as `alias_exact` (so tied candidates collapse to NeedsVerification).
 
 Smoothed IDF: `log(N / (1 + df)) + 1` (sklearn-style; never zero, never negative). Implementation in `src/verdano/mapping/tfidf.py`.
 
@@ -357,13 +357,13 @@ Smoothed IDF: `log(N / (1 + df)) + 1` (sklearn-style; never zero, never negative
 
 | Rung | Source | Score |
 |---|---|---|
-| $E_1$ | exact `current_gtins` | $(1-\epsilon)/K_x$ |
-| $E_2$ | exact `legacy_gtins` | $(1-\gamma)(1-\epsilon)/K_x$ |
-| $E_3$ | exact alias / canonical name | $(1-\epsilon)/K_x^{\alpha}$ |
-| **$E_{3b}$** | **TF-IDF token overlap** ≥ τ_tfidf | **$\text{tfidf}(s,P) \cdot (1-\epsilon)/K_x^{\alpha}$** |
-| $E_4$ | Jaro-Winkler² on canonical name | $\mathrm{JW}(s)^2$ |
+| `gtin_current` (formerly $E_1$) | exact `current_gtins` | $(1-\epsilon)/K_x$ |
+| `gtin_legacy` (formerly $E_2$) | exact `legacy_gtins` | $(1-\gamma)(1-\epsilon)/K_x$ |
+| `alias_exact` (formerly $E_3$) | exact alias / canonical name | $(1-\epsilon)/K_x^{\alpha}$ |
+| **`tfidf_overlap`** (formerly $E_{3b}$) | **TF-IDF token overlap** ≥ τ_tfidf | **$\text{tfidf}(s,P) \cdot (1-\epsilon)/K_x^{\alpha}$** |
+| `fuzzy_jw` (formerly $E_4$) | Jaro-Winkler² on canonical name | $\mathrm{JW}(s)^2$ |
 
-**Empirical effect on the fixture.** The deliberate "Falafel Bowl" Sainsbury row (no GTIN, ambiguous between `Falafel Bowl 350g` and `Falafel Bowl Large`) now resolves via **E3b with K_x = 2** instead of E4 with K_x = 1. Both routes produce NeedsVerification, but E3b's K_x reflects the actual ambiguity in the data — operators see "two candidates tied" rather than "one fuzzy guess."
+**Empirical effect on the fixture.** The deliberate "Falafel Bowl" Sainsbury row (no GTIN, ambiguous between `Falafel Bowl 350g` and `Falafel Bowl Large`) now resolves via **`tfidf_overlap` with K_x = 2** instead of `fuzzy_jw` with K_x = 1. Both routes produce NeedsVerification, but `tfidf_overlap`'s K_x reflects the actual ambiguity in the data — operators see "two candidates tied" rather than "one fuzzy guess."
 
 **Alternatives rejected.**
 
@@ -378,7 +378,7 @@ Smoothed IDF: `log(N / (1 + df)) + 1` (sklearn-style; never zero, never negative
 - Tokenization is whitespace-only. Punctuation handling is implicit (whitespace-collapse strips leading/trailing punctuation but doesn't split `a&b` into `a` and `b`). Trial fixtures don't trigger this; if production data does, the normalizer is the place to extend.
 - The IDF table is built once at `MasterIndex` construction. If the ERP master grows substantially (drops a token's df), recompute by reconstructing the index — there's no incremental update.
 
-**Captured in:** [`src/verdano/mapping/normalize.py`](src/verdano/mapping/normalize.py), [`src/verdano/mapping/tfidf.py`](src/verdano/mapping/tfidf.py), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (cascade integration), [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (Stratum literal extended to `E3b`), [`tests/mapping/test_normalize.py`](tests/mapping/test_normalize.py) (23 tests), [`tests/mapping/test_tfidf.py`](tests/mapping/test_tfidf.py) (7 tests), [`docs/architecture/formalism.md`](docs/architecture/formalism.md) §3.5 (cascade table).
+**Captured in:** [`src/verdano/mapping/normalize.py`](src/verdano/mapping/normalize.py), [`src/verdano/mapping/tfidf.py`](src/verdano/mapping/tfidf.py), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (cascade integration), [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (Stratum registry includes `tfidf_overlap`), [`tests/mapping/test_normalize.py`](tests/mapping/test_normalize.py) (23 tests), [`tests/mapping/test_tfidf.py`](tests/mapping/test_tfidf.py) (7 tests), [`docs/architecture/formalism.md`](docs/architecture/formalism.md) §3.5 (cascade table).
 
 ---
 
@@ -396,7 +396,7 @@ The pre-fix `MasterIndex` appended SKUs to a `defaultdict(list)` for each key. W
 
 **Fix.** Build per-key SKU **sets** during index construction; serialize to sorted lists at the end. Same-SKU duplication can never inflate K_x. Applied uniformly to `current_gtin`, `legacy_gtin`, and `alias` indexes (the GTIN case is defensive — protects against a product listing its own GTIN twice in the master, which the trial fixture doesn't exhibit but a production system might).
 
-### 2. E4 minimum-confidence floor (`e4_min_score`, default 0.30)
+### 2. `fuzzy_jw` (formerly E4) minimum-confidence floor (`e4_min_score`, default 0.30)
 
 Empirical stress test surfaced the failure mode:
 
@@ -412,7 +412,7 @@ Every garbage retailer string returned *some* candidate. The operator UI surface
 
 **Pushback worth recording.** The floor value is itself an unsupervised choice. At trial scope `0.30` is calibrated against the observed JW² range of obvious-garbage inputs (`0.20–0.34`). Production-scope tuning would benefit from labeled review-queue resolutions: count garbage flagged as Unmapped vs. legitimate matches accidentally suppressed, learn the boundary.
 
-### 3. E3b minimum-matched-tokens guard (`tfidf_min_matched_tokens`, default 2)
+### 3. `tfidf_overlap` (formerly E3b) minimum-matched-tokens guard (`tfidf_min_matched_tokens`, default 2)
 
 The TF-IDF score is `Σ_match IDF(t) / Σ_retailer IDF(t)` — normalized by the *retailer's* IDF mass. For a retailer string with a single token that happens to appear in exactly one ERP product (a high-IDF rare token), the ratio is **1.0** — full coverage of retailer information. K_x = 1 (single product matched). Confidence: `1.0 × 0.98 / 1^1.5 = 0.98` → **auto-Resolved**.
 
@@ -469,7 +469,7 @@ The retailer sending the literal string `"VD"` would auto-allocate against Lenti
 
 **Resolution:** All thresholds now live in `src/verdano/config.py::Settings`, inheriting `VERDANO_` env-prefix via pydantic-settings. Non-secret values can be set in `.env` or as env vars; secrets (`llm_api_key`) use `SecretStr`. The MCP server loads `Settings` once at startup and passes values through to the pipeline, resolver, classifier, and drift comparator. Existing default values are preserved — the change is purely structural, no behavioral regression.
 
-**Additionally:** `FulfillmentClass`, `MappingState`, `DriftClass`, and `Stratum` were converted from `Literal` types to `str` aliases with runtime registries (same pattern as `RetailerCode` in D-015). This enables adding new classification tiers, mapping states, or cascade strata without editing source files.
+**Additionally:** `FulfillmentClass`, `MappingState`, `DriftClass`, and `Stratum` were converted from `Literal` types to `str` aliases with runtime registries (same pattern as `RetailerCode` in D-015). This enables adding new classification tiers, mapping states, or cascade strata without editing source files. Strata now use semantic names per D-018.
 
 **Captured in:** [`src/verdano/config.py`](src/verdano/config.py), [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (registries), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (wiring), [`.env.example`](.env.example).
 
@@ -479,18 +479,43 @@ The retailer sending the literal string `"VD"` would auto-allocate against Lenti
 
 **Date:** 2026-05-10
 
-**Context:** Entity resolution strata E1–E4 are purely algorithmic. For ambiguous or novel product names that none of the strata resolve confidently, a language model can provide a contextual fallback. Similarly, depot-string resolution sometimes fails on novel location labels.
+**Context:** Entity resolution strata `gtin_current`–`fuzzy_jw` (formerly E1–E4) are purely algorithmic. For ambiguous or novel product names that none of the strata resolve confidently, a language model can provide a contextual fallback. Similarly, depot-string resolution sometimes fails on novel location labels.
 
 **Resolution:** New `src/verdano/llm/` package with:
 - `LLMClient` protocol + `OpenAIClient` implementation using configurable `base_url` (OpenAI, Azure, Ollama, vLLM all speak the same API).
-- E5 stratum handler (`make_llm_stratum`) that sends top-N fuzzy candidates to the LLM for disambiguation. Plugs into the cascade via the handler chain — no if/elif surgery.
+- `llm_augmented` (formerly E5) stratum handler (`make_llm_stratum`) that sends top-N fuzzy candidates to the LLM for disambiguation. Plugs into the cascade via the handler chain — no if/elif surgery.
 - LLM depot fallback in `depot.py` — if fuzzy match fails and an `LLMClient` is available, asks the LLM to interpret the location label.
 - All LLM features are **optional**: if `VERDANO_LLM_API_KEY` is empty, `create_llm_client` returns `None` and the cascade works exactly as before.
 
 The normalizer was refactored from a monolithic function into a composable `NormalizationPipeline` of `NormalizerStep` callables, enabling extension (brand stripping, stop words) without editing source. The resolver was refactored from hardcoded if/elif blocks to an ordered `StratumHandler` chain.
 
-**Trade-off:** LLM calls add latency and cost. The E5 stratum only fires after E1–E4 fail, and only when configured. Operators can disable it by omitting the API key.
+**Trade-off:** LLM calls add latency and cost. The `llm_augmented` stratum only fires after the algorithmic strata fail, and only when configured. Operators can disable it by omitting the API key.
 
 **Captured in:** [`src/verdano/llm/`](src/verdano/llm/) (client, entity_resolution), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (handler chain), [`src/verdano/mapping/normalize.py`](src/verdano/mapping/normalize.py) (pipeline), [`src/verdano/mapping/depot.py`](src/verdano/mapping/depot.py) (LLM fallback).
+
+---
+
+## D-018: Semantic stratum naming — E-notation replaced with self-documenting identifiers
+
+**Date:** 2026-05-10
+
+**Context:** The cascade strata were labeled `E1`, `E2`, `E3`, `E3b`, `E4`, `E5` — opaque identifiers inherited from the mathematical formalism (`$E_1 \succ E_2 \succ \ldots$`). These names required a lookup table to interpret, made code review harder, and created a maintenance hazard as the cascade grew (e.g. the awkward `E3b` insertion).
+
+**Resolution:** All stratum identifiers renamed to semantic, self-documenting names:
+
+| Legacy | Semantic | Handler function |
+|--------|----------|-----------------|
+| E1 | `gtin_current` | `_handle_gtin_current` |
+| E2 | `gtin_legacy` | `_handle_gtin_legacy` |
+| E3 | `alias_exact` | `_handle_alias_exact` |
+| E3b | `tfidf_overlap` | `_handle_tfidf_overlap` |
+| E4 | `fuzzy_jw` | `_handle_fuzzy_jw` |
+| E5 | `llm_augmented` | `_handle_llm_augmented` |
+
+The rename spans source files, tests, and active documentation. The mathematical formalism (`formalism.md`) retains `$E_1$`–`$E_4$` notation in LaTeX expressions with a cross-reference note; historical transcripts (`raw-truth.md`, `prompts-for-gemini.md`) are left untouched.
+
+**Trade-off:** New strata can now be inserted anywhere in the chain with descriptive names (e.g. `brand_prefix`, `embedding_similarity`) without the E-numbering fragility. Anyone reading older decisions or the formalism can cross-reference via the mapping table above.
+
+**Captured in:** [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (handler renames + DEFAULT_HANDLERS), [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (registry seeds), [`src/verdano/llm/entity_resolution.py`](src/verdano/llm/entity_resolution.py), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py), 8 test files.
 
 ---

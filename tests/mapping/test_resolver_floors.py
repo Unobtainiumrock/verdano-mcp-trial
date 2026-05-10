@@ -42,7 +42,7 @@ def test_kx_does_not_inflate_when_size_normalizer_collapses_name_and_alias() -> 
     res = Resolver(MasterIndex(products))
     r = res.resolve(RetailerProductKey(retailer="sainsburys", name="Tomato Basil Soup 0.5kg"))
     assert r.evidence is not None
-    assert r.evidence.stratum == "E3"
+    assert r.evidence.stratum == "alias_exact"
     # The bug: K_x=2 inflated by the duplicate path. Should be 1.
     assert r.evidence.collision_count == 1
     assert r.state == "Resolved"
@@ -64,7 +64,7 @@ def test_kx_dedup_in_current_gtin_index() -> None:
     )
     r = res.resolve(key)
     assert r.evidence is not None
-    assert r.evidence.stratum == "E1"
+    assert r.evidence.stratum == "gtin_current"
     assert r.evidence.collision_count == 1
 
 
@@ -110,7 +110,7 @@ def test_e3b_does_not_fire_on_single_rare_token_match() -> None:
     # "VD" shares only 1 token (`vd`) with the master.
     r = res.resolve(RetailerProductKey(retailer="sainsburys", name="VD"))
     # Either Unmapped (E4 also fails) or E4 at low conf — but never E3b.
-    assert r.evidence is None or r.evidence.stratum != "E3b"
+    assert r.evidence is None or r.evidence.stratum != "tfidf_overlap"
     # The pre-fix behavior was E3b @ w=0.98; with the guard, it's not auto-resolved.
     assert r.state != "Resolved"
 
@@ -124,7 +124,7 @@ def test_e3b_still_fires_when_two_or_more_tokens_match() -> None:
     res = Resolver(MasterIndex(products))
     r = res.resolve(RetailerProductKey(retailer="sainsburys", name="Falafel Bowl"))
     assert r.evidence is not None
-    assert r.evidence.stratum == "E3b"
+    assert r.evidence.stratum == "tfidf_overlap"
     assert r.evidence.collision_count == 2  # both products share both tokens
     assert r.state == "NeedsVerification"
 
@@ -136,4 +136,4 @@ def test_e3b_min_tokens_is_configurable() -> None:
     r = res.resolve(RetailerProductKey(retailer="sainsburys", name="VD"))
     # With min_tokens=1, the cascade reaches E3b on the single rare match.
     assert r.evidence is not None
-    assert r.evidence.stratum == "E3b"
+    assert r.evidence.stratum == "tfidf_overlap"

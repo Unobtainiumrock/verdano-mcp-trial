@@ -205,7 +205,7 @@ def test_create_drafts_skips_zero_quantity_safe_lines(
     mapping = MappingResult(
         retailer_key=zero_demand.retailer_key, erp_sku="VG-TEST",
         confidence=0.99, state="Resolved",
-        evidence=MappingEvidence(stratum="E1", matched_value="test", collision_count=1),
+        evidence=MappingEvidence(stratum="gtin_current", matched_value="test", collision_count=1),
     )
     zero_safe = FulfillmentClassification(
         demand=zero_demand, mapping=mapping, erp_sku="VG-TEST",

@@ -80,12 +80,12 @@ class ResolverContext:
 
 
 # ---------------------------------------------------------------------------
-# Built-in stratum handlers (E1 – E4)
+# Built-in stratum handlers
 # ---------------------------------------------------------------------------
 
 
-def _handle_e1(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult | None:
-    """E1 — current GTIN exact match."""
+def _handle_gtin_current(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult | None:
+    """Current GTIN exact match."""
     if not key.gtin:
         return None
     candidates = ctx.master.lookup_current_gtin(key.gtin)
@@ -93,11 +93,11 @@ def _handle_e1(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult |
         return None
     k_x = len(candidates)
     w = (1 - ctx.priors.epsilon) / k_x
-    return ctx.build_result(key, candidates[0], w, "E1", key.gtin, k_x)
+    return ctx.build_result(key, candidates[0], w, "gtin_current", key.gtin, k_x)
 
 
-def _handle_e2(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult | None:
-    """E2 — legacy GTIN exact match."""
+def _handle_gtin_legacy(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult | None:
+    """Legacy GTIN exact match."""
     if not key.gtin:
         return None
     candidates = ctx.master.lookup_legacy_gtin(key.gtin)
@@ -105,17 +105,17 @@ def _handle_e2(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult |
         return None
     k_x = len(candidates)
     w = (1 - ctx.priors.gamma) * (1 - ctx.priors.epsilon) / k_x
-    return ctx.build_result(key, candidates[0], w, "E2", key.gtin, k_x)
+    return ctx.build_result(key, candidates[0], w, "gtin_legacy", key.gtin, k_x)
 
 
-def _handle_e3(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult | None:
-    """E3 — alias / canonical-name exact match."""
+def _handle_alias_exact(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult | None:
+    """Alias / canonical-name exact match."""
     candidates = ctx.master.lookup_alias(key.name)
     if not candidates:
         return None
     k_x = len(candidates)
     w = (1 - ctx.priors.epsilon) / (k_x ** ctx.priors.alpha)
-    return ctx.build_result(key, candidates[0], w, "E3", key.name, k_x)
+    return ctx.build_result(key, candidates[0], w, "alias_exact", key.name, k_x)
 
 
 def _count_matched_tokens(
@@ -134,8 +134,8 @@ def _count_matched_tokens(
     return len(retailer_tokens & product_tokens)
 
 
-def _handle_e3b(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult | None:
-    """E3b — TF-IDF token-overlap (per D-013)."""
+def _handle_tfidf_overlap(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult | None:
+    """TF-IDF token-overlap (per D-013)."""
     tfidf_hit = ctx.master.tfidf_lookup(key.name, ctx.tfidf_min_score)
     if tfidf_hit is None:
         return None
@@ -145,11 +145,11 @@ def _handle_e3b(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult 
         return None
     k_x = len(top_skus)
     w = top_score * (1 - ctx.priors.epsilon) / (k_x ** ctx.priors.alpha)
-    return ctx.build_result(key, top_skus[0], w, "E3b", key.name, k_x)
+    return ctx.build_result(key, top_skus[0], w, "tfidf_overlap", key.name, k_x)
 
 
-def _handle_e4(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult | None:
-    """E4 — Jaro-Winkler² fuzzy match on canonical names."""
+def _handle_fuzzy_jw(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult | None:
+    """Jaro-Winkler squared fuzzy match on canonical names."""
     fuzzy = ctx.master.fuzzy_search(key.name)
     if fuzzy is None:
         return None
@@ -161,15 +161,15 @@ def _handle_e4(ctx: ResolverContext, key: RetailerProductKey) -> MappingResult |
     if not candidates:
         return None
     k_x = len(candidates)
-    return ctx.build_result(key, candidates[0], w, "E4", key.name, k_x)
+    return ctx.build_result(key, candidates[0], w, "fuzzy_jw", key.name, k_x)
 
 
 DEFAULT_HANDLERS: list[tuple[str, StratumHandler]] = [
-    ("E1", _handle_e1),
-    ("E2", _handle_e2),
-    ("E3", _handle_e3),
-    ("E3b", _handle_e3b),
-    ("E4", _handle_e4),
+    ("gtin_current", _handle_gtin_current),
+    ("gtin_legacy", _handle_gtin_legacy),
+    ("alias_exact", _handle_alias_exact),
+    ("tfidf_overlap", _handle_tfidf_overlap),
+    ("fuzzy_jw", _handle_fuzzy_jw),
 ]
 
 

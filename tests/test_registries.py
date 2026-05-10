@@ -48,20 +48,20 @@ class TestMappingStateRegistry:
 class TestStratumRegistry:
     def test_builtins_in_order(self) -> None:
         strata = known_strata()
-        assert strata[:5] == ["E1", "E2", "E3", "E3b", "E4"]
+        assert strata[:5] == ["gtin_current", "gtin_legacy", "alias_exact", "tfidf_overlap", "fuzzy_jw"]
 
     def test_register_after(self) -> None:
-        register_stratum("E5_test", after="E4")
+        register_stratum("llm_test", after="fuzzy_jw")
         strata = known_strata()
-        assert "E5_test" in strata
-        e4_idx = strata.index("E4")
-        e5_idx = strata.index("E5_test")
-        assert e5_idx == e4_idx + 1
-        _STRATUM_REGISTRY.remove("E5_test")
+        assert "llm_test" in strata
+        jw_idx = strata.index("fuzzy_jw")
+        llm_idx = strata.index("llm_test")
+        assert llm_idx == jw_idx + 1
+        _STRATUM_REGISTRY.remove("llm_test")
 
     def test_idempotent_registration(self) -> None:
         before = len(known_strata())
-        register_stratum("E1")
+        register_stratum("gtin_current")
         assert len(known_strata()) == before
 
     def test_register_append_default(self) -> None:

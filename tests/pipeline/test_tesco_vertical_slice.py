@@ -54,7 +54,7 @@ def test_tesco_lines_resolve_via_alias_or_better(
             f"{c.mapping.state} via {c.mapping.evidence}"
         )
         assert c.mapping.evidence is not None
-        assert c.mapping.evidence.stratum == "E3"
+        assert c.mapping.evidence.stratum == "alias_exact"
         assert c.mapping.confidence >= 0.95
 
 

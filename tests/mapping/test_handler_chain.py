@@ -33,7 +33,7 @@ def _make_products() -> list[Product]:
 class TestHandlerChain:
     def test_default_handlers_registered(self) -> None:
         names = [name for name, _ in DEFAULT_HANDLERS]
-        assert names == ["E1", "E2", "E3", "E3b", "E4"]
+        assert names == ["gtin_current", "gtin_legacy", "alias_exact", "tfidf_overlap", "fuzzy_jw"]
 
     def test_custom_handler_short_circuits(self) -> None:
         """A custom handler that always returns a result bypasses all defaults."""
@@ -98,7 +98,7 @@ class TestHandlerChain:
         result = resolver.resolve(key)
         assert result.erp_sku == "VG-FALA-300"
         assert result.evidence is not None
-        assert result.evidence.stratum == "E1"
+        assert result.evidence.stratum == "gtin_current"
         assert len(later_called) == 0
 
     def test_resolver_context_exposes_config(self) -> None:

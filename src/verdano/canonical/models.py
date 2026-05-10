@@ -75,7 +75,7 @@ def known_strata() -> list[str]:
     return list(_STRATUM_REGISTRY)
 
 
-for _s in ("E1", "E2", "E3", "E3b", "E4"):
+for _s in ("gtin_current", "gtin_legacy", "alias_exact", "tfidf_overlap", "fuzzy_jw"):
     register_stratum(_s)
 
 
