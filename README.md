@@ -9,7 +9,7 @@
 > ```bash
 > git clone <repo-url> && cd challenge
 > ./scripts/setup-mcp.sh    # installs deps, configures .env, wires Cursor + Claude Desktop
-> uv run pytest              # 168 tests, fully offline
+> uv run pytest              # 177 tests, fully offline
 > ```
 >
 > Then restart Cursor / Claude Desktop and ask: *"Analyze Tesco week 2026-W20"*.
@@ -23,7 +23,7 @@
 > | The math (LaTeX-rendered) | [`docs/architecture/formalism.md`](docs/architecture/formalism.md) — Fellegi-Sunter, change-of-basis, water-filling, FSM/DAG |
 > | Empirical evidence the system works against the live ERP | [`docs/live-run-results.md`](docs/live-run-results.md) — 7 real drafts created, idempotency confirmed |
 > | The four MCP tools | `analyze_week_fulfillment_tool`, `list_review_queue_tool`, `create_drafts_for_safe_lines_tool`, `compare_actuals_vs_forecast_tool` (in [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py)) |
-> | Tests (168 passing, fully offline) | `uv run pytest` |
+> | Tests (177 passing, fully offline) | `uv run pytest` |
 > | Conceptual ontology (CPG primitives) | [`primitives/CPG/`](primitives/CPG/) |
 > | The Gemini conversation transcripts I iterated against | [`raw-truth.md`](docs/process/raw-truth.md) (process artifact, not deliverable) |
 >

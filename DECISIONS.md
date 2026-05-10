@@ -396,7 +396,7 @@ The pre-fix `MasterIndex` appended SKUs to a `defaultdict(list)` for each key. W
 
 **Fix.** Build per-key SKU **sets** during index construction; serialize to sorted lists at the end. Same-SKU duplication can never inflate K_x. Applied uniformly to `current_gtin`, `legacy_gtin`, and `alias` indexes (the GTIN case is defensive — protects against a product listing its own GTIN twice in the master, which the trial fixture doesn't exhibit but a production system might).
 
-### 2. `fuzzy_jw` (formerly E4) minimum-confidence floor (`e4_min_score`, default 0.30)
+### 2. `fuzzy_jw` (formerly E4) minimum-confidence floor (`fuzzy_jw_min_score`, née `e4_min_score`, default 0.30)
 
 Empirical stress test surfaced the failure mode:
 
@@ -408,7 +408,7 @@ Empirical stress test surfaced the failure mode:
 
 Every garbage retailer string returned *some* candidate. The operator UI surfaces these as "Bicycle Tyre might be Chickpea Curry 400g — please verify." That's actively misleading: no candidate is the truthful response. Better to return **Unmapped** below a confidence floor.
 
-**Fix.** Add `e4_min_score` (default `0.30` — empirically catches the worst garbage strings without cutting borderline-legitimate fuzzy matches). Below the floor, the cascade returns `Unmapped` instead of `NeedsVerification` with a wrong candidate.
+**Fix.** Add `fuzzy_jw_min_score` (originally `e4_min_score`, renamed per D-018; default `0.30` — empirically catches the worst garbage strings without cutting borderline-legitimate fuzzy matches). Below the floor, the cascade returns `Unmapped` instead of `NeedsVerification` with a wrong candidate. The legacy env var `VERDANO_E4_MIN_SCORE` is still accepted via a backward-compat alias.
 
 **Pushback worth recording.** The floor value is itself an unsupervised choice. At trial scope `0.30` is calibrated against the observed JW² range of obvious-garbage inputs (`0.20–0.34`). Production-scope tuning would benefit from labeled review-queue resolutions: count garbage flagged as Unmapped vs. legitimate matches accidentally suppressed, learn the boundary.
 

@@ -13,7 +13,7 @@ uv sync
 cp .env.example .env
 # then edit .env and paste in the trial API key from the README brief.
 
-# 3. Confirm everything is wired up (168 tests, fully offline — no .env needed).
+# 3. Confirm everything is wired up (177 tests, fully offline — no .env needed).
 uv run pytest
 
 # 4. Run a one-shot analysis (paste into a Python REPL or a script).
@@ -64,7 +64,7 @@ src/verdano/
 ├── adapters/          single Adapter class + RetailerSpec configs (Tesco, Sainsbury)
 ├── mapping/           cascade resolver (ordered handler chain), normalizer pipeline, depot resolver
 ├── allocation/        FTP math + Safe/AtRisk/AtRiskSevere/NeedsVerification/Blocked classifier
-├── pipeline/          analyze_week_fulfillment — end-to-end DAG
+├── pipeline/          analyze_week_fulfillment DAG + draft-creation logic (drafts.py)
 ├── erp/               hand-rolled HTTP client + Pydantic response models
 ├── llm/               provider-agnostic LLM client + llm_augmented entity resolution stratum (optional)
 ├── mcp_server/        FastMCP server exposing 4 tools
@@ -180,6 +180,7 @@ uv run pytest -v
 | `tests/test_llm.py` | LLM client protocol, factory, `llm_augmented` stratum handler (mocked), depot LLM fallback — confidence gating, JSON error handling (7 tests). |
 | `tests/mapping/test_normalize_pipeline.py` | Composable NormalizationPipeline — individual steps, brand stripping, stop words, pipeline composition, backward compatibility (12 tests). |
 | `tests/mapping/test_handler_chain.py` | Stratum handler chain — default registration, custom handler short-circuit, append, `gtin_current` preemption, config exposure (5 tests). |
+| `tests/adapters/test_aggregation.py` | `_aggregate_to_weekly` unit tests — promo-flag OR-ing, note dedup/sort, quantity summing, grouping-key correctness (9 tests). |
 
 The test suite runs fully offline. ERP responses are replayed from `tests/erp/cassettes/`; the pipeline tests reuse the same cassettes for snapshot construction.
 
