@@ -50,7 +50,7 @@ You will receive:
 - Mock retailer forecast and EPOS CSVs
 - Access to a small mock ERP API
   - Base url: https://erp.corvera.ai
-  - API key: `trial_IxUCtnJZKv6XyF8g-OMSXpQG9Iwe32p7`
+  - API key: `<TRIAL_API_KEY — see the brief sent by the Verdano trial team; redacted from this committed copy for repo hygiene>`
 
 You have full flexibility in choosing the tool design and the implementation approach. That said, we care about the following:
 
