@@ -14,7 +14,7 @@ This document is the **operating index**, not the authority. Authoritative conte
 - **Trial brief:** [`README.md`](README.md), [`ERP API.md`](ERP%20API.md).
 - **Reviewer's usage guide:** [`docs/usage.md`](docs/usage.md) — install, test, demo, MCP wiring.
 
-`MATH-SOT` in Priority Forge is now `in_progress` (iteration #1 integrated). Further iterations expected as the user continues the Gemini conversation; the formalism doc is the primary destination for new mathematical content.
+`MATH-SOT` in Priority Forge is `completed` — all 9 Gemini iterations integrated. D-009 (kernel), D-010 (allocation), D-011 (calibration), D-012 (drift), D-013 (canonicalization), D-014 (cascade floor) are locked.
 
 ## Locked decisions
 
@@ -39,11 +39,11 @@ Each entry below points at its full decision record in [`DECISIONS.md`](DECISION
 
 ## Open questions
 
-1. What is the most critical layer of importance in this process? The adapters, the sources, the normalized facts, or the decisions? Assumption: normalization and decisions are the bulk of the work.
-2. "Mapped forecast to ERP SKU with sufficient confidence" — how is confidence defined / computed?
+1. ~~What is the most critical layer of importance in this process?~~ **Resolved by D-011:** confidence calibration is the linchpin — normalization feeds it, decisions consume it. The cascade (E1→E4) with Fellegi-Sunter posteriors is the operational answer.
+2. ~~"Mapped forecast to ERP SKU with sufficient confidence" — how is confidence defined / computed?~~ **Resolved by D-011:** Fellegi-Sunter unsupervised posteriors for exact strata, JW² for fuzzy stratum, with priors ε=0.02, γ=0.10, α=1.5. Supervised calibrator (Cascaded Classification LR) deferred to ≥200 labels.
 3. Is polymorphism the right call here, or is there a more straightforward way to do things that doesn't lead to overengineering?
    - **Status:** provisionally locked as D-003 with explicit hesitation preserved. Expected to re-examine under a linear-algebra / mapping-of-spaces framing once `primitives/CPG/` lands (tracked as `MATH-SOT`). Adapters may turn out to be better modeled as *morphisms between primitive spaces* than as OOP-polymorphic classes — the polymorphic Pydantic surface is load-bearing scaffolding, not a final commitment.
-4. Should the hallucination-detection framework be included anywhere in the stack for grounded behavior?
+4. ~~Should the hallucination-detection framework be included anywhere in the stack for grounded behavior?~~ **Out of scope:** the pipeline is structured-data-in / structured-data-out; no generative LLM in the path. The MCP server exposes deterministic tools — hallucination risk is zero within the pipeline boundary.
 5. ~~Is a relational DB the sound approach?~~ **Resolved by D-002:** Polars + DuckDB. DuckDB provides a real SQL contract (columnar OLAP); we get the relational benefits without the Postgres setup overhead. See [storage-runtime-decision.md](docs/architecture/storage-runtime-decision.md).
 6. ~~Where do I get the API key?~~ **Resolved:** the trial brief includes it; copy from `README.md` into your `.env` as `VERDANO_ERP_API_KEY` (template in `.env.example`).
 

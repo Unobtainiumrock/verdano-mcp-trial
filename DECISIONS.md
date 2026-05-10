@@ -448,3 +448,15 @@ The retailer sending the literal string `"VD"` would auto-allocate against Lenti
 **Captured in:** [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (`MasterIndex` set-based dedup; `Resolver` floor + min-tokens parameters; `_count_matched_tokens` helper), [`tests/mapping/test_resolver_floors.py`](tests/mapping/test_resolver_floors.py) (7 tests covering all three fixes + their configurability).
 
 ---
+
+## D-015: `RetailerCode` extensibility gap acknowledgement
+
+**Date:** 2026-05-10
+
+**Context:** D-001 claims "no new Python" for onboarding a new retailer. This is true at the adapter spec layer — a new `RetailerSpec` instance is all the application code needs. However, the type system boundary uses `RetailerCode = Literal["tesco", "sainsburys"]`, which requires a code change to extend.
+
+**Rule:** The `Literal`-based `RetailerCode` is acknowledged as a trial-scope decision that trades extensibility for type safety. The config-only onboarding promise applies to the adapter spec layer, not the type system boundary.
+
+**Production upgrade path:** Replace `RetailerCode = Literal[...]` with a `str` constrained by registry lookup (i.e., `get_spec()` validates membership at runtime rather than mypy validating at type-check time). This preserves the error surface while removing the code-change requirement. Alternatively, use an `Enum` auto-populated from the spec registry.
+
+---

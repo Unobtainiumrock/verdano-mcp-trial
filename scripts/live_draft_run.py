@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from verdano.erp import Client
-from verdano.mcp_server.server import build_server
+from verdano.mcp_server.server import build_server, get_tool_handler
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RETAILER = "tesco"
@@ -40,15 +40,11 @@ def _summarize(label: str, payload: dict[str, Any]) -> None:
     print(json.dumps(payload, indent=2, default=str))
 
 
-def _get_handler(server: Any, name: str) -> Any:
-    return server._tool_manager._tools[name].fn
-
-
 def main() -> None:
     server = build_server(project_root=PROJECT_ROOT)
-    analyze = _get_handler(server, "analyze_week_fulfillment_tool")
-    review = _get_handler(server, "list_review_queue_tool")
-    drafts_tool = _get_handler(server, "create_drafts_for_safe_lines_tool")
+    analyze = get_tool_handler(server, "analyze_week_fulfillment_tool")
+    review = get_tool_handler(server, "list_review_queue_tool")
+    drafts_tool = get_tool_handler(server, "create_drafts_for_safe_lines_tool")
 
     # 1. Read-only sanity.
     _summarize(

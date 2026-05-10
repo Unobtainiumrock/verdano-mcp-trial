@@ -12,6 +12,10 @@ clean and reduces failure rate.
 from __future__ import annotations
 
 import hashlib
+import os
+import re
+from collections.abc import Callable
+from contextlib import AbstractContextManager
 from pathlib import Path
 from typing import Any
 
@@ -19,12 +23,24 @@ from mcp.server.fastmcp import FastMCP
 
 from verdano.canonical import RetailerCode
 from verdano.erp import Client, ERPHTTPError, OrderDraftLine, OrderDraftRequest
+
+ErpClientFactory = Callable[[], AbstractContextManager[Client]]
 from verdano.pipeline import (
     ErpSnapshot,
     analyze_forecast_plausibility,
     analyze_week_fulfillment,
     customer_for_retailer,
 )
+
+
+_ISO_WEEK_RE = re.compile(r"^\d{4}-W\d{2}$")
+
+
+def _validate_iso_week(iso_week: str) -> dict[str, Any] | None:
+    """Return an error dict if `iso_week` is malformed, else None."""
+    if not _ISO_WEEK_RE.match(iso_week):
+        return {"error": f"invalid iso_week format {iso_week!r}; expected YYYY-Wnn"}
+    return None
 
 
 # Trial-scope: forecast CSV path is determined by retailer code at the
@@ -62,14 +78,15 @@ def _deterministic_external_reference(
 
 def build_server(
     project_root: Path | None = None,
-    erp_client_factory: Any = None,
+    erp_client_factory: ErpClientFactory | None = None,
 ) -> FastMCP:
     """Construct (but do not run) the MCP server.
 
     Splitting construction from execution lets tests inject a fake client
     and exercise tool behavior without touching the network.
     """
-    project_root = project_root or Path.cwd()
+    env_root = os.environ.get("VERDANO_PROJECT_ROOT")
+    project_root = project_root or (Path(env_root) if env_root else Path.cwd())
     factory = erp_client_factory or Client.from_env
 
     server: FastMCP = FastMCP("verdano-mcp")
@@ -89,6 +106,8 @@ def build_server(
             retailer: One of "tesco" or "sainsburys".
             iso_week: ISO 8601 week, e.g. "2026-W20".
         """
+        if err := _validate_iso_week(iso_week):
+            return err
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
         result = analyze_week_fulfillment(
@@ -114,6 +133,8 @@ def build_server(
             retailer: One of "tesco" or "sainsburys".
             iso_week: ISO 8601 week, e.g. "2026-W20".
         """
+        if err := _validate_iso_week(iso_week):
+            return err
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
         result = analyze_week_fulfillment(
@@ -124,8 +145,7 @@ def build_server(
         )
         review_items = [
             c for c in result.classifications
-            if c.classification in {"Blocked", "AtRiskSevere"}
-            or c.mapping.state == "NeedsVerification"
+            if c.classification in {"Blocked", "AtRiskSevere", "NeedsVerification"}
         ]
         return {
             "retailer": retailer,
@@ -162,6 +182,13 @@ def build_server(
             ship_to_location_id: ERP ship_to id (e.g., "SHIP-TESCO-DAV").
             required_date: ISO date for the draft, e.g. "2026-05-13".
         """
+        if err := _validate_iso_week(iso_week):
+            return err
+        try:
+            from datetime import date as _date
+            req_date = _date.fromisoformat(required_date)
+        except ValueError:
+            return {"error": f"invalid required_date {required_date!r}; expected YYYY-MM-DD"}
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
             result = analyze_week_fulfillment(
@@ -203,9 +230,6 @@ def build_server(
                 else None
             )
             products_by_sku = {p.sku: p for p in erp.products}
-
-            from datetime import date as _date
-            req_date = _date.fromisoformat(required_date)
 
             drafts_created: list[dict[str, Any]] = []
             drafts_existing: list[dict[str, Any]] = []
@@ -306,6 +330,9 @@ def build_server(
             iso_week_forecast: e.g. "2026-W20".
             iso_week_actuals:  e.g. "2026-W19".
         """
+        for wk in (iso_week_forecast, iso_week_actuals):
+            if err := _validate_iso_week(wk):
+                return err
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
         report = analyze_forecast_plausibility(
@@ -319,6 +346,15 @@ def build_server(
         return report.model_dump(mode="json")
 
     return server
+
+
+def get_tool_handler(server: FastMCP, tool_name: str) -> Any:
+    """Retrieve a tool's underlying callable from a FastMCP server.
+
+    Centralizes the internal-API access pattern so tests and scripts have a
+    single call site to update if FastMCP's internal layout changes.
+    """
+    return server._tool_manager._tools[tool_name].fn  # type: ignore[attr-defined]
 
 
 def run() -> None:

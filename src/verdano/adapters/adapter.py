@@ -7,6 +7,7 @@ Python code paths per retailer.
 
 from __future__ import annotations
 
+import logging
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -16,6 +17,8 @@ import polars as pl
 from verdano.adapters.raw import RawActualsLine, RawDemandLine
 from verdano.adapters.spec import RetailerSpec
 from verdano.canonical import RetailerProductKey
+
+logger = logging.getLogger(__name__)
 
 
 class Adapter:
@@ -144,7 +147,12 @@ class Adapter:
     def _truthy(self, v: object) -> bool:
         if v is None:
             return False
-        return str(v) in self._spec.promo_flag_truthy
+        s = str(v)
+        if s in self._spec.promo_flag_truthy:
+            return True
+        if s.strip():
+            logger.warning("unrecognized promo flag value %r; treating as False", s)
+        return False
 
     @staticmethod
     def _aggregate_to_weekly(rows: list[RawDemandLine]) -> list[RawDemandLine]:
@@ -181,7 +189,7 @@ class Adapter:
                     raw_unit_mode=head.raw_unit_mode,
                     promo_flag=promo_any,
                     notes=notes,
-                    inferred=False,
+                    inferred=True,
                 )
             )
         return agg

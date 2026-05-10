@@ -1124,6 +1124,7 @@ name = "verdano-mcp"
 version = "0.0.1"
 source = { editable = "." }
 dependencies = [
+    { name = "certifi" },
     { name = "duckdb" },
     { name = "httpx" },
     { name = "mcp" },
@@ -1139,11 +1140,13 @@ dev = [
     { name = "mypy" },
     { name = "pytest" },
     { name = "pytest-recording" },
+    { name = "pyyaml" },
     { name = "ruff" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "certifi", specifier = ">=2024.0.0" },
     { name = "duckdb", specifier = ">=1.0" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "mcp", specifier = ">=1.0" },
@@ -1159,6 +1162,7 @@ dev = [
     { name = "mypy", specifier = ">=1.10" },
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-recording", specifier = ">=0.13" },
+    { name = "pyyaml", specifier = ">=6.0" },
     { name = "ruff", specifier = ">=0.6" },
 ]
 

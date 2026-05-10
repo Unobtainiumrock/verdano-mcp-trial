@@ -76,8 +76,7 @@ def test_berry_smoothie_fires_legacy_gtin_stratum(
     # Obsolescence penalty γ = 0.10 → confidence (1-0.10)(1-0.02)/1 = 0.882
     assert abs(berry.mapping.confidence - 0.882) < 1e-3
     assert berry.mapping.state == "NeedsVerification"
-    # Cannot compute FTP for an unverified mapping; classifier routes to Blocked.
-    assert berry.classification == "Blocked"
+    assert berry.classification == "NeedsVerification"
 
 
 def test_no_gtin_falafel_bowl_routes_to_review(
@@ -109,7 +108,7 @@ def test_no_gtin_falafel_bowl_routes_to_review(
     assert falafel.mapping.evidence.stratum == "E3b"
     assert falafel.mapping.evidence.collision_count == 2
     assert falafel.mapping.state == "NeedsVerification"
-    assert falafel.classification == "Blocked"
+    assert falafel.classification == "NeedsVerification"
 
 
 def test_units_to_cases_conversion_is_ceiling(

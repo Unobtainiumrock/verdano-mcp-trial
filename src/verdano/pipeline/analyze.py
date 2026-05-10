@@ -7,12 +7,15 @@ or MCP wrapping.
 
 from __future__ import annotations
 
+import logging
 import math
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
+
+logger = logging.getLogger(__name__)
 
 from verdano.adapters import Adapter, get_spec
 from verdano.adapters.raw import RawDemandLine
@@ -76,7 +79,7 @@ def customer_for_retailer(
     Heuristic: case-insensitive substring match of the retailer code on the
     sold-to customer name. Trial fixtures use `Tesco UK` / `Sainsbury's UK`.
     """
-    needle = retailer.lower().rstrip("s")  # strip plural; matches both "sainsburys" → "sainsbury"
+    needle = retailer.lower().removesuffix("s")
     for c in customers:
         if c.type == "sold_to" and needle in c.name.lower():
             return c
@@ -98,15 +101,20 @@ def case_pack_convert(
     `quantity_cases = 0` so it can be classified as `Blocked` downstream.
     The conversion intentionally does not raise — separation of concerns.
     """
+    inferred = raw.inferred
     if raw.raw_unit_mode == "cases":
         cases = raw.raw_quantity
     elif raw.raw_unit_mode == "units" and mapping.erp_sku is not None:
         product = products_by_sku.get(mapping.erp_sku)
+        if product is None:
+            logger.warning(
+                "mapped sku %s not in products_by_sku; defaulting case_pack=1",
+                mapping.erp_sku,
+            )
+            inferred = True
         case_pack = product.case_pack if product else 1
         cases = math.ceil(raw.raw_quantity / case_pack)
     else:
-        # Units source with no mapping; cannot convert safely. Mark 0 cases;
-        # classifier will route to Blocked anyway.
         cases = 0
 
     return CanonicalDemandLine(
@@ -117,7 +125,7 @@ def case_pack_convert(
         quantity_cases=cases,
         promo_flag=raw.promo_flag,
         notes=raw.notes,
-        inferred=raw.inferred,
+        inferred=inferred,
     )
 
 
@@ -187,5 +195,6 @@ _ALL_CLASSES: tuple[FulfillmentClass, ...] = (
     "Safe",
     "AtRisk",
     "AtRiskSevere",
+    "NeedsVerification",
     "Blocked",
 )

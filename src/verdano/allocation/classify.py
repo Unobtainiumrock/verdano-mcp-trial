@@ -2,10 +2,11 @@
 
 Per D-010 + formalism §5.3:
 
-    Safe          if ftp ≥ demand
-    AtRisk        if τ_safe ≤ ftp/demand < 1   (auto-allocate per pro-rata)
-    AtRiskSevere  if ftp/demand < τ_safe       (human review)
-    Blocked       if mapping is unresolved
+    Safe               if ftp ≥ demand
+    AtRisk             if τ_safe ≤ ftp/demand < 1   (auto-allocate per pro-rata)
+    AtRiskSevere       if ftp/demand < τ_safe       (human review)
+    NeedsVerification  if mapping has a candidate below auto-threshold
+    Blocked            if mapping is unresolved (no candidate)
 
 `τ_safe` is config-declared with default 0.90 (D-010, locked as pattern not
 constant).
@@ -58,7 +59,7 @@ class Classifier:
                 erp_sku=mapping.erp_sku,
                 ftp_cases=None,
                 fill_rate=None,
-                classification="Blocked",
+                classification="NeedsVerification",
                 reason=(
                     f"mapping needs human verification "
                     f"(stratum={mapping.evidence.stratum if mapping.evidence else '?'}, "

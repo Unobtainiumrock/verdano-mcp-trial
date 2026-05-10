@@ -44,7 +44,7 @@ class RawActualsLine(_Strict):
     """Adapter output for EPOS / actuals.
 
     Unlike forecasts, EPOS is always in consumer units (eaches) by definition,
-    so `quantity_units` is the canonical field directly. No conversion needed
+    so `units_sold` is the canonical field directly. No conversion needed
     until the drift-detection layer (out of scope for the trial).
     """
 

@@ -115,7 +115,8 @@ class RetailerSpec(BaseModel):
     has no flag column — leave default."""
 
     dow_kernel: DOWKernel = Field(default_factory=DOWKernel)
-    """For weekly→daily disaggregation. Trial default is the UK-grocery profile."""
+    """Defined for D-009 compliance but not consumed until weekly-to-daily
+    disaggregation is implemented. Trial default is the UK-grocery profile."""
 
 
 # ---------------------------------------------------------------------------
@@ -176,4 +177,10 @@ _REGISTRY: dict[RetailerCode, RetailerSpec] = {
 
 def get_spec(retailer: RetailerCode) -> RetailerSpec:
     """Look up the registered spec for a retailer code."""
-    return _REGISTRY[retailer]
+    spec = _REGISTRY.get(retailer)
+    if spec is None:
+        raise ValueError(
+            f"no adapter spec registered for retailer {retailer!r}; "
+            f"known retailers: {sorted(_REGISTRY)}"
+        )
+    return spec

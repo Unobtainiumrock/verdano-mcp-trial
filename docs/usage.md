@@ -13,7 +13,7 @@ uv sync
 cp .env.example .env
 # then edit .env and paste in the trial API key from the README brief.
 
-# 3. Confirm everything is wired up (33 tests, fully offline — no .env needed).
+# 3. Confirm everything is wired up (96 tests, fully offline — no .env needed).
 uv run pytest
 
 # 4. Run a one-shot analysis (paste into a Python REPL or a script).
@@ -63,7 +63,7 @@ src/verdano/
 ├── canonical/         entity contracts (CanonicalDemandLine, MappingResult, etc.)
 ├── adapters/          single Adapter class + RetailerSpec configs (Tesco, Sainsbury)
 ├── mapping/           cascade resolver (Fellegi-Sunter + Jaro-Winkler²)
-├── allocation/        FTP math + Safe/AtRisk/Blocked classifier
+├── allocation/        FTP math + Safe/AtRisk/AtRiskSevere/NeedsVerification/Blocked classifier
 ├── pipeline/          analyze_week_fulfillment — end-to-end DAG
 ├── erp/               hand-rolled HTTP client + Pydantic response models
 ├── mcp_server/        FastMCP server exposing 3 tools
@@ -81,7 +81,7 @@ docs/
 │   └── storage-runtime-decision.md        Polars + DuckDB decision memo
 └── usage.md           this file
 
-DECISIONS.md           chronological D-001..D-011 with rationale + alternatives
+DECISIONS.md           chronological D-001..D-014 with rationale + alternatives
 working-doc.md         operating index — open questions, locked decisions, gotchas
 raw_truth.md           Gemini conversation transcripts (1..9)
 prompts-for-gemini.md  prompts for future iterations of MATH-SOT
@@ -131,7 +131,10 @@ uv run pytest -v
 | `tests/erp/` | ERP HTTP client behavior — every endpoint, idempotency invariant, offline cassette replay (8 tests). |
 | `tests/pipeline/test_tesco_vertical_slice.py` | End-to-end pipeline against the Tesco fixture: classification, falafel bowl distinctness, Safe-line FTP invariant, determinism (9 tests). |
 | `tests/pipeline/test_sainsburys_config_only.py` | Validates that onboarding Sainsbury required *no new Python* — only the `SAINSBURYS_SPEC` instance. Verifies legacy-GTIN routing, no-GTIN fuzzy fallback, units→cases ceiling (5 tests). |
-| `tests/mcp_server/` | MCP tool surface against a faked ERP client. Smoke-confirms the wrapping is wired up (3 tests). |
+| `tests/allocation/test_ftp.py` | FTPCalculator unit tests — band filtering, open-order week filtering, `sold_to=None` conservative path, negative FTP clamping, unknown SKU (8 tests). |
+| `tests/allocation/test_classifier.py` | Classifier unit tests — Safe, AtRisk, AtRiskSevere, NeedsVerification, Blocked, zero-demand (6 tests). |
+| `tests/mcp_server/` | MCP tool surface against a faked ERP client. Draft-tool validation errors, iso_week rejection, exact classification counts (9 tests). |
+| `tests/test_negative.py` | Error paths — empty/malformed CSV, invalid drift thresholds, unknown retailer spec (6 tests). |
 
 The test suite runs fully offline. ERP responses are replayed from `tests/erp/cassettes/`; the pipeline tests reuse the same cassettes for snapshot construction.
 
@@ -147,7 +150,7 @@ uv run python scripts/live_draft_run.py
 
 For reviewers wanting to see the design reasoning rather than just the code:
 
-- **[`DECISIONS.md`](../DECISIONS.md)** — 11 chronological decisions, each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration) are the load-bearing ones.
+- **[`DECISIONS.md`](../DECISIONS.md)** — 14 chronological decisions, each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration) are the load-bearing ones.
 
 - **[`docs/architecture/formalism.md`](architecture/formalism.md)** — LaTeX-rendered mathematical model. §3 (entity resolution as stratified bipartite matching with FS posteriors), §4 (demand alignment as change-of-basis with non-trivial null space), §5 (allocation as constrained LP with water-filling), §6 (FSM-DAG interlock), §8 (10 explicit pushbacks against the Gemini source where the math diverged from the project's needs).
 
@@ -167,9 +170,28 @@ uv run pytest tests/erp/ --record-mode=once
 
 The bearer token is scrubbed automatically (`tests/conftest.py` filters the `Authorization` header). Re-runs after recording are offline — `record_mode` defaults to `none`.
 
+## Trial scope vs production roadmap
+
+The trial ships a complete, tested end-to-end pipeline. Several capabilities were designed and documented but intentionally deferred because the trial fixture doesn't provide the data to exercise them. The table below consolidates all such items so reviewers can see the multi-phase story in one place.
+
+| Item | Trial ships | Production upgrade | Decision ref |
+|------|------------|-------------------|--------------|
+| DuckDB persistence (cache + audit) | Dep wired, config ready, schema designed | Implement cache tables per D-002 memo | D-002 |
+| DOW kernel consumption | Static profile on spec | Pipeline disaggregation using `dow_kernel` | D-009 |
+| Simplex-NNLS learned kernel | Static config | At >= 26 weeks EPOS | D-009 |
+| Supervised calibrator (Cascaded Classification LR) | Fellegi-Sunter + JW² unsupervised | At >= 200 labels | D-011 |
+| Isotonic regression calibrator | n/a | At >= 1000 labels, replace LR-as-calibrator | D-011 |
+| Classical residual drift | Lagged-actuals plausibility (D-012) | When same-period forecast+actuals pair exists | D-006, D-012 |
+| Markov drift detection | Reserved | Multi-week residual history | D-006 |
+| Temperature-band confidence penalty | Documented, deferred | Pass band through RetailerProductKey | formalism §3.2 |
+| Retailer-depot-string mapping | ship_to passed explicitly | Parallel adapter problem | working-doc #3 |
+| Brand-prefix / stop-word normalization | Deferred | When fixture forces it | D-013 |
+| `RetailerCode` runtime extensibility | `Literal`-based (D-015) | Registry-constrained `str` | D-015 |
+
 ## Non-goals (deliberate)
 
 - Drift detection (formalism §9.2) — named, deferred.
 - Retailer-depot-string → `ship_to_location_id` mapping — `create_drafts_for_safe_lines_tool` takes the ship-to id explicitly. The parallel adapter is acknowledged in `working-doc.md` Design gaps #3.
 - Supervised Cascaded Classification calibrator — D-011 names the path; trial scope ships only the unsupervised Fellegi-Sunter posteriors.
 - Production-grade DOW kernel learning — D-009 uses the static UK-grocery profile; the simplex-NNLS upgrade path is documented for ≥ ~26 weeks of EPOS.
+- Temperature-band confidence penalty — documented in formalism §3.2; deferred because the resolver doesn't have access to the retailer-side band at its call site. Production scope: pass band through `RetailerProductKey` or as a resolver parameter.

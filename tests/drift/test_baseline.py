@@ -14,7 +14,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from verdano.mcp_server.server import build_server
+from verdano.mcp_server.server import build_server, get_tool_handler
 from verdano.pipeline import (
     ErpSnapshot,
     analyze_forecast_plausibility,
@@ -155,8 +155,7 @@ def test_drift_mcp_tool_wiring(project_root: Path, fake_client_factory: Any) -> 
     """The compare_actuals_vs_forecast_tool returns a structured DriftReport
     via the FastMCP-registered handler against a faked client."""
     server = build_server(project_root=project_root, erp_client_factory=fake_client_factory)
-    tool = server._tool_manager._tools["compare_actuals_vs_forecast_tool"]
-    handler = tool.fn
+    handler = get_tool_handler(server, "compare_actuals_vs_forecast_tool")
     result = handler(
         retailer="tesco",
         iso_week_forecast="2026-W20",

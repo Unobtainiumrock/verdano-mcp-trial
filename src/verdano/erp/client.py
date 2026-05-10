@@ -74,9 +74,12 @@ def _resolve_ssl_context() -> ssl.SSLContext:
     for extra in extras:
         bundle_bytes += b"\n" + Path(extra).read_bytes()
     fd, path = tempfile.mkstemp(suffix=".pem", prefix="verdano-ca-")
-    with os.fdopen(fd, "wb") as f:
-        f.write(bundle_bytes)
-    _CONTEXT_CACHE = ssl.create_default_context(cafile=path)
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(bundle_bytes)
+        _CONTEXT_CACHE = ssl.create_default_context(cafile=path)
+    finally:
+        os.unlink(path)
     return _CONTEXT_CACHE
 
 
@@ -87,8 +90,13 @@ class ERPError(Exception):
 class ERPHTTPError(ERPError):
     """Raised when the ERP returns a non-2xx response."""
 
+    _MAX_BODY_REPR = 200
+
     def __init__(self, status_code: int, body: Any, request_url: str) -> None:
-        super().__init__(f"ERP {status_code} for {request_url}: {body!r}")
+        body_repr = repr(body)
+        if len(body_repr) > self._MAX_BODY_REPR:
+            body_repr = body_repr[: self._MAX_BODY_REPR] + "..."
+        super().__init__(f"ERP {status_code} for {request_url}: {body_repr}")
         self.status_code = status_code
         self.body = body
         self.request_url = request_url
@@ -134,7 +142,9 @@ class Client(AbstractContextManager["Client"]):
     def close(self) -> None:
         self._http.close()
 
-    def _request(self, method: str, path: str, **kwargs: Any) -> Any:
+    def _request(
+        self, method: str, path: str, **kwargs: Any
+    ) -> dict[str, Any] | list[Any]:
         response = self._http.request(method, path, **kwargs)
         if response.status_code >= 400:
             try:
@@ -142,7 +152,7 @@ class Client(AbstractContextManager["Client"]):
             except ValueError:
                 body = response.text
             raise ERPHTTPError(response.status_code, body, str(response.request.url))
-        return response.json()
+        return response.json()  # type: ignore[no-any-return]
 
     def get_health(self) -> Health:
         return Health.model_validate(self._request("GET", "/health"))

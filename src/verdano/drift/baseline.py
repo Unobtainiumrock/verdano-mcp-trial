@@ -114,7 +114,7 @@ class BaselineCompare:
                 # the ratio is degenerate. Flag as `ok` with a known-unknown.
                 direction = "ok"
                 reason = (
-                    f"no W{iso_week_actuals} actuals for sku {mapping.erp_sku}; "
+                    f"no {iso_week_actuals} actuals for sku {mapping.erp_sku}; "
                     f"baseline check inapplicable"
                 )
             elif ratio < self._lo:

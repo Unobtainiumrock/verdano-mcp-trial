@@ -16,11 +16,7 @@ from typing import Any
 
 import pytest
 
-from verdano.mcp_server.server import build_server
-
-
-def _get_handler(server: Any, name: str) -> Any:
-    return server._tool_manager._tools[name].fn
+from verdano.mcp_server.server import build_server, get_tool_handler as _get_handler
 
 
 @pytest.mark.vcr

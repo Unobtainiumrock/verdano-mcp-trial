@@ -37,9 +37,13 @@ auto-maps, NeedsVerification surfaces a candidate to verify, Unmapped surfaces
 a retailer line with no candidate at all."""
 
 
-FulfillmentClass = Literal["Safe", "AtRisk", "AtRiskSevere", "Blocked"]
-"""Per D-010 + formalism §5.3.3. Blocked is upstream of FTP (mapping unresolved).
-AtRiskSevere is the supply-constrained tripwire from D-010."""
+FulfillmentClass = Literal[
+    "Safe", "AtRisk", "AtRiskSevere", "NeedsVerification", "Blocked",
+]
+"""Per D-010 + formalism §5.3.3.
+NeedsVerification: mapping produced a candidate but below auto-threshold.
+Blocked: no mapping candidate at all (upstream of FTP).
+AtRiskSevere: supply-constrained tripwire from D-010."""
 
 
 class _Strict(BaseModel):
