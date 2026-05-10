@@ -167,3 +167,58 @@ def test_tesco_analyze_exact_line_count(
     handler = _get_tool_handler(server, "analyze_week_fulfillment_tool")
     result = handler(retailer="tesco", iso_week="2026-W20")
     assert sum(result["summary"].values()) == 12
+
+
+# -- 4f: Zero-quantity Safe lines skipped in draft tool -----------------
+
+
+def test_create_drafts_skips_zero_quantity_safe_lines(
+    project_root: Path, fake_client_factory: Any
+) -> None:
+    """Safe lines with quantity_cases=0 must not produce draft requests."""
+    from unittest.mock import patch as mock_patch
+
+    from verdano.canonical import (
+        CanonicalDemandLine,
+        FulfillmentClassification,
+        MappingEvidence,
+        MappingResult,
+        RetailerProductKey,
+    )
+    from verdano.pipeline import AnalysisResult
+
+    zero_demand = CanonicalDemandLine(
+        retailer="tesco", iso_week="2026-W20",
+        retailer_key=RetailerProductKey(retailer="tesco", name="Zero Qty Product"),
+        location_label="Daventry", quantity_cases=0,
+    )
+    mapping = MappingResult(
+        retailer_key=zero_demand.retailer_key, erp_sku="VG-TEST",
+        confidence=0.99, state="Resolved",
+        evidence=MappingEvidence(stratum="E1", matched_value="test", collision_count=1),
+    )
+    zero_safe = FulfillmentClassification(
+        demand=zero_demand, mapping=mapping, erp_sku="VG-TEST",
+        ftp_cases=100, fill_rate=None, classification="Safe",
+        reason="demand is 0; nothing to fulfill",
+    )
+    fake_result = AnalysisResult(
+        retailer="tesco", iso_week="2026-W20",
+        classifications=[zero_safe],
+        summary={"Safe": 1},
+    )
+
+    server = build_server(project_root=project_root, erp_client_factory=fake_client_factory)
+    handler = _get_tool_handler(server, "create_drafts_for_safe_lines_tool")
+
+    with mock_patch(
+        "verdano.mcp_server.server.analyze_week_fulfillment", return_value=fake_result,
+    ):
+        result = handler(
+            retailer="tesco", iso_week="2026-W20",
+            ship_to_location_id="SHIP-TESCO-DAV",
+            required_date="2026-05-13",
+        )
+
+    assert result["drafts_created"] == []
+    assert result["drafts_existing"] == []

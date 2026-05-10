@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from datetime import datetime
 
+import pytest
+
 from verdano.allocation.classify import Classifier
 from verdano.allocation.ftp import FTPCalculator
 from verdano.canonical import (
@@ -111,3 +113,61 @@ def test_safe_when_demand_zero() -> None:
     c = Classifier(_ftp(100), tau_safe=0.90)
     result = c.classify(_demand(0), _resolved(), None)
     assert result.classification == "Safe"
+
+
+# --- threshold boundary tests ---
+
+
+def test_exact_tau_safe_boundary_is_at_risk() -> None:
+    """fill rate = 9/10 = 0.90 exactly — should be AtRisk (>= tau_safe), not AtRiskSevere."""
+    c = Classifier(_ftp(9), tau_safe=0.90)
+    result = c.classify(_demand(10), _resolved(), None)
+    assert result.classification == "AtRisk"
+    assert result.fill_rate == pytest.approx(0.9)
+
+
+def test_just_below_tau_safe_is_at_risk_severe() -> None:
+    """fill rate = 89/100 = 0.89 — strictly below tau_safe, AtRiskSevere."""
+    c = Classifier(_ftp(89), tau_safe=0.90)
+    result = c.classify(_demand(100), _resolved(), None)
+    assert result.classification == "AtRiskSevere"
+    assert result.fill_rate == pytest.approx(0.89)
+
+
+def _ftp_frozen(avail: int = 100) -> FTPCalculator:
+    """FTPCalculator with frozen temperature band warehouse."""
+    return FTPCalculator(
+        products=[Product(
+            sku="VG-FROZEN", name="Frozen Peas", category="frozen veg",
+            temperature_band="frozen", case_pack=6,
+            current_gtins=[], legacy_gtins=[], aliases=[], status="active",
+        )],
+        warehouses=[Warehouse(id="WH-F", name="WH-F", temperature_band="frozen")],
+        inventory=[InventoryPosition(
+            sku="VG-FROZEN", warehouse_id="WH-F",
+            available_cases=avail, allocated_cases=0, as_of=_NOW,
+        )],
+        open_orders=[],
+    )
+
+
+def _resolved_frozen() -> MappingResult:
+    return MappingResult(
+        retailer_key=_key(), erp_sku="VG-FROZEN", confidence=0.98,
+        state="Resolved",
+        evidence=MappingEvidence(stratum="E1", matched_value="test", collision_count=1),
+    )
+
+
+def test_safe_with_frozen_temperature_band() -> None:
+    """Frozen band should classify identically to chilled; no band-specific logic in Classifier."""
+    c = Classifier(_ftp_frozen(100), tau_safe=0.90)
+    result = c.classify(_demand(10), _resolved_frozen(), None)
+    assert result.classification == "Safe"
+    assert result.erp_sku == "VG-FROZEN"
+
+
+def test_at_risk_severe_with_frozen_band() -> None:
+    c = Classifier(_ftp_frozen(5), tau_safe=0.90)
+    result = c.classify(_demand(10), _resolved_frozen(), None)
+    assert result.classification == "AtRiskSevere"

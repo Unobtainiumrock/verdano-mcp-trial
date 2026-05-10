@@ -13,7 +13,7 @@ uv sync
 cp .env.example .env
 # then edit .env and paste in the trial API key from the README brief.
 
-# 3. Confirm everything is wired up (96 tests, fully offline — no .env needed).
+# 3. Confirm everything is wired up (127 tests, fully offline — no .env needed).
 uv run pytest
 
 # 4. Run a one-shot analysis (paste into a Python REPL or a script).
@@ -152,7 +152,7 @@ The server speaks stdio transport — it is launched by the MCP host automatical
 |---|---|
 | `analyze_week_fulfillment_tool(retailer, iso_week)` | Compare retailer forecast vs ERP supply for a given ISO week. Returns Safe / AtRisk / AtRiskSevere / Blocked per line, with operator-readable reasoning. |
 | `list_review_queue_tool(retailer, iso_week)` | Filter to only the lines requiring human review (Blocked + AtRiskSevere + low-confidence mappings). The operator's first surface. |
-| `create_drafts_for_safe_lines_tool(retailer, iso_week, ship_to_location_id, required_date)` | Create `OrderDraft`s for every Safe-classified line at the given ship_to. Pre-filters cross-band SKUs (returned in `skipped`); catches per-line ERP errors (`failed`). Idempotent by deterministic `external_reference = sha256(retailer, sku, week, ship_to)` so re-runs return `existing` for previously-created drafts. |
+| `create_drafts_for_safe_lines_tool(retailer, iso_week, required_date, ship_to_location_id?)` | Create `OrderDraft`s for every Safe-classified line. `ship_to_location_id` is optional — if omitted, the depot resolver auto-resolves from the first forecast line's location label (substring + fuzzy match). Pre-filters cross-band SKUs (`skipped`), catches per-line ERP errors (`failed`). Idempotent via `external_reference = sha256(retailer, sku, week, ship_to)`. |
 | `compare_actuals_vs_forecast_tool(retailer, iso_week_forecast, iso_week_actuals)` | **Lagged-actuals plausibility check**, not classical residual drift (per D-012). Computes ratio `forecast_eaches / max(actuals_eaches, 1)` per resolved SKU, threshold-flags as high/low/ok, segments out promo-flagged forecast rows. The fixture's W19 actuals + W20 forecast forces this framing — Markov-style true drift requires a same-period forecast/actuals pair which the fixture doesn't provide. See [DECISIONS.md D-012](../DECISIONS.md) and [formalism §10](architecture/formalism.md). |
 
 Tools are coarse-grained intentionally (per Gemini iteration 4 + the morphism formalism in `docs/architecture/formalism.md` §6.2) — the LLM gets one round-trip per question.
@@ -169,11 +169,12 @@ uv run pytest -v
 | `tests/pipeline/test_tesco_vertical_slice.py` | End-to-end pipeline against the Tesco fixture: classification, falafel bowl distinctness, Safe-line FTP invariant, determinism (9 tests). |
 | `tests/pipeline/test_sainsburys_config_only.py` | Validates that onboarding Sainsbury required *no new Python* — only the `SAINSBURYS_SPEC` instance. Verifies legacy-GTIN routing, no-GTIN fuzzy fallback, units→cases ceiling (5 tests). |
 | `tests/allocation/test_ftp.py` | FTPCalculator unit tests — band filtering, open-order week filtering, `sold_to=None` conservative path, negative FTP clamping, unknown SKU (8 tests). |
-| `tests/allocation/test_classifier.py` | Classifier unit tests — Safe, AtRisk, AtRiskSevere, NeedsVerification, Blocked, zero-demand (6 tests). |
-| `tests/mcp_server/` | MCP tool surface against a faked ERP client. Draft-tool validation errors, iso_week rejection, exact classification counts, live-cassette regression (11 tests). |
+| `tests/allocation/test_classifier.py` | Classifier unit tests — Safe, AtRisk, AtRiskSevere, NeedsVerification, Blocked, zero-demand, threshold boundaries, frozen band (10 tests). |
+| `tests/mcp_server/` | MCP tool surface against a faked ERP client. Draft-tool validation errors, iso_week rejection, exact classification counts, zero-qty skip, live-cassette regression (12 tests). |
 | `tests/drift/` | Lagged-actuals plausibility / drift comparison — ratio logic, promo segmentation, MCP tool wiring (7 tests). |
-| `tests/mapping/` | Cascade resolver, TF-IDF index, normalizer — stratified matching, collision handling, floor gating, Jaro-Winkler scoring (37 tests). |
-| `tests/test_negative.py` | Error paths — empty/malformed CSV, invalid drift thresholds, unknown retailer spec (6 tests). |
+| `tests/mapping/` | Cascade resolver, TF-IDF index, normalizer, depot resolver — stratified matching, collision handling, floor gating, Jaro-Winkler scoring, depot auto-resolution (46 tests). |
+| `tests/test_negative.py` | Error paths — empty/malformed CSV, non-numeric quantities, float truncation, invalid drift thresholds, unknown retailer spec, registry validation (13 tests). |
+| `tests/test_config.py` | Config resolution (`_find_env_file` paths) and `_validate_iso_week` edge cases (10 tests). |
 
 The test suite runs fully offline. ERP responses are replayed from `tests/erp/cassettes/`; the pipeline tests reuse the same cassettes for snapshot construction.
 
@@ -223,14 +224,14 @@ The trial ships a complete, tested end-to-end pipeline. Several capabilities wer
 | Classical residual drift | Lagged-actuals plausibility (D-012) | When same-period forecast+actuals pair exists | D-006, D-012 |
 | Markov drift detection | Reserved | Multi-week residual history | D-006 |
 | Temperature-band confidence penalty | Documented, deferred | Pass band through RetailerProductKey | formalism §3.2 |
-| Retailer-depot-string mapping | ship_to passed explicitly | Parallel adapter problem | working-doc #3 |
+| Retailer-depot-string mapping | Depot resolver (substring + fuzzy) with optional explicit override | Implemented in `mapping/depot.py` | D-015 |
 | Brand-prefix / stop-word normalization | Deferred | When fixture forces it | D-013 |
-| `RetailerCode` runtime extensibility | `Literal`-based (D-015) | Registry-constrained `str` | D-015 |
+| `RetailerCode` runtime extensibility | Registry-constrained `str` (implemented) | `register_retailer()` + `validate_retailer_code()` | D-015 |
 
 ## Non-goals (deliberate)
 
 - Drift detection (formalism §9.2) — named, deferred.
-- Retailer-depot-string → `ship_to_location_id` mapping — `create_drafts_for_safe_lines_tool` takes the ship-to id explicitly. The parallel adapter is acknowledged in `working-doc.md` Design gaps #3.
+- Retailer-depot-string → `ship_to_location_id` mapping — now auto-resolved by `mapping/depot.py` (substring + fuzzy). `create_drafts_for_safe_lines_tool` still accepts an explicit override.
 - Supervised Cascaded Classification calibrator — D-011 names the path; trial scope ships only the unsupervised Fellegi-Sunter posteriors.
 - Production-grade DOW kernel learning — D-009 uses the static UK-grocery profile; the simplex-NNLS upgrade path is documented for ≥ ~26 weeks of EPOS.
 - Temperature-band confidence penalty — documented in formalism §3.2; deferred because the resolver doesn't have access to the retailer-side band at its call site. Production scope: pass band through `RetailerProductKey` or as a resolver parameter.

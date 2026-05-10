@@ -449,14 +449,14 @@ The retailer sending the literal string `"VD"` would auto-allocate against Lenti
 
 ---
 
-## D-015: `RetailerCode` extensibility gap acknowledgement
+## D-015: `RetailerCode` extensibility — registry pattern implemented
 
-**Date:** 2026-05-10
+**Date:** 2026-05-10 | **Updated:** 2026-05-10
 
-**Context:** D-001 claims "no new Python" for onboarding a new retailer. This is true at the adapter spec layer — a new `RetailerSpec` instance is all the application code needs. However, the type system boundary uses `RetailerCode = Literal["tesco", "sainsburys"]`, which requires a code change to extend.
+**Context:** D-001 claims "no new Python" for onboarding a new retailer. This is true at the adapter spec layer — a new `RetailerSpec` instance is all the application code needs. The type system boundary previously used `RetailerCode = Literal["tesco", "sainsburys"]`, requiring a code change to extend.
 
-**Rule:** The `Literal`-based `RetailerCode` is acknowledged as a trial-scope decision that trades extensibility for type safety. The config-only onboarding promise applies to the adapter spec layer, not the type system boundary.
+**Resolution:** `RetailerCode` is now a plain `str` alias with a runtime registry. `register_retailer(code, spec)` in `adapters/spec.py` is the single entry point for onboarding — it registers both the spec and the retailer code. MCP tool boundaries call `validate_retailer_code()` for runtime validation. Trade-off: FastMCP tool schemas now accept any string instead of showing an enum (type safety at small scale vs extensibility at large scale).
 
-**Production upgrade path:** Replace `RetailerCode = Literal[...]` with a `str` constrained by registry lookup (i.e., `get_spec()` validates membership at runtime rather than mypy validating at type-check time). This preserves the error surface while removing the code-change requirement. Alternatively, use an `Enum` auto-populated from the spec registry.
+**Captured in:** [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (registry + validation), [`src/verdano/adapters/spec.py`](src/verdano/adapters/spec.py) (`register_retailer`), [`tests/test_negative.py`](tests/test_negative.py) (4 registry tests).
 
 ---

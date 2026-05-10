@@ -14,7 +14,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from verdano.canonical import RetailerCode
+from verdano.canonical import RetailerCode, register_retailer_code
 
 UnitMode = Literal["cases", "units"]
 """Whether the retailer publishes forecasts in cases or consumer units.
@@ -169,10 +169,17 @@ SAINSBURYS_SPEC = RetailerSpec(
 )
 
 
-_REGISTRY: dict[RetailerCode, RetailerSpec] = {
-    "tesco": TESCO_SPEC,
-    "sainsburys": SAINSBURYS_SPEC,
-}
+_REGISTRY: dict[str, RetailerSpec] = {}
+
+
+def register_retailer(code: str, spec: RetailerSpec) -> None:
+    """Register a retailer spec, making the code available system-wide.
+
+    This is the single entry point for onboarding a new retailer. No source
+    edits beyond calling this function with a new ``RetailerSpec`` instance.
+    """
+    _REGISTRY[code] = spec
+    register_retailer_code(code)
 
 
 def get_spec(retailer: RetailerCode) -> RetailerSpec:
@@ -184,3 +191,8 @@ def get_spec(retailer: RetailerCode) -> RetailerSpec:
             f"known retailers: {sorted(_REGISTRY)}"
         )
     return spec
+
+
+# Auto-register the built-in trial specs on import.
+register_retailer("tesco", TESCO_SPEC)
+register_retailer("sainsburys", SAINSBURYS_SPEC)

@@ -12,9 +12,42 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-RetailerCode = Literal["tesco", "sainsburys"]
-"""Closed enum at trial scope; the adapter spec system (D-001) extends this
-without code change in production."""
+# ---------------------------------------------------------------------------
+# RetailerCode: runtime-extensible retailer identifier (D-015)
+# ---------------------------------------------------------------------------
+# Previously a Literal["tesco", "sainsburys"]. Now a plain str alias with a
+# runtime registry so that adding a retailer requires only a new spec
+# instance — no type-definition edits. Validation happens at spec registration
+# and at tool-call boundaries, not at the type level.
+# ---------------------------------------------------------------------------
+
+RetailerCode = str
+"""Runtime-extensible retailer identifier.
+
+Validated against the adapter-spec registry at runtime rather than via a
+closed Literal. See D-015 and `adapters/spec.py:register_retailer`."""
+
+_RETAILER_REGISTRY: set[str] = set()
+
+
+def register_retailer_code(code: str) -> None:
+    """Register a retailer code as valid. Called by `adapters/spec.py`."""
+    _RETAILER_REGISTRY.add(code)
+
+
+def known_retailer_codes() -> frozenset[str]:
+    """Return the set of currently registered retailer codes."""
+    return frozenset(_RETAILER_REGISTRY)
+
+
+def validate_retailer_code(code: str) -> str:
+    """Raise ValueError if ``code`` is not a registered retailer."""
+    if code not in _RETAILER_REGISTRY:
+        raise ValueError(
+            f"unknown retailer code {code!r}; "
+            f"registered: {sorted(_RETAILER_REGISTRY)}"
+        )
+    return code
 
 
 Stratum = Literal["E1", "E2", "E3", "E3b", "E4"]

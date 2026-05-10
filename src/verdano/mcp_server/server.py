@@ -22,8 +22,9 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-from verdano.canonical import RetailerCode
+from verdano.canonical import RetailerCode, validate_retailer_code
 from verdano.erp import Client, ERPHTTPError, OrderDraftLine, OrderDraftRequest
+from verdano.mapping.depot import resolve_depot
 
 ErpClientFactory = Callable[[], AbstractContextManager[Client]]
 from verdano.pipeline import (
@@ -115,9 +116,10 @@ def build_server(
         operator-readable reason.
 
         Args:
-            retailer: One of "tesco" or "sainsburys".
+            retailer: Registered retailer code (e.g. "tesco", "sainsburys").
             iso_week: ISO 8601 week, e.g. "2026-W20".
         """
+        validate_retailer_code(retailer)
         if err := _validate_iso_week(iso_week):
             return err
         with factory() as client:
@@ -142,9 +144,10 @@ def build_server(
         understands why the system surfaced it.
 
         Args:
-            retailer: One of "tesco" or "sainsburys".
+            retailer: Registered retailer code (e.g. "tesco", "sainsburys").
             iso_week: ISO 8601 week, e.g. "2026-W20".
         """
+        validate_retailer_code(retailer)
         if err := _validate_iso_week(iso_week):
             return err
         with factory() as client:
@@ -170,8 +173,8 @@ def build_server(
     def create_drafts_for_safe_lines_tool(
         retailer: RetailerCode,
         iso_week: str,
-        ship_to_location_id: str,
         required_date: str,
+        ship_to_location_id: str = "",
     ) -> dict[str, Any]:
         """Create ERP order drafts for every Safe-classified line.
 
@@ -184,16 +187,17 @@ def build_server(
         the ERP would reject them as cross-band. Lines that hit unexpected
         ERP errors are *failed* — collected per-line, not raised.
 
-        The trial does not implement the depot-string → ship_to_location_id
-        mapping (a parallel adapter problem; see working-doc.md). The caller
-        passes `ship_to_location_id` explicitly.
+        If ``ship_to_location_id`` is omitted, the depot resolver attempts
+        to auto-resolve it from the first forecast line's location label.
 
         Args:
-            retailer: "tesco" or "sainsburys".
+            retailer: Registered retailer code (e.g. "tesco", "sainsburys").
             iso_week: ISO 8601 week, e.g. "2026-W20".
-            ship_to_location_id: ERP ship_to id (e.g., "SHIP-TESCO-DAV").
             required_date: ISO date for the draft, e.g. "2026-05-13".
+            ship_to_location_id: ERP ship_to id (e.g., "SHIP-TESCO-DAV").
+                If omitted, auto-resolved from forecast location labels.
         """
+        validate_retailer_code(retailer)
         if err := _validate_iso_week(iso_week):
             return err
         try:
@@ -209,10 +213,25 @@ def build_server(
                 iso_week=iso_week,
                 erp=erp,
             )
+            # Auto-resolve ship_to from first forecast line's location label
+            # if caller omitted the explicit ID.
+            effective_ship_to = ship_to_location_id
+            if not effective_ship_to and result.classifications:
+                first_label = result.classifications[0].demand.location_label
+                resolved = resolve_depot(first_label, erp.customers, retailer)
+                if resolved:
+                    effective_ship_to = resolved
+                else:
+                    return {
+                        "error": (
+                            f"could not auto-resolve ship_to from location "
+                            f"label {first_label!r}; pass ship_to_location_id explicitly"
+                        ),
+                    }
+
             customer = customer_for_retailer(erp.customers, retailer)
             if customer is None:
                 return {"error": f"no sold-to customer found for {retailer}"}
-            # Find the bill-to under this sold-to root.
             bill_to = next(
                 (c for c in erp.customers
                  if c.type == "bill_to" and c.parent_id == customer.id),
@@ -223,16 +242,14 @@ def build_server(
                     "error": f"no bill-to customer found under sold-to {customer.id}"
                 }
 
-            # Resolve the ship_to → warehouse → temperature_band chain so we
-            # can pre-filter incompatible SKUs.
             ship_to = next(
                 (c for c in erp.customers
-                 if c.type == "ship_to" and c.id == ship_to_location_id),
+                 if c.type == "ship_to" and c.id == effective_ship_to),
                 None,
             )
             if ship_to is None:
                 return {
-                    "error": f"ship_to_location_id {ship_to_location_id} not found",
+                    "error": f"ship_to_location_id {effective_ship_to} not found",
                 }
             ship_to_warehouse_id = ship_to.warehouse_id
             warehouses_by_id = {w.id: w for w in erp.warehouses}
@@ -271,13 +288,13 @@ def build_server(
                     continue
 
                 ext_ref = _deterministic_external_reference(
-                    retailer, c.erp_sku, iso_week, ship_to_location_id
+                    retailer, c.erp_sku, iso_week, effective_ship_to
                 )
                 request = OrderDraftRequest(
                     external_reference=ext_ref,
                     sold_to_customer_id=customer.id,
                     bill_to_customer_id=bill_to.id,
-                    ship_to_location_id=ship_to_location_id,
+                    ship_to_location_id=effective_ship_to,
                     required_date=req_date,
                     lines=[
                         OrderDraftLine(
@@ -310,7 +327,7 @@ def build_server(
         return {
             "retailer": retailer,
             "iso_week": iso_week,
-            "ship_to_location_id": ship_to_location_id,
+            "ship_to_location_id": effective_ship_to,
             "ship_to_band": ship_to_band,
             "drafts_created": drafts_created,
             "drafts_existing": drafts_existing,
@@ -340,10 +357,11 @@ def build_server(
         deferred per D-006.
 
         Args:
-            retailer: "tesco" or "sainsburys".
+            retailer: Registered retailer code (e.g. "tesco", "sainsburys").
             iso_week_forecast: e.g. "2026-W20".
             iso_week_actuals:  e.g. "2026-W19".
         """
+        validate_retailer_code(retailer)
         for wk in (iso_week_forecast, iso_week_actuals):
             if err := _validate_iso_week(wk):
                 return err

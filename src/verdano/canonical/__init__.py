@@ -15,6 +15,9 @@ from verdano.canonical.models import (
     RetailerCode,
     RetailerProductKey,
     Stratum,
+    known_retailer_codes,
+    register_retailer_code,
+    validate_retailer_code,
 )
 
 __all__ = [
@@ -28,4 +31,7 @@ __all__ = [
     "RetailerCode",
     "RetailerProductKey",
     "Stratum",
+    "known_retailer_codes",
+    "register_retailer_code",
+    "validate_retailer_code",
 ]
