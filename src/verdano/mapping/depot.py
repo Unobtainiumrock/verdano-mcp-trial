@@ -41,8 +41,8 @@ def resolve_depot(
 
     Returns ``None`` when no confident match is found.
     """
-    label_lower = location_label.lower().strip()
-    if not label_lower:
+    label_norm = _normalize_for_compare(location_label)
+    if not label_norm:
         return None
 
     retailer_norm = _normalize_for_compare(retailer)
@@ -53,10 +53,10 @@ def resolve_depot(
     if not candidates:
         return None
 
-    # Pass 1: exact substring (label appears inside Customer.name)
+    # Pass 1: exact substring (normalized label appears inside normalized name)
     substring_hits = [
         c for c in candidates
-        if label_lower in c.name.lower()
+        if label_norm in _normalize_for_compare(c.name)
     ]
     if len(substring_hits) == 1:
         return substring_hits[0].id
@@ -65,7 +65,7 @@ def resolve_depot(
     best_score = 0.0
     best_match: Customer | None = None
     for c in candidates:
-        score = fuzz.partial_ratio(label_lower, c.name.lower())
+        score = fuzz.partial_ratio(label_norm, _normalize_for_compare(c.name))
         if score > best_score:
             best_score = score
             best_match = c

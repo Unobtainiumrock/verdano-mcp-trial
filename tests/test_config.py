@@ -33,13 +33,9 @@ class TestFindEnvFile:
         monkeypatch.delenv("VERDANO_PROJECT_ROOT", raising=False)
         monkeypatch.chdir(tmp_path)
         import verdano.config as cfg_mod
-        original_file = cfg_mod.__file__
-        try:
-            cfg_mod.__file__ = str(tmp_path / "nonexistent" / "config.py")
-            result = _find_env_file()
-            assert result == ".env"
-        finally:
-            cfg_mod.__file__ = original_file
+        monkeypatch.setattr(cfg_mod, "__file__", str(tmp_path / "nonexistent" / "config.py"))
+        result = _find_env_file()
+        assert result == ".env"
 
 
 class TestValidateIsoWeek:

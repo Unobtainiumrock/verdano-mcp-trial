@@ -126,7 +126,17 @@ def test_create_drafts_tool_unknown_ship_to_returns_error(
     assert "error" in result
 
 
-# -- 4d: Invalid iso_week on analyze and review tools ------------------
+# -- 4d: Invalid retailer and iso_week on tools ----------------------
+
+def test_analyze_tool_rejects_unknown_retailer(
+    project_root: Path, fake_client_factory: Any
+) -> None:
+    server = build_server(project_root=project_root, erp_client_factory=fake_client_factory)
+    handler = _get_tool_handler(server, "analyze_week_fulfillment_tool")
+    result = handler(retailer="nonexistent", iso_week="2026-W20")
+    assert "error" in result
+    assert "unknown retailer code" in result["error"]
+
 
 def test_analyze_tool_rejects_bad_iso_week(
     project_root: Path, fake_client_factory: Any

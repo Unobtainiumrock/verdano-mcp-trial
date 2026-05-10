@@ -13,7 +13,7 @@ uv sync
 cp .env.example .env
 # then edit .env and paste in the trial API key from the README brief.
 
-# 3. Confirm everything is wired up (127 tests, fully offline — no .env needed).
+# 3. Confirm everything is wired up (128 tests, fully offline — no .env needed).
 uv run pytest
 
 # 4. Run a one-shot analysis (paste into a Python REPL or a script).
@@ -170,7 +170,7 @@ uv run pytest -v
 | `tests/pipeline/test_sainsburys_config_only.py` | Validates that onboarding Sainsbury required *no new Python* — only the `SAINSBURYS_SPEC` instance. Verifies legacy-GTIN routing, no-GTIN fuzzy fallback, units→cases ceiling (5 tests). |
 | `tests/allocation/test_ftp.py` | FTPCalculator unit tests — band filtering, open-order week filtering, `sold_to=None` conservative path, negative FTP clamping, unknown SKU (8 tests). |
 | `tests/allocation/test_classifier.py` | Classifier unit tests — Safe, AtRisk, AtRiskSevere, NeedsVerification, Blocked, zero-demand, threshold boundaries, frozen band (10 tests). |
-| `tests/mcp_server/` | MCP tool surface against a faked ERP client. Draft-tool validation errors, iso_week rejection, exact classification counts, zero-qty skip, live-cassette regression (12 tests). |
+| `tests/mcp_server/` | MCP tool surface against a faked ERP client. Draft-tool validation errors, retailer + iso_week rejection, exact classification counts, zero-qty skip, live-cassette regression (13 tests). |
 | `tests/drift/` | Lagged-actuals plausibility / drift comparison — ratio logic, promo segmentation, MCP tool wiring (7 tests). |
 | `tests/mapping/` | Cascade resolver, TF-IDF index, normalizer, depot resolver — stratified matching, collision handling, floor gating, Jaro-Winkler scoring, depot auto-resolution (46 tests). |
 | `tests/test_negative.py` | Error paths — empty/malformed CSV, non-numeric quantities, float truncation, invalid drift thresholds, unknown retailer spec, registry validation (13 tests). |

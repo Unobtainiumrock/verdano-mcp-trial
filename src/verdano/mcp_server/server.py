@@ -25,14 +25,23 @@ from mcp.server.fastmcp import FastMCP
 from verdano.canonical import RetailerCode, validate_retailer_code
 from verdano.erp import Client, ERPHTTPError, OrderDraftLine, OrderDraftRequest
 from verdano.mapping.depot import resolve_depot
-
-ErpClientFactory = Callable[[], AbstractContextManager[Client]]
 from verdano.pipeline import (
     ErpSnapshot,
     analyze_forecast_plausibility,
     analyze_week_fulfillment,
     customer_for_retailer,
 )
+
+ErpClientFactory = Callable[[], AbstractContextManager[Client]]
+
+
+def _validate_retailer(retailer: str) -> dict[str, Any] | None:
+    """Return an error dict if ``retailer`` is not registered, else None."""
+    try:
+        validate_retailer_code(retailer)
+    except ValueError as exc:
+        return {"error": str(exc)}
+    return None
 
 
 _ISO_WEEK_RE = re.compile(r"^(\d{4})-W(\d{2})$")
@@ -119,7 +128,8 @@ def build_server(
             retailer: Registered retailer code (e.g. "tesco", "sainsburys").
             iso_week: ISO 8601 week, e.g. "2026-W20".
         """
-        validate_retailer_code(retailer)
+        if err := _validate_retailer(retailer):
+            return err
         if err := _validate_iso_week(iso_week):
             return err
         with factory() as client:
@@ -147,7 +157,8 @@ def build_server(
             retailer: Registered retailer code (e.g. "tesco", "sainsburys").
             iso_week: ISO 8601 week, e.g. "2026-W20".
         """
-        validate_retailer_code(retailer)
+        if err := _validate_retailer(retailer):
+            return err
         if err := _validate_iso_week(iso_week):
             return err
         with factory() as client:
@@ -197,7 +208,8 @@ def build_server(
             ship_to_location_id: ERP ship_to id (e.g., "SHIP-TESCO-DAV").
                 If omitted, auto-resolved from forecast location labels.
         """
-        validate_retailer_code(retailer)
+        if err := _validate_retailer(retailer):
+            return err
         if err := _validate_iso_week(iso_week):
             return err
         try:
@@ -361,7 +373,8 @@ def build_server(
             iso_week_forecast: e.g. "2026-W20".
             iso_week_actuals:  e.g. "2026-W19".
         """
-        validate_retailer_code(retailer)
+        if err := _validate_retailer(retailer):
+            return err
         for wk in (iso_week_forecast, iso_week_actuals):
             if err := _validate_iso_week(wk):
                 return err

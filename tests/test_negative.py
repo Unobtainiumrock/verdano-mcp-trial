@@ -1,9 +1,11 @@
 """Negative / error-path tests.
 
 Covers:
-- Adapter: empty CSV, wrong headers (rows skipped with warning)
+- Adapter: empty CSV, wrong headers (rows skipped), non-numeric qty, float
+  truncation, duplicate-row aggregation
 - Drift: invalid threshold
 - get_spec: unknown retailer
+- RetailerCode registry: validate, register, unknown code
 """
 
 from __future__ import annotations
@@ -22,12 +24,13 @@ from verdano.canonical import (
 from verdano.drift.baseline import BaselineCompare
 
 
+@pytest.fixture()
+def tesco_spec():
+    return get_spec("tesco")
+
+
 class TestAdapterNegative:
     """Edge cases for the CSV adapter."""
-
-    @pytest.fixture()
-    def tesco_spec(self):
-        return get_spec("tesco")
 
     def test_empty_csv_raises(self, tesco_spec, tmp_path: Path) -> None:
         csv = tmp_path / "empty.csv"
@@ -62,14 +65,6 @@ class TestDriftNegative:
 
 class TestAdapterEdgeCases:
     """Edge cases for CSV data quality."""
-
-    @pytest.fixture()
-    def tesco_spec(self):
-        return get_spec("tesco")
-
-    @pytest.fixture()
-    def sainsburys_spec(self):
-        return get_spec("sainsburys")
 
     def test_non_numeric_quantity_skipped(self, tesco_spec, tmp_path: Path) -> None:
         """Rows with non-numeric quantity should be skipped with a warning."""
@@ -119,7 +114,7 @@ class TestGetSpecNegative:
 
     def test_unknown_retailer_raises(self) -> None:
         with pytest.raises(ValueError, match="no adapter spec registered"):
-            get_spec("unknown_retailer")  # type: ignore[arg-type]
+            get_spec("unknown_retailer")
 
 
 class TestRetailerCodeRegistry:
