@@ -460,3 +460,37 @@ The retailer sending the literal string `"VD"` would auto-allocate against Lenti
 **Captured in:** [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (registry + validation), [`src/verdano/adapters/spec.py`](src/verdano/adapters/spec.py) (`register_retailer`), [`tests/test_negative.py`](tests/test_negative.py) (4 registry tests).
 
 ---
+
+## D-016: Config externalization — thresholds hoisted into `Settings`
+
+**Date:** 2026-05-10
+
+**Context:** Twelve numeric thresholds were scattered as constructor defaults across `classify.py`, `resolver.py`, `priors.py`, `baseline.py`, and `depot.py`. Changing any value required a code deploy. Operators and reviewers had no single surface to inspect or override tuning parameters.
+
+**Resolution:** All thresholds now live in `src/verdano/config.py::Settings`, inheriting `VERDANO_` env-prefix via pydantic-settings. Non-secret values can be set in `.env` or as env vars; secrets (`llm_api_key`) use `SecretStr`. The MCP server loads `Settings` once at startup and passes values through to the pipeline, resolver, classifier, and drift comparator. Existing default values are preserved — the change is purely structural, no behavioral regression.
+
+**Additionally:** `FulfillmentClass`, `MappingState`, `DriftClass`, and `Stratum` were converted from `Literal` types to `str` aliases with runtime registries (same pattern as `RetailerCode` in D-015). This enables adding new classification tiers, mapping states, or cascade strata without editing source files.
+
+**Captured in:** [`src/verdano/config.py`](src/verdano/config.py), [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (registries), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (wiring), [`.env.example`](.env.example).
+
+---
+
+## D-017: LLM integration layer — provider-agnostic, optional
+
+**Date:** 2026-05-10
+
+**Context:** Entity resolution strata E1–E4 are purely algorithmic. For ambiguous or novel product names that none of the strata resolve confidently, a language model can provide a contextual fallback. Similarly, depot-string resolution sometimes fails on novel location labels.
+
+**Resolution:** New `src/verdano/llm/` package with:
+- `LLMClient` protocol + `OpenAIClient` implementation using configurable `base_url` (OpenAI, Azure, Ollama, vLLM all speak the same API).
+- E5 stratum handler (`make_llm_stratum`) that sends top-N fuzzy candidates to the LLM for disambiguation. Plugs into the cascade via the handler chain — no if/elif surgery.
+- LLM depot fallback in `depot.py` — if fuzzy match fails and an `LLMClient` is available, asks the LLM to interpret the location label.
+- All LLM features are **optional**: if `VERDANO_LLM_API_KEY` is empty, `create_llm_client` returns `None` and the cascade works exactly as before.
+
+The normalizer was refactored from a monolithic function into a composable `NormalizationPipeline` of `NormalizerStep` callables, enabling extension (brand stripping, stop words) without editing source. The resolver was refactored from hardcoded if/elif blocks to an ordered `StratumHandler` chain.
+
+**Trade-off:** LLM calls add latency and cost. The E5 stratum only fires after E1–E4 fail, and only when configured. Operators can disable it by omitting the API key.
+
+**Captured in:** [`src/verdano/llm/`](src/verdano/llm/) (client, entity_resolution), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (handler chain), [`src/verdano/mapping/normalize.py`](src/verdano/mapping/normalize.py) (pipeline), [`src/verdano/mapping/depot.py`](src/verdano/mapping/depot.py) (LLM fallback).
+
+---

@@ -8,7 +8,6 @@ just a function-with-config wearing class clothing for ergonomic reuse.
 from __future__ import annotations
 
 from collections import Counter
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,7 +16,16 @@ from verdano.canonical import MappingResult
 from verdano.drift.types import DriftDirection, DriftSignal
 from verdano.erp.models import Product
 
-DriftClass = Literal["high", "low", "ok", "skipped_unmapped"]
+DriftClass = str
+_DRIFT_CLASS_REGISTRY: set[str] = set()
+
+
+def register_drift_class(cls: str) -> None:
+    _DRIFT_CLASS_REGISTRY.add(cls)
+
+
+for _dc in ("high", "low", "ok", "skipped_unmapped"):
+    register_drift_class(_dc)
 
 
 class DriftReport(BaseModel):

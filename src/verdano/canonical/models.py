@@ -8,7 +8,6 @@ must conform to these regardless of retailer source shape.
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -50,33 +49,78 @@ def validate_retailer_code(code: str) -> str:
     return code
 
 
-Stratum = Literal["E1", "E2", "E3", "E3b", "E4"]
-"""The cascade discovery strata, in firing order:
+# ---------------------------------------------------------------------------
+# Stratum: runtime-extensible cascade strata
+# ---------------------------------------------------------------------------
 
-  E1   — exact match on `current_gtins`
-  E2   — exact match on `legacy_gtins`
-  E3   — exact match on canonicalized aliases / canonical name
-  E3b  — TF-IDF token-overlap on the ERP master vocabulary (per D-013)
-  E4   — Jaro-Winkler² on canonicalized name (fallback)
+Stratum = str
+"""Runtime-extensible stratum identifier for the cascade resolver."""
 
-Per D-011, the cascade governs *discovery order* only; scores are independent
-of stratum-of-origin. Each stratum produces a probabilistic score on its own
-merit."""
+_STRATUM_REGISTRY: list[str] = []
 
 
-MappingState = Literal["Resolved", "NeedsVerification", "Unmapped"]
-"""Three review states (formalism §3.3). Operationally distinct: Resolved
-auto-maps, NeedsVerification surfaces a candidate to verify, Unmapped surfaces
-a retailer line with no candidate at all."""
+def register_stratum(name: str, *, after: str | None = None) -> None:
+    """Register a cascade stratum. Order matters (cascade priority)."""
+    if name in _STRATUM_REGISTRY:
+        return
+    if after is not None and after in _STRATUM_REGISTRY:
+        idx = _STRATUM_REGISTRY.index(after) + 1
+        _STRATUM_REGISTRY.insert(idx, name)
+    else:
+        _STRATUM_REGISTRY.append(name)
 
 
-FulfillmentClass = Literal[
-    "Safe", "AtRisk", "AtRiskSevere", "NeedsVerification", "Blocked",
-]
-"""Per D-010 + formalism §5.3.3.
-NeedsVerification: mapping produced a candidate but below auto-threshold.
-Blocked: no mapping candidate at all (upstream of FTP).
-AtRiskSevere: supply-constrained tripwire from D-010."""
+def known_strata() -> list[str]:
+    """Return the ordered list of registered strata."""
+    return list(_STRATUM_REGISTRY)
+
+
+for _s in ("E1", "E2", "E3", "E3b", "E4"):
+    register_stratum(_s)
+
+
+# ---------------------------------------------------------------------------
+# MappingState: runtime-extensible review states
+# ---------------------------------------------------------------------------
+
+MappingState = str
+"""Runtime-extensible mapping review state."""
+
+_MAPPING_STATE_REGISTRY: set[str] = set()
+
+
+def register_mapping_state(state: str) -> None:
+    _MAPPING_STATE_REGISTRY.add(state)
+
+
+def known_mapping_states() -> frozenset[str]:
+    return frozenset(_MAPPING_STATE_REGISTRY)
+
+
+for _ms in ("Resolved", "NeedsVerification", "Unmapped"):
+    register_mapping_state(_ms)
+
+
+# ---------------------------------------------------------------------------
+# FulfillmentClass: runtime-extensible classification tiers
+# ---------------------------------------------------------------------------
+
+FulfillmentClass = str
+"""Runtime-extensible fulfillment classification tier."""
+
+_FULFILLMENT_CLASS_REGISTRY: set[str] = set()
+
+
+def register_fulfillment_class(cls: str) -> None:
+    _FULFILLMENT_CLASS_REGISTRY.add(cls)
+
+
+def known_fulfillment_classes() -> frozenset[str]:
+    return frozenset(_FULFILLMENT_CLASS_REGISTRY)
+
+
+for _fc in ("Safe", "AtRisk", "AtRiskSevere", "NeedsVerification", "Blocked"):
+    register_fulfillment_class(_fc)
 
 
 class _Strict(BaseModel):

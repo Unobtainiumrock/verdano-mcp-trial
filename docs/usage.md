@@ -13,7 +13,7 @@ uv sync
 cp .env.example .env
 # then edit .env and paste in the trial API key from the README brief.
 
-# 3. Confirm everything is wired up (128 tests, fully offline — no .env needed).
+# 3. Confirm everything is wired up (168 tests, fully offline — no .env needed).
 uv run pytest
 
 # 4. Run a one-shot analysis (paste into a Python REPL or a script).
@@ -60,14 +60,15 @@ This runs the entire pipeline against cassette-recorded ERP state. Replace `tesc
 
 ```
 src/verdano/
-├── canonical/         entity contracts (CanonicalDemandLine, MappingResult, etc.)
+├── canonical/         entity contracts + runtime registries (RetailerCode, FulfillmentClass, Stratum, etc.)
 ├── adapters/          single Adapter class + RetailerSpec configs (Tesco, Sainsbury)
-├── mapping/           cascade resolver (Fellegi-Sunter + Jaro-Winkler²)
+├── mapping/           cascade resolver (ordered handler chain), normalizer pipeline, depot resolver
 ├── allocation/        FTP math + Safe/AtRisk/AtRiskSevere/NeedsVerification/Blocked classifier
 ├── pipeline/          analyze_week_fulfillment — end-to-end DAG
 ├── erp/               hand-rolled HTTP client + Pydantic response models
+├── llm/               provider-agnostic LLM client + E5 entity resolution stratum (optional)
 ├── mcp_server/        FastMCP server exposing 4 tools
-├── config.py          .env loader (pydantic-settings)
+├── config.py          .env loader (pydantic-settings) — all thresholds + LLM config
 └── logging.py         structlog setup
 
 primitives/
@@ -89,7 +90,7 @@ docs/
     ├── prompts-for-gemini.md              MATH-SOT prompts
     └── prompts.md                         early brainstorming
 
-DECISIONS.md              chronological D-001..D-015 with rationale + alternatives
+DECISIONS.md              chronological D-001..D-017 with rationale + alternatives
 
 data/
 ├── tesco_forecast_week20.csv
@@ -175,6 +176,10 @@ uv run pytest -v
 | `tests/mapping/` | Cascade resolver, TF-IDF index, normalizer, depot resolver — stratified matching, collision handling, floor gating, Jaro-Winkler scoring, depot auto-resolution (46 tests). |
 | `tests/test_negative.py` | Error paths — empty/malformed CSV, non-numeric quantities, float truncation, invalid drift thresholds, unknown retailer spec, registry validation (13 tests). |
 | `tests/test_config.py` | Config resolution (`_find_env_file` paths) and `_validate_iso_week` edge cases (10 tests). |
+| `tests/test_registries.py` | Runtime registries for FulfillmentClass, MappingState, Stratum, DriftClass — builtins, registration, idempotency, ordered insertion (11 tests). |
+| `tests/test_llm.py` | LLM client protocol, factory, E5 stratum handler (mocked), depot LLM fallback — confidence gating, JSON error handling (7 tests). |
+| `tests/mapping/test_normalize_pipeline.py` | Composable NormalizationPipeline — individual steps, brand stripping, stop words, pipeline composition, backward compatibility (12 tests). |
+| `tests/mapping/test_handler_chain.py` | Stratum handler chain — default registration, custom handler short-circuit, append, E1 preemption, config exposure (5 tests). |
 
 The test suite runs fully offline. ERP responses are replayed from `tests/erp/cassettes/`; the pipeline tests reuse the same cassettes for snapshot construction.
 
@@ -190,7 +195,7 @@ uv run python scripts/live_draft_run.py
 
 For reviewers wanting to see the design reasoning rather than just the code:
 
-- **[`DECISIONS.md`](../DECISIONS.md)** — 15 chronological decisions (D-001..D-015), each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration) are the load-bearing ones.
+- **[`DECISIONS.md`](../DECISIONS.md)** — 17 chronological decisions (D-001..D-017), each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration), D-016 (config externalization), D-017 (LLM integration layer) are the load-bearing ones.
 
 - **[`docs/architecture/formalism.md`](architecture/formalism.md)** — LaTeX-rendered mathematical model. §3 (entity resolution as stratified bipartite matching with FS posteriors), §4 (demand alignment as change-of-basis with non-trivial null space), §5 (allocation as constrained LP with water-filling), §6 (FSM-DAG interlock), §8 (11 explicit pushbacks against the Gemini source where the math diverged from the project's needs).
 
@@ -224,9 +229,12 @@ The trial ships a complete, tested end-to-end pipeline. Several capabilities wer
 | Classical residual drift | Lagged-actuals plausibility (D-012) | When same-period forecast+actuals pair exists | D-006, D-012 |
 | Markov drift detection | Reserved | Multi-week residual history | D-006 |
 | Temperature-band confidence penalty | Documented, deferred | Pass band through RetailerProductKey | formalism §3.2 |
-| Retailer-depot-string mapping | Depot resolver (substring + fuzzy) with optional explicit override | Implemented in `mapping/depot.py` | D-015 |
-| Brand-prefix / stop-word normalization | Deferred | When fixture forces it | D-013 |
+| Retailer-depot-string mapping | Depot resolver (substring + fuzzy + optional LLM fallback) | Implemented in `mapping/depot.py` | D-015, D-017 |
+| Brand-prefix / stop-word normalization | Composable `NormalizationPipeline`; brand/stop-word steps available but not default | Activate via config or custom pipeline | D-013, D-017 |
 | `RetailerCode` runtime extensibility | Registry-constrained `str` (implemented) | `register_retailer()` + `validate_retailer_code()` | D-015 |
+| Config externalization | All thresholds in `Settings` with `VERDANO_` env prefix | Operator-tunable without code deploys | D-016 |
+| LLM entity resolution (E5 stratum) | Provider-agnostic client, E5 handler, depot LLM fallback — all optional | Enable via `VERDANO_LLM_API_KEY` | D-017 |
+| FulfillmentClass / Stratum / MappingState / DriftClass extensibility | Runtime registries (same pattern as RetailerCode) | `register_*()` functions | D-016 |
 
 ## Non-goals (deliberate)
 

@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 storage = ["duckdb>=1.0"]
+llm = ["openai>=1.30"]
 
 [project.scripts]
 verdano-mcp = "verdano.mcp_server:run"

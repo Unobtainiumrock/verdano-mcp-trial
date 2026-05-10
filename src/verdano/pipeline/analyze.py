@@ -36,6 +36,7 @@ from verdano.erp.models import (
 )
 from verdano.mapping import MasterIndex, Resolver
 from verdano.mapping.priors import DEFAULT_PRIORS, CalibrationPriors
+from verdano.mapping.resolver import DEFAULT_HANDLERS, StratumHandler
 
 
 @dataclass(frozen=True)
@@ -138,6 +139,10 @@ def analyze_week_fulfillment(
     priors: CalibrationPriors = DEFAULT_PRIORS,
     auto_threshold: float = 0.90,
     tau_safe: float = 0.90,
+    tfidf_min_score: float = 0.5,
+    tfidf_min_matched_tokens: int = 2,
+    e4_min_score: float = 0.30,
+    handlers: list[tuple[str, StratumHandler]] | None = None,
 ) -> AnalysisResult:
     """Run the DAG end-to-end for a single (retailer, week) input.
 
@@ -157,7 +162,15 @@ def analyze_week_fulfillment(
     raw_lines = [r for r in raw_lines if r.iso_week == iso_week]
 
     master = MasterIndex(erp.products)
-    resolver = Resolver(master, priors=priors, auto_threshold=auto_threshold)
+    resolver = Resolver(
+        master,
+        priors=priors,
+        auto_threshold=auto_threshold,
+        tfidf_min_score=tfidf_min_score,
+        tfidf_min_matched_tokens=tfidf_min_matched_tokens,
+        e4_min_score=e4_min_score,
+        handlers=handlers,
+    )
     products_by_sku = {p.sku: p for p in erp.products}
 
     ftp = FTPCalculator(

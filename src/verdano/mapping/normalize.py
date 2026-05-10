@@ -1,51 +1,45 @@
 """String canonicalization for the cascade resolver.
 
-Two passes, applied symmetrically to both the ERP-master alias index keys
-and the retailer-side lookup strings:
+Exposes a composable `NormalizationPipeline` of individual steps so callers
+can extend normalization (e.g. brand-prefix stripping, stop-word removal)
+without modifying this source.
 
-  1. Lowercase + whitespace-collapse — undoes case and spacing chaos.
-  2. Size-unit normalization — `0.5kg → 500g`, `2L → 2000ml`. Pure regex,
-     no labels required, idempotent. Closes the deliberate fixture gotcha
-     "Tom Basil Soup 0.5kg" ↔ "Tomato Soup 500g" (the lexical-canonicalization
-     half; the alias half is already in the ERP master).
-
-Locked under D-013 as the trial-scope canonicalization. More aggressive moves
-(brand-prefix stripping, stop-word removal, plural↔singular) are deferred —
-they introduce ambiguity at small data scale and the master's curated alias
-list already covers the cases that would matter.
+The `DEFAULT_PIPELINE` replicates the original trial-scope normalizer
+(lowercase → whitespace-collapse → size-unit conversion).
 """
 
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from decimal import Decimal
 
-# Match a number (optional decimal) followed by a kg/l unit at a word boundary.
-# Examples that match: "0.5kg", "1.5 kg", "2L", "0.25kg".
-# Examples that do not: "100ml" (l is not preceded by a digit-then-optional-space),
-# "1lb" (\b fails — "b" is a word char), "kgallon" (no leading digit).
+NormalizerStep = Callable[[str], str]
+
 _SIZE_RE = re.compile(r"(\d+(?:\.\d+)?)\s*(kg|l)\b", re.IGNORECASE)
 
 
-def _normalize_sizes(s: str) -> str:
-    """Convert kg→g and l→ml in-place. Operates on lowercased input.
+# ---------------------------------------------------------------------------
+# Built-in normalizer steps
+# ---------------------------------------------------------------------------
 
-    Examples:
-      `_normalize_sizes("0.5kg")`        → `"500g"`
-      `_normalize_sizes("1.5kg")`        → `"1500g"`
-      `_normalize_sizes("2l")`           → `"2000ml"`
-      `_normalize_sizes("tom soup 0.5kg")` → `"tom soup 500g"`
-      `_normalize_sizes("500g")`         → `"500g"`   (no kg/l → no-op)
-      `_normalize_sizes("100ml")`        → `"100ml"`  (no leading digit-space-then-l)
-    """
+
+def lowercase(s: str) -> str:
+    return s.lower()
+
+
+def collapse_whitespace(s: str) -> str:
+    return " ".join(s.split())
+
+
+def normalize_sizes(s: str) -> str:
+    """Convert kg→g and l→ml.  Operates on already-lowercased input."""
 
     def repl(match: re.Match[str]) -> str:
         value = Decimal(match.group(1))
         unit = match.group(2).lower()
         scaled = value * 1000
         new_unit = "g" if unit == "kg" else "ml"
-        # Emit clean integer when the scaled value is whole; otherwise let
-        # Decimal handle the formatting (still rare for CPG sizes).
         if scaled == scaled.to_integral_value():
             return f"{int(scaled)}{new_unit}"
         return f"{scaled.normalize()}{new_unit}"
@@ -53,20 +47,63 @@ def _normalize_sizes(s: str) -> str:
     return _SIZE_RE.sub(repl, s)
 
 
-def normalize(s: str) -> str:
-    """The single canonical normalizer for the cascade resolver.
+def strip_brand_prefixes(prefixes: set[str]) -> NormalizerStep:
+    """Return a step that strips known brand prefixes from the input."""
+    sorted_prefixes = sorted(prefixes, key=len, reverse=True)
 
-    Order matters: lowercase first so the size-unit regex can do
-    case-insensitive matching cheaply.
-    """
-    return _normalize_sizes(" ".join(s.lower().split()))
+    def _step(s: str) -> str:
+        for prefix in sorted_prefixes:
+            if s.startswith(prefix):
+                s = s[len(prefix) :].lstrip()
+                break
+        return s
+
+    return _step
+
+
+def remove_stop_words(stops: set[str]) -> NormalizerStep:
+    """Return a step that removes stop words from the input."""
+
+    def _step(s: str) -> str:
+        return " ".join(w for w in s.split() if w not in stops)
+
+    return _step
+
+
+# ---------------------------------------------------------------------------
+# Pipeline
+# ---------------------------------------------------------------------------
+
+
+class NormalizationPipeline:
+    """Chain of `NormalizerStep` functions applied in order."""
+
+    def __init__(self, steps: list[NormalizerStep]) -> None:
+        self._steps = list(steps)
+
+    def __call__(self, s: str) -> str:
+        for step in self._steps:
+            s = step(s)
+        return s
+
+    def with_step(self, step: NormalizerStep) -> "NormalizationPipeline":
+        """Return a new pipeline with an additional step appended."""
+        return NormalizationPipeline([*self._steps, step])
+
+
+DEFAULT_PIPELINE = NormalizationPipeline([lowercase, collapse_whitespace, normalize_sizes])
+
+
+# ---------------------------------------------------------------------------
+# Backward-compatible API used by resolver, tfidf, and depot modules
+# ---------------------------------------------------------------------------
+
+
+def normalize(s: str) -> str:
+    """Single canonical normalizer (delegates to DEFAULT_PIPELINE)."""
+    return DEFAULT_PIPELINE(s)
 
 
 def tokens(s: str) -> list[str]:
-    """Tokenize a normalized string into its space-separated components.
-
-    Used by the TF-IDF scorer (E3b stratum). Does not deduplicate — repeated
-    tokens contribute repeated mass to the IDF sum. For the trial fixtures
-    this never happens; documented for completeness.
-    """
+    """Tokenize a normalized string into space-separated components."""
     return s.split()

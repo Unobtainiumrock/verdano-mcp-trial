@@ -15,8 +15,14 @@ from verdano.canonical.models import (
     RetailerCode,
     RetailerProductKey,
     Stratum,
+    known_fulfillment_classes,
+    known_mapping_states,
     known_retailer_codes,
+    known_strata,
+    register_fulfillment_class,
+    register_mapping_state,
     register_retailer_code,
+    register_stratum,
     validate_retailer_code,
 )
 
@@ -31,7 +37,13 @@ __all__ = [
     "RetailerCode",
     "RetailerProductKey",
     "Stratum",
+    "known_fulfillment_classes",
+    "known_mapping_states",
     "known_retailer_codes",
+    "known_strata",
+    "register_fulfillment_class",
+    "register_mapping_state",
     "register_retailer_code",
+    "register_stratum",
     "validate_retailer_code",
 ]

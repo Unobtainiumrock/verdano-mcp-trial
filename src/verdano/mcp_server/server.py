@@ -23,8 +23,12 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 
 from verdano.canonical import RetailerCode, validate_retailer_code
+from verdano.config import Settings, load_settings
 from verdano.erp import Client, ERPHTTPError, OrderDraftLine, OrderDraftRequest
+from verdano.llm.client import LLMClient, create_llm_client
 from verdano.mapping.depot import resolve_depot
+from verdano.mapping.priors import CalibrationPriors
+from verdano.mapping.resolver import DEFAULT_HANDLERS, StratumHandler
 from verdano.pipeline import (
     ErpSnapshot,
     analyze_forecast_plausibility,
@@ -99,9 +103,26 @@ def _resolve_project_root() -> Path:
     return Path(env_root) if env_root else Path.cwd()
 
 
+def _build_handlers(
+    settings: Settings,
+    llm_client: LLMClient | None,
+    erp_products: list[Any] | None = None,
+) -> list[tuple[str, StratumHandler]]:
+    """Assemble the ordered handler chain, optionally appending an LLM stratum."""
+    handlers = list(DEFAULT_HANDLERS)
+    if llm_client is not None and erp_products is not None:
+        from verdano.llm.entity_resolution import make_llm_stratum
+        from verdano.mapping.resolver import MasterIndex
+
+        master = MasterIndex(erp_products)
+        handlers.append(("E5", make_llm_stratum(llm_client, master)))
+    return handlers
+
+
 def build_server(
     project_root: Path | None = None,
     erp_client_factory: ErpClientFactory | None = None,
+    settings: Settings | None = None,
 ) -> FastMCP:
     """Construct (but do not run) the MCP server.
 
@@ -110,6 +131,14 @@ def build_server(
     """
     project_root = project_root or _resolve_project_root()
     factory = erp_client_factory or Client.from_env
+    cfg = settings or load_settings()
+    llm_client = create_llm_client(cfg)
+
+    priors = CalibrationPriors(
+        epsilon=cfg.fs_epsilon,
+        gamma=cfg.fs_gamma,
+        alpha=cfg.fs_alpha,
+    )
 
     server: FastMCP = FastMCP("verdano-mcp")
 
@@ -134,11 +163,19 @@ def build_server(
             return err
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
+        handlers = _build_handlers(cfg, llm_client, erp.products)
         result = analyze_week_fulfillment(
             forecast_csv=_forecast_csv_for(retailer, project_root),
             retailer=retailer,
             iso_week=iso_week,
             erp=erp,
+            priors=priors,
+            auto_threshold=cfg.auto_threshold,
+            tau_safe=cfg.tau_safe,
+            tfidf_min_score=cfg.tfidf_min_score,
+            tfidf_min_matched_tokens=cfg.tfidf_min_matched_tokens,
+            e4_min_score=cfg.e4_min_score,
+            handlers=handlers,
         )
         return result.model_dump(mode="json")
 
@@ -163,11 +200,19 @@ def build_server(
             return err
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
+        handlers = _build_handlers(cfg, llm_client, erp.products)
         result = analyze_week_fulfillment(
             forecast_csv=_forecast_csv_for(retailer, project_root),
             retailer=retailer,
             iso_week=iso_week,
             erp=erp,
+            priors=priors,
+            auto_threshold=cfg.auto_threshold,
+            tau_safe=cfg.tau_safe,
+            tfidf_min_score=cfg.tfidf_min_score,
+            tfidf_min_matched_tokens=cfg.tfidf_min_matched_tokens,
+            e4_min_score=cfg.e4_min_score,
+            handlers=handlers,
         )
         review_items = [
             c for c in result.classifications
@@ -219,18 +264,28 @@ def build_server(
             return {"error": f"invalid required_date {required_date!r}; expected YYYY-MM-DD"}
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
+            handlers = _build_handlers(cfg, llm_client, erp.products)
             result = analyze_week_fulfillment(
                 forecast_csv=_forecast_csv_for(retailer, project_root),
                 retailer=retailer,
                 iso_week=iso_week,
                 erp=erp,
+                priors=priors,
+                auto_threshold=cfg.auto_threshold,
+                tau_safe=cfg.tau_safe,
+                tfidf_min_score=cfg.tfidf_min_score,
+                tfidf_min_matched_tokens=cfg.tfidf_min_matched_tokens,
+                e4_min_score=cfg.e4_min_score,
+                handlers=handlers,
             )
-            # Auto-resolve ship_to from first forecast line's location label
-            # if caller omitted the explicit ID.
             effective_ship_to = ship_to_location_id
             if not effective_ship_to and result.classifications:
                 first_label = result.classifications[0].demand.location_label
-                resolved = resolve_depot(first_label, erp.customers, retailer)
+                resolved = resolve_depot(
+                    first_label, erp.customers, retailer,
+                    fuzzy_threshold=cfg.depot_fuzzy_threshold,
+                    llm_client=llm_client,
+                )
                 if resolved:
                     effective_ship_to = resolved
                 else:
@@ -387,6 +442,10 @@ def build_server(
             iso_week_forecast=iso_week_forecast,
             iso_week_actuals=iso_week_actuals,
             erp=erp,
+            priors=priors,
+            auto_threshold=cfg.auto_threshold,
+            threshold_low=cfg.drift_threshold_low,
+            threshold_high=cfg.drift_threshold_high,
         )
         return report.model_dump(mode="json")
 
