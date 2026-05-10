@@ -18,6 +18,8 @@ from typing import TYPE_CHECKING
 
 from rapidfuzz import fuzz
 
+from verdano.llm.client import strip_json_fences
+
 if TYPE_CHECKING:
     from verdano.erp.models import Customer
     from verdano.llm.client import LLMClient
@@ -128,10 +130,7 @@ def _llm_depot_fallback(
 
     try:
         raw = client.complete(messages, temperature=0.0)
-        raw = raw.strip()
-        if raw.startswith("```"):
-            raw = raw.split("\n", 1)[1].rsplit("```", 1)[0]
-        parsed = json.loads(raw)
+        parsed = json.loads(strip_json_fences(raw))
     except Exception:
         logger.warning("LLM depot fallback failed for %r", location_label, exc_info=True)
         return None

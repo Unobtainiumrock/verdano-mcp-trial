@@ -12,6 +12,7 @@ import math
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -37,6 +38,9 @@ from verdano.erp.models import (
 from verdano.mapping import MasterIndex, Resolver
 from verdano.mapping.priors import DEFAULT_PRIORS, CalibrationPriors
 from verdano.mapping.resolver import DEFAULT_HANDLERS, StratumHandler
+
+if TYPE_CHECKING:
+    from verdano.llm.client import LLMClient
 
 
 @dataclass(frozen=True)
@@ -141,8 +145,9 @@ def analyze_week_fulfillment(
     tau_safe: float = 0.90,
     tfidf_min_score: float = 0.5,
     tfidf_min_matched_tokens: int = 2,
-    e4_min_score: float = 0.30,
+    fuzzy_jw_min_score: float = 0.30,
     handlers: list[tuple[str, StratumHandler]] | None = None,
+    llm_client: LLMClient | None = None,
 ) -> AnalysisResult:
     """Run the DAG end-to-end for a single (retailer, week) input.
 
@@ -162,14 +167,21 @@ def analyze_week_fulfillment(
     raw_lines = [r for r in raw_lines if r.iso_week == iso_week]
 
     master = MasterIndex(erp.products)
+
+    effective_handlers = list(handlers or DEFAULT_HANDLERS)
+    if llm_client is not None:
+        from verdano.llm.entity_resolution import make_llm_stratum
+
+        effective_handlers.append(("llm_augmented", make_llm_stratum(llm_client, master)))
+
     resolver = Resolver(
         master,
         priors=priors,
         auto_threshold=auto_threshold,
         tfidf_min_score=tfidf_min_score,
         tfidf_min_matched_tokens=tfidf_min_matched_tokens,
-        e4_min_score=e4_min_score,
-        handlers=handlers,
+        fuzzy_jw_min_score=fuzzy_jw_min_score,
+        handlers=effective_handlers,
     )
     products_by_sku = {p.sku: p for p in erp.products}
 

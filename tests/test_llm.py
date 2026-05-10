@@ -91,7 +91,7 @@ class TestLLMEntityResolution:
             auto_threshold=0.90,
             tfidf_min_score=0.5,
             tfidf_min_matched_tokens=2,
-            e4_min_score=0.30,
+            fuzzy_jw_min_score=0.30,
         )
 
         key = RetailerProductKey(
@@ -135,7 +135,7 @@ class TestLLMEntityResolution:
             auto_threshold=0.90,
             tfidf_min_score=0.5,
             tfidf_min_matched_tokens=2,
-            e4_min_score=0.30,
+            fuzzy_jw_min_score=0.30,
         )
 
         key = RetailerProductKey(
@@ -174,7 +174,7 @@ class TestLLMEntityResolution:
             auto_threshold=0.90,
             tfidf_min_score=0.5,
             tfidf_min_matched_tokens=2,
-            e4_min_score=0.30,
+            fuzzy_jw_min_score=0.30,
         )
 
         key = RetailerProductKey(

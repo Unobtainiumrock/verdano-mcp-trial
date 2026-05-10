@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from pydantic import Field, HttpUrl, SecretStr
+from pydantic import Field, HttpUrl, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -54,7 +54,16 @@ class Settings(BaseSettings):
     # --- Cascade resolver ---
     tfidf_min_score: float = Field(default=0.5, ge=0.0, le=1.0)
     tfidf_min_matched_tokens: int = Field(default=2, ge=1)
-    e4_min_score: float = Field(default=0.30, ge=0.0, le=1.0)
+    fuzzy_jw_min_score: float = Field(default=0.30, ge=0.0, le=1.0)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _compat_e4_min_score(cls, values: dict) -> dict:  # type: ignore[type-arg]
+        """Accept legacy VERDANO_E4_MIN_SCORE as an alias."""
+        legacy = values.get("e4_min_score")
+        if legacy is not None and values.get("fuzzy_jw_min_score") is None:
+            values["fuzzy_jw_min_score"] = legacy
+        return values
 
     # --- Fellegi-Sunter priors ---
     fs_epsilon: float = Field(default=0.02, ge=0.0, le=1.0)

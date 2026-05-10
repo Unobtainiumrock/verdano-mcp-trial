@@ -45,14 +45,14 @@ class ResolverContext:
         auto_threshold: float,
         tfidf_min_score: float,
         tfidf_min_matched_tokens: int,
-        e4_min_score: float,
+        fuzzy_jw_min_score: float,
     ) -> None:
         self.master = master
         self.priors = priors
         self.auto_threshold = auto_threshold
         self.tfidf_min_score = tfidf_min_score
         self.tfidf_min_matched_tokens = tfidf_min_matched_tokens
-        self.e4_min_score = e4_min_score
+        self.fuzzy_jw_min_score = fuzzy_jw_min_score
 
     def build_result(
         self,
@@ -156,7 +156,7 @@ def _handle_fuzzy_jw(ctx: ResolverContext, key: RetailerProductKey) -> MappingRe
         return None
     matched_name, sim = fuzzy
     w = sim ** 2
-    if w < ctx.e4_min_score:
+    if w < ctx.fuzzy_jw_min_score:
         return None
     candidates = ctx.master.skus_for_canonical_name(matched_name)
     if not candidates:
@@ -245,6 +245,20 @@ class MasterIndex:
         return (top_skus, top_score)
 
     def fuzzy_search(self, name: str) -> tuple[str, float] | None:
+        """Return the best Jaro-Winkler match and its similarity score.
+
+        .. warning::
+
+            **O(n)** linear scan over the name index. Acceptable for trial-scope
+            catalogues (~100 products) but will not scale to production masters
+            (10k+ SKUs). Production path: replace with a BK-tree or VP-tree for
+            O(log n) approximate nearest-neighbour lookup keyed on JW distance.
+
+        A lightweight early-exit optimisation is applied: candidates whose
+        first character differs from the target (and therefore cannot exceed a
+        JW similarity of ~0.93) are still scanned, but the linear scan is
+        short-circuited once a perfect match (sim == 1.0) is found.
+        """
         target = _norm(name)
         best_score = -1.0
         best_norm: str | None = None
@@ -253,6 +267,8 @@ class MasterIndex:
             if sim > best_score:
                 best_score = sim
                 best_norm = n
+                if sim == 1.0:
+                    break
         if best_norm is None:
             return None
         return best_norm, best_score
@@ -275,7 +291,7 @@ class Resolver:
         auto_threshold: float = 0.90,
         tfidf_min_score: float = 0.5,
         tfidf_min_matched_tokens: int = 2,
-        e4_min_score: float = 0.30,
+        fuzzy_jw_min_score: float = 0.30,
         handlers: list[tuple[str, StratumHandler]] | None = None,
     ) -> None:
         self._ctx = ResolverContext(
@@ -284,7 +300,7 @@ class Resolver:
             auto_threshold=auto_threshold,
             tfidf_min_score=tfidf_min_score,
             tfidf_min_matched_tokens=tfidf_min_matched_tokens,
-            e4_min_score=e4_min_score,
+            fuzzy_jw_min_score=fuzzy_jw_min_score,
         )
         self._handlers = handlers if handlers is not None else list(DEFAULT_HANDLERS)
 

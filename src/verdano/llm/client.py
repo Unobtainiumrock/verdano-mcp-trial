@@ -10,7 +10,17 @@ import json
 import logging
 from typing import Any, Protocol, runtime_checkable
 
+from pydantic import SecretStr
+
 log = logging.getLogger(__name__)
+
+
+def strip_json_fences(raw: str) -> str:
+    """Remove markdown code fences (```json ... ```) wrapping a JSON payload."""
+    raw = raw.strip()
+    if raw.startswith("```"):
+        raw = raw.split("\n", 1)[1].rsplit("```", 1)[0]
+    return raw
 
 
 @runtime_checkable
@@ -50,13 +60,18 @@ class OpenAIClient:
     ) -> dict[str, Any]:
         """Complete and parse the response as JSON."""
         raw = self.complete(messages, **kwargs)
-        raw = raw.strip()
-        if raw.startswith("```"):
-            raw = raw.split("\n", 1)[1].rsplit("```", 1)[0]
-        return json.loads(raw)  # type: ignore[no-any-return]
+        return json.loads(strip_json_fences(raw))  # type: ignore[no-any-return]
 
 
-def create_llm_client(settings: Any) -> LLMClient | None:
+class LLMSettings(Protocol):
+    """Minimal contract for the settings object consumed by the factory."""
+
+    llm_api_key: SecretStr
+    llm_base_url: str
+    llm_model: str
+
+
+def create_llm_client(settings: LLMSettings) -> LLMClient | None:
     """Factory: build an LLM client from ``Settings``, or ``None`` if unconfigured."""
     api_key = settings.llm_api_key.get_secret_value() if settings.llm_api_key else ""
     if not api_key:

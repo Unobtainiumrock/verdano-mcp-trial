@@ -11,7 +11,6 @@ clean and reduces failure rate.
 
 from __future__ import annotations
 
-import hashlib
 import os
 import re
 import sys
@@ -24,17 +23,17 @@ from mcp.server.fastmcp import FastMCP
 
 from verdano.canonical import RetailerCode, validate_retailer_code
 from verdano.config import Settings, load_settings
-from verdano.erp import Client, ERPHTTPError, OrderDraftLine, OrderDraftRequest
+from verdano.erp import Client
 from verdano.llm.client import LLMClient, create_llm_client
 from verdano.mapping.depot import resolve_depot
 from verdano.mapping.priors import CalibrationPriors
-from verdano.mapping.resolver import DEFAULT_HANDLERS, StratumHandler
 from verdano.pipeline import (
+    AnalysisResult,
     ErpSnapshot,
     analyze_forecast_plausibility,
     analyze_week_fulfillment,
-    customer_for_retailer,
 )
+from verdano.pipeline.drafts import create_drafts
 
 ErpClientFactory = Callable[[], AbstractContextManager[Client]]
 
@@ -64,8 +63,6 @@ def _validate_iso_week(iso_week: str) -> dict[str, Any] | None:
     return None
 
 
-# Trial-scope: forecast CSV path is determined by retailer code at the
-# project root. Production: this would come from a config / object-store.
 def _forecast_csv_for(retailer: RetailerCode, project_root: Path) -> Path:
     return project_root / "data" / f"{retailer}_forecast_week20.csv"
 
@@ -85,38 +82,35 @@ def _erp_snapshot_from_live(client: Client) -> ErpSnapshot:
     )
 
 
-def _deterministic_external_reference(
-    retailer: RetailerCode, sku: str, iso_week: str, ship_to: str
-) -> str:
-    """Per D-010 §7: external_reference = sha256(retailer | sku | week | ship_to).
-
-    Truncated to 32 chars for a readable identifier. Idempotent draft creation
-    by construction — re-running the pipeline cannot duplicate drafts.
-    """
-    payload = f"{retailer}|{sku}|{iso_week}|{ship_to}".encode()
-    return f"verdano-{hashlib.sha256(payload).hexdigest()[:32]}"
-
-
 def _resolve_project_root() -> Path:
     """Resolve project root from env or CWD, shared by all entry paths."""
     env_root = os.environ.get("VERDANO_PROJECT_ROOT")
     return Path(env_root) if env_root else Path.cwd()
 
 
-def _build_handlers(
-    settings: Settings,
+def _run_analysis(
+    retailer: RetailerCode,
+    iso_week: str,
+    erp: ErpSnapshot,
+    cfg: Settings,
     llm_client: LLMClient | None,
-    erp_products: list[Any] | None = None,
-) -> list[tuple[str, StratumHandler]]:
-    """Assemble the ordered handler chain, optionally appending an LLM stratum."""
-    handlers = list(DEFAULT_HANDLERS)
-    if llm_client is not None and erp_products is not None:
-        from verdano.llm.entity_resolution import make_llm_stratum
-        from verdano.mapping.resolver import MasterIndex
-
-        master = MasterIndex(erp_products)
-        handlers.append(("llm_augmented", make_llm_stratum(llm_client, master)))
-    return handlers
+    priors: CalibrationPriors,
+    project_root: Path,
+) -> AnalysisResult:
+    """Shared analysis pipeline invocation used by multiple tools."""
+    return analyze_week_fulfillment(
+        forecast_csv=_forecast_csv_for(retailer, project_root),
+        retailer=retailer,
+        iso_week=iso_week,
+        erp=erp,
+        priors=priors,
+        auto_threshold=cfg.auto_threshold,
+        tau_safe=cfg.tau_safe,
+        tfidf_min_score=cfg.tfidf_min_score,
+        tfidf_min_matched_tokens=cfg.tfidf_min_matched_tokens,
+        fuzzy_jw_min_score=cfg.fuzzy_jw_min_score,
+        llm_client=llm_client,
+    )
 
 
 def build_server(
@@ -163,19 +157,8 @@ def build_server(
             return err
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
-        handlers = _build_handlers(cfg, llm_client, erp.products)
-        result = analyze_week_fulfillment(
-            forecast_csv=_forecast_csv_for(retailer, project_root),
-            retailer=retailer,
-            iso_week=iso_week,
-            erp=erp,
-            priors=priors,
-            auto_threshold=cfg.auto_threshold,
-            tau_safe=cfg.tau_safe,
-            tfidf_min_score=cfg.tfidf_min_score,
-            tfidf_min_matched_tokens=cfg.tfidf_min_matched_tokens,
-            e4_min_score=cfg.e4_min_score,
-            handlers=handlers,
+        result = _run_analysis(
+            retailer, iso_week, erp, cfg, llm_client, priors, project_root,
         )
         return result.model_dump(mode="json")
 
@@ -200,19 +183,8 @@ def build_server(
             return err
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
-        handlers = _build_handlers(cfg, llm_client, erp.products)
-        result = analyze_week_fulfillment(
-            forecast_csv=_forecast_csv_for(retailer, project_root),
-            retailer=retailer,
-            iso_week=iso_week,
-            erp=erp,
-            priors=priors,
-            auto_threshold=cfg.auto_threshold,
-            tau_safe=cfg.tau_safe,
-            tfidf_min_score=cfg.tfidf_min_score,
-            tfidf_min_matched_tokens=cfg.tfidf_min_matched_tokens,
-            e4_min_score=cfg.e4_min_score,
-            handlers=handlers,
+        result = _run_analysis(
+            retailer, iso_week, erp, cfg, llm_client, priors, project_root,
         )
         review_items = [
             c for c in result.classifications
@@ -264,20 +236,10 @@ def build_server(
             return {"error": f"invalid required_date {required_date!r}; expected YYYY-MM-DD"}
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
-            handlers = _build_handlers(cfg, llm_client, erp.products)
-            result = analyze_week_fulfillment(
-                forecast_csv=_forecast_csv_for(retailer, project_root),
-                retailer=retailer,
-                iso_week=iso_week,
-                erp=erp,
-                priors=priors,
-                auto_threshold=cfg.auto_threshold,
-                tau_safe=cfg.tau_safe,
-                tfidf_min_score=cfg.tfidf_min_score,
-                tfidf_min_matched_tokens=cfg.tfidf_min_matched_tokens,
-                e4_min_score=cfg.e4_min_score,
-                handlers=handlers,
+            result = _run_analysis(
+                retailer, iso_week, erp, cfg, llm_client, priors, project_root,
             )
+
             effective_ship_to = ship_to_location_id
             if not effective_ship_to and result.classifications:
                 first_label = result.classifications[0].demand.location_label
@@ -296,111 +258,17 @@ def build_server(
                         ),
                     }
 
-            customer = customer_for_retailer(erp.customers, retailer)
-            if customer is None:
-                return {"error": f"no sold-to customer found for {retailer}"}
-            bill_to = next(
-                (c for c in erp.customers
-                 if c.type == "bill_to" and c.parent_id == customer.id),
-                None,
+            return create_drafts(
+                result=result,
+                client=client,
+                customers=erp.customers,
+                products=erp.products,
+                warehouses=erp.warehouses,
+                retailer=retailer,
+                iso_week=iso_week,
+                required_date=req_date,
+                ship_to_location_id=effective_ship_to,
             )
-            if bill_to is None:
-                return {
-                    "error": f"no bill-to customer found under sold-to {customer.id}"
-                }
-
-            ship_to = next(
-                (c for c in erp.customers
-                 if c.type == "ship_to" and c.id == effective_ship_to),
-                None,
-            )
-            if ship_to is None:
-                return {
-                    "error": f"ship_to_location_id {effective_ship_to} not found",
-                }
-            ship_to_warehouse_id = ship_to.warehouse_id
-            warehouses_by_id = {w.id: w for w in erp.warehouses}
-            ship_to_band: str | None = (
-                warehouses_by_id[ship_to_warehouse_id].temperature_band
-                if ship_to_warehouse_id and ship_to_warehouse_id in warehouses_by_id
-                else None
-            )
-            products_by_sku = {p.sku: p for p in erp.products}
-
-            drafts_created: list[dict[str, Any]] = []
-            drafts_existing: list[dict[str, Any]] = []
-            skipped: list[dict[str, Any]] = []
-            failed: list[dict[str, Any]] = []
-
-            for c in result.classifications:
-                if c.classification != "Safe" or c.erp_sku is None:
-                    continue
-                if c.demand.quantity_cases < 1:
-                    continue
-                # Pre-filter: skip cross-band SKUs that the ERP would reject.
-                product = products_by_sku.get(c.erp_sku)
-                product_band = product.temperature_band if product else None
-                if (
-                    ship_to_band is not None
-                    and product_band is not None
-                    and product_band != ship_to_band
-                ):
-                    skipped.append({
-                        "sku": c.erp_sku,
-                        "quantity_cases": c.demand.quantity_cases,
-                        "reason": "temperature_band_mismatch",
-                        "product_band": product_band,
-                        "ship_to_band": ship_to_band,
-                    })
-                    continue
-
-                ext_ref = _deterministic_external_reference(
-                    retailer, c.erp_sku, iso_week, effective_ship_to
-                )
-                request = OrderDraftRequest(
-                    external_reference=ext_ref,
-                    sold_to_customer_id=customer.id,
-                    bill_to_customer_id=bill_to.id,
-                    ship_to_location_id=effective_ship_to,
-                    required_date=req_date,
-                    lines=[
-                        OrderDraftLine(
-                            sku=c.erp_sku, quantity_cases=c.demand.quantity_cases
-                        )
-                    ],
-                    notes=f"verdano-mcp auto-draft for {retailer} {iso_week}",
-                )
-                try:
-                    response = client.create_order_draft(request)
-                except ERPHTTPError as e:
-                    failed.append({
-                        "sku": c.erp_sku,
-                        "quantity_cases": c.demand.quantity_cases,
-                        "external_reference": ext_ref,
-                        "status_code": e.status_code,
-                        "body": e.body,
-                    })
-                    continue
-
-                bucket = drafts_created if response.status == "created" else drafts_existing
-                bucket.append({
-                    "draft_id": response.draft_id,
-                    "status": response.status,
-                    "external_reference": ext_ref,
-                    "sku": c.erp_sku,
-                    "quantity_cases": c.demand.quantity_cases,
-                })
-
-        return {
-            "retailer": retailer,
-            "iso_week": iso_week,
-            "ship_to_location_id": effective_ship_to,
-            "ship_to_band": ship_to_band,
-            "drafts_created": drafts_created,
-            "drafts_existing": drafts_existing,
-            "skipped": skipped,
-            "failed": failed,
-        }
 
     @server.tool()
     def compare_actuals_vs_forecast_tool(

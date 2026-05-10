@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 
 from verdano.canonical import MappingEvidence, MappingResult, RetailerProductKey
 from verdano.canonical.models import register_stratum
+from verdano.llm.client import strip_json_fences
 
 if TYPE_CHECKING:
     from verdano.llm.client import LLMClient
@@ -80,10 +81,7 @@ def make_llm_stratum(
 
         try:
             raw = client.complete(messages, temperature=0.0)
-            raw = raw.strip()
-            if raw.startswith("```"):
-                raw = raw.split("\n", 1)[1].rsplit("```", 1)[0]
-            parsed = json.loads(raw)
+            parsed = json.loads(strip_json_fences(raw))
         except Exception:
             log.warning("llm_augmented stratum failed for %s — skipping", key.name, exc_info=True)
             return None

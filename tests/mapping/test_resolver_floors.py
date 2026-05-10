@@ -6,7 +6,7 @@ Three regressions surfaced by an empirical probe of the live ERP master:
    inflated K_x from 1 to 2 → false NeedsVerification on a clean exact match.
 2. E4 had no minimum-confidence floor → garbage strings ("Bicycle Tyre")
    returned a misleading candidate ("Chickpea Curry"). Now drops to Unmapped
-   below `e4_min_score`.
+   below `fuzzy_jw_min_score`.
 3. E3b would fire on a single-rare-token retailer string (e.g., "VD")
    because the IDF-overlap ratio normalizes by retailer mass — a 1-of-1 match
    scores 1.0. Now E3b requires at least `tfidf_min_matched_tokens` tokens
@@ -78,7 +78,7 @@ def test_e4_floor_drops_low_confidence_candidates_to_unmapped() -> None:
         _p("VG-DAAL", "Lentil Dal 400g"),
         _p("VG-CHCK", "Chickpea Curry 400g"),
     ]
-    res = Resolver(MasterIndex(products), e4_min_score=0.30)
+    res = Resolver(MasterIndex(products), fuzzy_jw_min_score=0.30)
     r = res.resolve(RetailerProductKey(retailer="sainsburys", name="qwerty asdf"))
     assert r.state == "Unmapped"
     assert r.erp_sku is None
@@ -91,7 +91,7 @@ def test_e4_floor_is_configurable() -> None:
     # JW² of "Bicycle Tyre" against "Lentil Dal 400g" is around 0.30 — sits
     # right at the boundary. Above-default floor cuts it; default lets it
     # through.
-    aggressive = Resolver(MasterIndex(products), e4_min_score=0.50)
+    aggressive = Resolver(MasterIndex(products), fuzzy_jw_min_score=0.50)
     r = aggressive.resolve(RetailerProductKey(retailer="sainsburys", name="Bicycle Tyre"))
     assert r.state == "Unmapped"
 

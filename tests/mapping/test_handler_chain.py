@@ -108,7 +108,7 @@ class TestHandlerChain:
         resolver = Resolver(
             master,
             auto_threshold=0.75,
-            e4_min_score=0.10,
+            fuzzy_jw_min_score=0.10,
         )
         assert resolver.context.auto_threshold == 0.75
-        assert resolver.context.e4_min_score == 0.10
+        assert resolver.context.fuzzy_jw_min_score == 0.10
