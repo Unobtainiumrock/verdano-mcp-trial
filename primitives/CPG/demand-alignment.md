@@ -80,6 +80,6 @@ Demand alignment populates `CanonicalDemandLine` from raw `ForecastDemandLine` r
 ## Cross-references
 
 - Formal treatment: [`docs/architecture/formalism.md`](../../docs/architecture/formalism.md) §4.
-- Related fixture gotcha: unit/size aliasing (Tom Basil 0.5kg ↔ Tomato 500g), [`working-doc.md`](../../working-doc.md) Data-driven gotchas #3.
-- Related fixture gotcha: time-grain alignment, [`working-doc.md`](../../working-doc.md) Design gaps vs README evaluation criteria #6.
+- Related fixture gotcha: unit/size aliasing (Tom Basil 0.5kg ↔ Tomato 500g), [`working-doc.md`](../../docs/process/working-doc.md) Data-driven gotchas #3.
+- Related fixture gotcha: time-grain alignment, [`working-doc.md`](../../docs/process/working-doc.md) Design gaps vs README evaluation criteria #6.
 - Decisions: D-001 (config-driven, so disaggregation policy lives in the retailer spec).

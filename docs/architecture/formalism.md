@@ -1,6 +1,6 @@
 # Mathematical formalism — Verdano reconciliation layer
 
-This document is the **co-created mathematical model** of the system. It draws on the Gemini conversation in [`raw_truth.md`](../../raw_truth.md) but is not subordinate to it — Gemini provided sketches; this document is where we make the math precise, push back where the sketches mislead, and surface the gaps.
+This document is the **co-created mathematical model** of the system. It draws on the Gemini conversation in [`raw-truth.md`](../process/raw-truth.md) but is not subordinate to it — Gemini provided sketches; this document is where we make the math precise, push back where the sketches mislead, and surface the gaps.
 
 The formalism is **iterative**. Sections 3–7 are first-pass and will sharpen. Section 8 makes the divergences from the Gemini source explicit. Section 9 names the open mathematical questions deferred for later iteration.
 
@@ -22,7 +22,7 @@ The Verdano trial is an **integration and reconciliation layer** between retaile
 
 Per **D-005** in [`DECISIONS.md`](../../DECISIONS.md):
 
-- **ERP-internal mathematics** — General Ledger null-space constraints ($\mathbf{1}^T W = \mathbf{0}^T$), referential-integrity inclusion dependencies, RBAC permission composition, Segregation-of-Duties negative constraints. These are the ERP's job and they're behind the API boundary. The mathematical sketches in [`raw_truth.md`](../../raw_truth.md) iteration 2 are preserved as grounding context but are not load-bearing for the build.
+- **ERP-internal mathematics** — General Ledger null-space constraints ($\mathbf{1}^T W = \mathbf{0}^T$), referential-integrity inclusion dependencies, RBAC permission composition, Segregation-of-Duties negative constraints. These are the ERP's job and they're behind the API boundary. The mathematical sketches in [`raw-truth.md`](../process/raw-truth.md) iteration 2 are preserved as grounding context but are not load-bearing for the build.
 - **ERP-internal process cycles** — P2P, R2R. We touch the front edge of O2C only.
 - **ERP-internal modules** — Financials / HCM / Supply Chain as user-facing pillars.
 
@@ -264,7 +264,7 @@ $$
 
 with $\mathcal{W}_{\text{compat}}(s) = \{ w : \texttt{temperature\_band}(w) = \texttt{temperature\_band}(s) \}$.
 
-This **closes the gap** in [`working-doc.md`](../../working-doc.md) Design gaps vs README evaluation criteria #4 (FTP math needs to be pinned down).
+This **closes the gap** in [`working-doc.md`](../process/working-doc.md) Design gaps vs README evaluation criteria #4 (FTP math needs to be pinned down).
 
 ### 5.2 Classification predicate
 
@@ -386,7 +386,7 @@ Empirically confirmed: `tests/erp/test_client.py::test_create_order_draft_is_ide
 
 ## 8. Where this diverges from the Gemini source, and why
 
-These are deliberate departures from [`raw_truth.md`](../../raw_truth.md). Each is logged here so future iterations don't accidentally re-introduce a Gemini point we've already decided against.
+These are deliberate departures from [`raw-truth.md`](../process/raw-truth.md). Each is logged here so future iterations don't accidentally re-introduce a Gemini point we've already decided against.
 
 ### 8.1 Markov chains are not fully discarded
 
@@ -535,7 +535,7 @@ Cross-references: `src/verdano/drift/` (module), `src/verdano/pipeline/drift.py`
 
 ## 11. References
 
-- [`raw_truth.md`](../../raw_truth.md) — Gemini conversation transcripts (source).
+- [`raw-truth.md`](../process/raw-truth.md) — Gemini conversation transcripts (source).
 - [`primitives/CPG/`](../../primitives/CPG/) — conceptual ontology, cross-references this doc.
 - [`primitives/ERP/`](../../primitives/ERP/) — grounding context, out of operational scope per **D-005**.
 - [`docs/architecture/verdano-problem-entity-model.md`](verdano-problem-entity-model.md) — entity model.

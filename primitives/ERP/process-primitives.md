@@ -1,13 +1,13 @@
 # ERP Process Primitives — the Workflow Layer
 
-This file populates the **process** layer of the ERP-primitives ontology from [raw_truth.md](../../raw_truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+This file populates the **process** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
 
 ---
 
 ## (a) Abstract definition
 
 > Instead of looking at isolated departments, ERPs are built around standardized, cross-functional processes that chain transactional data together.
-> *(— `raw_truth.md` §3)*
+> *(— `raw-truth.md` §3)*
 
 Three sub-primitives (the canonical "three cycles"):
 
@@ -80,5 +80,5 @@ The "compare next week" output is essentially an **O2C feasibility report** befo
 
 - Canonical entity model: [verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
 - Architectural layer: [architectural-primitives.md](architectural-primitives.md).
-- ERP API endpoints: [ERP API.md](../../ERP%20API.md).
+- ERP API endpoints: [ERP API.md](../../docs/reference/erp-api.md).
 - Decisions referenced: D-001 (adapter shape), D-004 (primitives backbone). See [DECISIONS.md](../../DECISIONS.md).

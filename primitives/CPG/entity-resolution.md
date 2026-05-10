@@ -6,7 +6,7 @@ The CPG layer's first job is **mapping retailer-published identifiers to ERP-can
 - **Locations** — retailer depot string → ERP `ship_to_location_id`.
 - **(Implicit) Time periods** — addressed in [`demand-alignment.md`](demand-alignment.md), not here.
 
-This is the **bipartite mapping graph** primitive surfaced by Gemini ([`raw_truth.md`](../../raw_truth.md) iteration 4 §"The CPG Primitives" #1), extended with explicit evidence stratification.
+This is the **bipartite mapping graph** primitive surfaced by Gemini ([`raw-truth.md`](../../docs/process/raw-truth.md) iteration 4 §"The CPG Primitives" #1), extended with explicit evidence stratification.
 
 ## Core structure
 
@@ -131,5 +131,5 @@ The mapping graph corresponds to the `RetailerToErpMapping` entity in [`docs/arc
 ## Cross-references
 
 - Formal treatment with LaTeX: [`docs/architecture/formalism.md`](../../docs/architecture/formalism.md) §3.
-- Related fixture-driven gotcha: legacy-GTIN fall-through (Berry Smoothie 250ml), see [`working-doc.md`](../../working-doc.md) Data-driven gotchas #1.
+- Related fixture-driven gotcha: legacy-GTIN fall-through (Berry Smoothie 250ml), see [`working-doc.md`](../../docs/process/working-doc.md) Data-driven gotchas #1.
 - Decisions: D-001 (config-driven adapters), D-003 (provisional polymorphism on `MappingResult`).

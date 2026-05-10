@@ -7,7 +7,7 @@ The workflow layer combines two interlocking structures plus two cross-cutting c
 - **Review queue** — a partially-ordered set of unresolved decisions awaiting human input.
 - **Idempotency** — a structural condition on side-effecting operations (notably draft creation).
 
-This primitive integrates Gemini's "FSM vs DAG vs Markov" framing ([`raw_truth.md`](../../raw_truth.md) iteration 4 §"Workflow Math") and corrects the implicit-parallel framing into an **interlocking** one: FSM transition guards are *outputs* of the DAG.
+This primitive integrates Gemini's "FSM vs DAG vs Markov" framing ([`raw-truth.md`](../../docs/process/raw-truth.md) iteration 4 §"Workflow Math") and corrects the implicit-parallel framing into an **interlocking** one: FSM transition guards are *outputs* of the DAG.
 
 ## FSM — order-draft lifecycle
 
@@ -75,7 +75,7 @@ The review queue is the union of all tuples in state `Reviewing`, ordered by:
 
 This is a partial order, not a total order — ties are operator-resolvable.
 
-The review surface must satisfy the README's evaluation criterion (low-friction; obvious *why* a human was pinged; minimal context for intelligent action) — captured as a task in [`working-doc.md`](../../working-doc.md) Tasks #7.
+The review surface must satisfy the README's evaluation criterion (low-friction; obvious *why* a human was pinged; minimal context for intelligent action) — captured as a task in [`working-doc.md`](../../docs/process/working-doc.md) Tasks #7.
 
 ## Idempotency — a structural condition on side-effecting ops
 
@@ -97,13 +97,13 @@ Gemini said "discard Markov chains" because workflow transitions are determinist
 - Forecast residuals are a stochastic signal.
 - Drift-vs-no-drift is a signal-detection problem with an explicit threshold.
 
-If we add drift detection (mentioned as optional in the README and as a deferred concern in [`working-doc.md`](../../working-doc.md) Design notes), Markov-style or signal-detection-style models become appropriate *there*. The full discard is too sweeping.
+If we add drift detection (mentioned as optional in the README and as a deferred concern in [`working-doc.md`](../../docs/process/working-doc.md) Design notes), Markov-style or signal-detection-style models become appropriate *there*. The full discard is too sweeping.
 
 For this trial we don't ship drift detection, but we name the modeling space so it doesn't get discarded by inheritance.
 
 ## Cross-references
 
 - Formal treatment: [`docs/architecture/formalism.md`](../../docs/architecture/formalism.md) §6, §7 (idempotency).
-- Related design gap: idempotent order drafts, [`working-doc.md`](../../working-doc.md) Design gaps vs README evaluation criteria #5.
+- Related design gap: idempotent order drafts, [`working-doc.md`](../../docs/process/working-doc.md) Design gaps vs README evaluation criteria #5.
 - Cassette-confirmed idempotency test: `tests/erp/test_client.py::test_create_order_draft_is_idempotent`.
 - Decisions: D-006 (workflow modeling = FSM + DAG; Markov reserved for drift).

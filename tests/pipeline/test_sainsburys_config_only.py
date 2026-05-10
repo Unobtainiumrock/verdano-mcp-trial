@@ -22,7 +22,7 @@ def test_sainsburys_w20_pipeline_runs(
 ) -> None:
     """The Sainsbury's spec is declarative; the same pipeline must run on it."""
     result = analyze_week_fulfillment(
-        forecast_csv=project_root / "sainsburys_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "sainsburys_forecast_week20.csv",
         retailer="sainsburys",
         iso_week="2026-W20",
         erp=erp_snapshot,
@@ -36,7 +36,7 @@ def test_sainsburys_gtin_rows_resolve_via_e1(
 ) -> None:
     """Rows with current_gtins should fire the E_1 stratum at ≥0.95 confidence."""
     result = analyze_week_fulfillment(
-        forecast_csv=project_root / "sainsburys_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "sainsburys_forecast_week20.csv",
         retailer="sainsburys",
         iso_week="2026-W20",
         erp=erp_snapshot,
@@ -60,7 +60,7 @@ def test_berry_smoothie_fires_legacy_gtin_stratum(
     (legacy_gtins) and apply the obsolescence penalty γ.
     """
     result = analyze_week_fulfillment(
-        forecast_csv=project_root / "sainsburys_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "sainsburys_forecast_week20.csv",
         retailer="sainsburys",
         iso_week="2026-W20",
         erp=erp_snapshot,
@@ -90,7 +90,7 @@ def test_no_gtin_falafel_bowl_routes_to_review(
     correctly drops confidence below auto-allocate, routing to review.
     """
     result = analyze_week_fulfillment(
-        forecast_csv=project_root / "sainsburys_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "sainsburys_forecast_week20.csv",
         retailer="sainsburys",
         iso_week="2026-W20",
         erp=erp_snapshot,
@@ -118,7 +118,7 @@ def test_units_to_cases_conversion_is_ceiling(
     by `case_pack`. For every Resolved row, ⌈units/case_pack⌉ should equal
     `quantity_cases`."""
     result = analyze_week_fulfillment(
-        forecast_csv=project_root / "sainsburys_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "sainsburys_forecast_week20.csv",
         retailer="sainsburys",
         iso_week="2026-W20",
         erp=erp_snapshot,
@@ -129,7 +129,7 @@ def test_units_to_cases_conversion_is_ceiling(
     # Build a key → forecast_units map from the raw CSV via the adapter.
     from verdano.adapters import SAINSBURYS_SPEC, Adapter
     raw = Adapter(SAINSBURYS_SPEC).normalize_forecast(
-        project_root / "sainsburys_forecast_week20.csv"
+        project_root / "data" / "sainsburys_forecast_week20.csv"
     )
     raw_units_by_key = {r.retailer_key.model_dump_json(): r.raw_quantity for r in raw}
 

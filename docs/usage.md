@@ -41,7 +41,7 @@ erp = ErpSnapshot(
 )
 
 result = analyze_week_fulfillment(
-    forecast_csv="tesco_forecast_week20.csv",
+    forecast_csv="data/tesco_forecast_week20.csv",
     retailer="tesco",
     iso_week="2026-W20",
     erp=erp,
@@ -75,16 +75,33 @@ primitives/
 └── CPG/               ontological core (in scope) — entity-resolution, demand-alignment, allocation, workflow
 
 docs/
+├── usage.md                               this file
+├── live-run-results.md                    evidence from live ERP run
 ├── architecture/
 │   ├── formalism.md                       LaTeX math: morphisms, FS posteriors, change-of-basis, water-filling, FSM/DAG
 │   ├── verdano-problem-entity-model.md    ER diagram + flowcharts
 │   └── storage-runtime-decision.md        Polars + DuckDB decision memo
-└── usage.md           this file
+├── reference/
+│   └── erp-api.md                         mock ERP HTTP API contract
+└── process/                               design process artifacts
+    ├── working-doc.md                     operating index
+    ├── raw-truth.md                       Gemini transcripts (1–9)
+    ├── prompts-for-gemini.md              MATH-SOT prompts
+    └── prompts.md                         early brainstorming
 
-DECISIONS.md           chronological D-001..D-014 with rationale + alternatives
-working-doc.md         operating index — open questions, locked decisions, gotchas
-raw_truth.md           Gemini conversation transcripts (1..9)
-prompts-for-gemini.md  prompts for future iterations of MATH-SOT
+DECISIONS.md              chronological D-001..D-014 with rationale + alternatives
+
+data/
+├── tesco_forecast_week20.csv
+├── tesco_epos_actuals_week19.csv
+├── sainsburys_forecast_week20.csv
+└── sainsburys_epos_actuals_week19.csv
+
+docs/process/
+├── working-doc.md        operating index — open questions, locked decisions, gotchas
+├── raw-truth.md          Gemini conversation transcripts (1..9)
+├── prompts-for-gemini.md prompts for future iterations of MATH-SOT
+└── prompts.md            early brainstorming prompts
 ```
 
 ## Running the MCP server
@@ -156,9 +173,9 @@ For reviewers wanting to see the design reasoning rather than just the code:
 
 - **[`primitives/CPG/`](../primitives/CPG/)** — conceptual treatment of the four CPG primitives (Entity Resolution, Demand Alignment, Allocation, Workflow). Cross-references the formalism.
 
-- **[`raw_truth.md`](../raw_truth.md)** — append-only Gemini transcripts (iterations 1–9). Useful for understanding *what we were told* before the formalism doc says how we *adapted* it.
+- **[`raw-truth.md`](process/raw-truth.md)** — append-only Gemini transcripts (iterations 1–9). Useful for understanding *what we were told* before the formalism doc says how we *adapted* it.
 
-- **[`working-doc.md`](../working-doc.md)** — operating index linking everything else; locked-decisions table; open questions; data-driven gotchas with explicit fixture references.
+- **[`working-doc.md`](process/working-doc.md)** — operating index linking everything else; locked-decisions table; open questions; data-driven gotchas with explicit fixture references.
 
 ## Re-recording cassettes
 

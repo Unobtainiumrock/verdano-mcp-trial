@@ -1,13 +1,13 @@
 # ERP Data Primitives — the Information Layer
 
-This file populates the **data** layer of the ERP-primitives ontology from [raw_truth.md](../../raw_truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+This file populates the **data** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
 
 ---
 
 ## (a) Abstract definition
 
 > At its core, an ERP is a massive, highly structured database. It categorizes information into three fundamental types to maintain data integrity across the enterprise.
-> *(— `raw_truth.md` §1)*
+> *(— `raw-truth.md` §1)*
 
 Three sub-primitives:
 
@@ -60,6 +60,6 @@ Metadata is versioned with the codebase and treated as part of the project's sou
 ## Cross-references
 
 - Canonical entity model: [verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
-- ERP API endpoints: [ERP API.md](../../ERP%20API.md).
+- ERP API endpoints: [ERP API.md](../../docs/reference/erp-api.md).
 - Storage / runtime: [storage-runtime-decision.md](../../docs/architecture/storage-runtime-decision.md).
 - Decisions referenced: D-001 (adapter shape), D-002 (storage), D-004 (primitives backbone). See [DECISIONS.md](../../DECISIONS.md).

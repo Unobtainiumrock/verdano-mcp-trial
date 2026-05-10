@@ -9,7 +9,7 @@ The ERP-side ontology (Data / Architectural / Process / Functional) describes a 
 - "Architectural primitives" in CPG terms is mostly **defining absences** relative to ERP (no shared database, no shared primary key, no GL).
 - "Functional primitives" has no real CPG analog — there's no AP/AR/HCM/Supply-Chain module split because we don't have user-facing modules.
 
-Instead, the CPG primitives are decomposed by **the actual mathematical structure of the reconciliation problem**, surfaced in [`raw_truth.md`](../../raw_truth.md) iteration 4:
+Instead, the CPG primitives are decomposed by **the actual mathematical structure of the reconciliation problem**, surfaced in [`raw-truth.md`](../../docs/process/raw-truth.md) iteration 4:
 
 | Primitive | What it captures | File |
 |---|---|---|
@@ -26,7 +26,7 @@ This split is deliberate: the ontology is expected to stabilize quickly while th
 
 ## Sources
 
-These files derive from [`raw_truth.md`](../../raw_truth.md) iteration 4 (the Verdano-trial scope realignment) plus extensions added during integration where the Gemini source under-specified the problem. Divergences from the source are flagged inline and consolidated in [`docs/architecture/formalism.md`](../../docs/architecture/formalism.md) §"Where this diverges from the Gemini source, and why".
+These files derive from [`raw-truth.md`](../../docs/process/raw-truth.md) iteration 4 (the Verdano-trial scope realignment) plus extensions added during integration where the Gemini source under-specified the problem. Divergences from the source are flagged inline and consolidated in [`docs/architecture/formalism.md`](../../docs/architecture/formalism.md) §"Where this diverges from the Gemini source, and why".
 
 ## What this directory deliberately does *not* contain
 

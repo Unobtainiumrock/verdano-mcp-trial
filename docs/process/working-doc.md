@@ -4,15 +4,15 @@ This document is the **operating index**, not the authority. Authoritative conte
 
 ## Source-of-truth references
 
-- **Gemini conversation transcripts (append-only):** [`raw_truth.md`](raw_truth.md). User iterates with Gemini; new sections append at the bottom.
-- **ERP primitives (grounding context, not operational scope per D-005):** [`primitives/ERP/README.md`](primitives/ERP/README.md) + the four primitive files. Documents how an ERP is built; we treat the actual ERP as an external state machine over HTTP.
-- **CPG primitives (operational scope):** [`primitives/CPG/README.md`](primitives/CPG/README.md), [`entity-resolution.md`](primitives/CPG/entity-resolution.md), [`demand-alignment.md`](primitives/CPG/demand-alignment.md), [`allocation.md`](primitives/CPG/allocation.md), [`workflow.md`](primitives/CPG/workflow.md).
-- **Mathematical formalism (LaTeX):** [`docs/architecture/formalism.md`](docs/architecture/formalism.md). Co-created from the Gemini source; explicit pushback section captures divergences.
-- **Entity/relationship model:** [`docs/architecture/verdano-problem-entity-model.md`](docs/architecture/verdano-problem-entity-model.md).
-- **Storage / runtime decision:** [`docs/architecture/storage-runtime-decision.md`](docs/architecture/storage-runtime-decision.md).
-- **Decisions log:** [`DECISIONS.md`](DECISIONS.md) — chronological with rationale.
-- **Trial brief:** [`README.md`](README.md), [`ERP API.md`](ERP%20API.md).
-- **Reviewer's usage guide:** [`docs/usage.md`](docs/usage.md) — install, test, demo, MCP wiring.
+- **Gemini conversation transcripts (append-only):** [`raw-truth.md`](raw-truth.md). User iterates with Gemini; new sections append at the bottom.
+- **ERP primitives (grounding context, not operational scope per D-005):** [`primitives/ERP/README.md`](../../primitives/ERP/README.md) + the four primitive files. Documents how an ERP is built; we treat the actual ERP as an external state machine over HTTP.
+- **CPG primitives (operational scope):** [`primitives/CPG/README.md`](../../primitives/CPG/README.md), [`entity-resolution.md`](../../primitives/CPG/entity-resolution.md), [`demand-alignment.md`](../../primitives/CPG/demand-alignment.md), [`allocation.md`](../../primitives/CPG/allocation.md), [`workflow.md`](../../primitives/CPG/workflow.md).
+- **Mathematical formalism (LaTeX):** [`formalism.md`](../architecture/formalism.md). Co-created from the Gemini source; explicit pushback section captures divergences.
+- **Entity/relationship model:** [`verdano-problem-entity-model.md`](../architecture/verdano-problem-entity-model.md).
+- **Storage / runtime decision:** [`storage-runtime-decision.md`](../architecture/storage-runtime-decision.md).
+- **Decisions log:** [`DECISIONS.md`](../../DECISIONS.md) — chronological with rationale.
+- **Trial brief:** [`README.md`](../../README.md), [`erp-api.md`](../reference/erp-api.md).
+- **Reviewer's usage guide:** [`usage.md`](../usage.md) — install, test, demo, MCP wiring.
 
 `MATH-SOT` in Priority Forge is `completed` — all 9 Gemini iterations integrated. D-009 (kernel), D-010 (allocation), D-011 (calibration), D-012 (drift), D-013 (canonicalization), D-014 (cascade floor) are locked.
 
@@ -25,7 +25,7 @@ Each entry below points at its full decision record in [`DECISIONS.md`](DECISION
 | **D-001** | locked | Adapter shape = config-driven spec + small pluggable resolver. Per-retailer subclasses fail the README's 2 → 200-customer scaling criterion. |
 | **D-002** | locked | Storage / runtime = Polars (compute) + DuckDB (persistence). Real SQL contract, file-backed, native Polars interop, painless migration to Postgres if needed. |
 | **D-003** | provisional | Canonical entities polymorphic with `confidence: float`. Tentative resolution under formalism §2: morphism formalism is independent of implementation; Pydantic-class polymorphism is a fine concrete realization of morphism domains/codomains. Final commit deferred to canonical-entities planning round. |
-| **D-004** | locked | ERP primitives (`raw_truth.md`) are the ontological backbone. CPG primitives populated from MATH-SOT iteration #1 ([`primitives/CPG/`](primitives/CPG/)); further iterations expected. |
+| **D-004** | locked | ERP primitives (`raw-truth.md`) are the ontological backbone. CPG primitives populated from MATH-SOT iteration #1 ([`primitives/CPG/`](../../primitives/CPG/)); further iterations expected. |
 | **D-005** | locked | ERP-internal mathematics is out of operational scope. The trial treats the ERP as an external state machine over HTTP. `primitives/ERP/*` is grounding context, not implementation guidance. |
 | **D-006** | locked | Workflow modelling = FSM (deterministic order-draft lifecycle) + DAG (compute pipeline), interlocked: FSM guards consume DAG outputs. Markov reserved for forecast-drift detection, not discarded wholesale. |
 | **D-007** | locked | Demand alignment is a change-of-basis problem. Aggregation is total-preserving; disaggregation is policy-driven (`K`-kernel) and lossy. Inferred values carry provenance. |
@@ -44,7 +44,7 @@ Each entry below points at its full decision record in [`DECISIONS.md`](DECISION
 3. Is polymorphism the right call here, or is there a more straightforward way to do things that doesn't lead to overengineering?
    - **Status:** provisionally locked as D-003 with explicit hesitation preserved. Expected to re-examine under a linear-algebra / mapping-of-spaces framing once `primitives/CPG/` lands (tracked as `MATH-SOT`). Adapters may turn out to be better modeled as *morphisms between primitive spaces* than as OOP-polymorphic classes — the polymorphic Pydantic surface is load-bearing scaffolding, not a final commitment.
 4. ~~Should the hallucination-detection framework be included anywhere in the stack for grounded behavior?~~ **Out of scope:** the pipeline is structured-data-in / structured-data-out; no generative LLM in the path. The MCP server exposes deterministic tools — hallucination risk is zero within the pipeline boundary.
-5. ~~Is a relational DB the sound approach?~~ **Resolved by D-002:** Polars + DuckDB. DuckDB provides a real SQL contract (columnar OLAP); we get the relational benefits without the Postgres setup overhead. See [storage-runtime-decision.md](docs/architecture/storage-runtime-decision.md).
+5. ~~Is a relational DB the sound approach?~~ **Resolved by D-002:** Polars + DuckDB. DuckDB provides a real SQL contract (columnar OLAP); we get the relational benefits without the Postgres setup overhead. See [storage-runtime-decision.md](../architecture/storage-runtime-decision.md).
 6. ~~Where do I get the API key?~~ **Resolved:** the trial brief includes it; copy from `README.md` into your `.env` as `VERDANO_ERP_API_KEY` (template in `.env.example`).
 
 ## Tasks

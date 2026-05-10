@@ -13,11 +13,11 @@
 > | The math (LaTeX-rendered) | [`docs/architecture/formalism.md`](docs/architecture/formalism.md) — Fellegi-Sunter, change-of-basis, water-filling, FSM/DAG |
 > | Empirical evidence the system works against the live ERP | [`docs/live-run-results.md`](docs/live-run-results.md) — 7 real drafts created, idempotency confirmed |
 > | The four MCP tools | `analyze_week_fulfillment_tool`, `list_review_queue_tool`, `create_drafts_for_safe_lines_tool`, `compare_actuals_vs_forecast_tool` (in [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py)) |
-> | Tests (70 passing, fully offline) | `uv run pytest` |
+> | Tests (96 passing, fully offline) | `uv run pytest` |
 > | Conceptual ontology (CPG primitives) | [`primitives/CPG/`](primitives/CPG/) |
-> | The Gemini conversation transcripts I iterated against | [`raw_truth.md`](raw_truth.md) (process artifact, not deliverable) |
+> | The Gemini conversation transcripts I iterated against | [`raw-truth.md`](docs/process/raw-truth.md) (process artifact, not deliverable) |
 >
-> Provenance note: `raw_truth.md`, `prompts.md`, `prompts-for-gemini.md`, and `working-doc.md` are *process artifacts* showing how the design evolved. They're preserved for transparency on the "Articulation & tradeoffs" eval criterion. Skip them if you only want the deliverable.
+> Provenance note: `raw-truth.md`, `prompts.md`, `prompts-for-gemini.md`, and `working-doc.md` are *process artifacts* in [`docs/process/`](docs/process/) showing how the design evolved. They're preserved for transparency on the "Articulation & tradeoffs" eval criterion. Skip them if you only want the deliverable.
 
 ---
 
@@ -38,7 +38,7 @@ At a minimum, the AI system should be able to use your MCP server to:
 - Compare next week's retailer forecast demand against ERP inventory and open orders
 - Identify SKU/retailer lines that are safe, at risk, or blocked by ambiguous mappings
 
-Optional but for additional inspiration:
+ Optional but for additional inspiration:
 
 - Create ERP order drafts for clean lines
 - Compare recent EPOS actuals against retailer forecasts to flag likely forecast drift
@@ -50,7 +50,7 @@ You will receive:
 - Mock retailer forecast and EPOS CSVs
 - Access to a small mock ERP API
   - Base url: https://erp.corvera.ai
-  - API key: `<TRIAL_API_KEY — see the brief sent by the Verdano trial team; redacted from this committed copy for repo hygiene>`
+  - API key: `trial_IxUCtnJZKv6XyF8g-OMSXpQG9Iwe32p7`
 
 You have full flexibility in choosing the tool design and the implementation approach. That said, we care about the following:
 

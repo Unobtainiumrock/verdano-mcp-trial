@@ -56,17 +56,17 @@ Status legend: **locked** (committed, not revisiting without cause), **provision
 
 ---
 
-## D-004 — ERP primitives (`raw_truth.md`) are the ontological backbone
+## D-004 — ERP primitives (`raw-truth.md`) are the ontological backbone
 
 **Date:** 2026-05-06
 **Status:** locked
 
-**Decision.** The four-layer ERP primitives ontology in `raw_truth.md` (Data / Architectural / Process / Functional) is the source of truth for the ERP-side concepts. The skeleton at `primitives/ERP/{data,architectural,process,functional}-primitives.md` is populated from `raw_truth.md` with trial-specific instantiation. The canonical entity model in `docs/architecture/verdano-problem-entity-model.md` cross-references these primitives.
+**Decision.** The four-layer ERP primitives ontology in `raw-truth.md` (Data / Architectural / Process / Functional) is the source of truth for the ERP-side concepts. The skeleton at `primitives/ERP/{data,architectural,process,functional}-primitives.md` is populated from `raw-truth.md` with trial-specific instantiation. The canonical entity model in `docs/architecture/verdano-problem-entity-model.md` cross-references these primitives.
 
 **Alternatives.**
 
 - Skip the primitives reframing; ground only in the existing entity model. Rejected: loses the ontological rigor the user asked for.
-- Wait until CPG primitives are also ready before populating ERP. Rejected: ERP primitives are independently derivable from `raw_truth.md` *now*; CPG primitives are blocked on the user's Gemini iteration. Decoupling lets us make progress.
+- Wait until CPG primitives are also ready before populating ERP. Rejected: ERP primitives are independently derivable from `raw-truth.md` *now*; CPG primitives are blocked on the user's Gemini iteration. Decoupling lets us make progress.
 
 **Why.** Grounds adapters as mappings between two primitive spaces (CPG-side and ERP-side), which is the framing the user wants and which dovetails with the linear-algebra direction in MATH-SOT. CPG-side primitives are deferred; see MATH-SOT.
 
@@ -82,7 +82,7 @@ Status legend: **locked** (committed, not revisiting without cause), **provision
 **Alternatives.**
 
 - Drop the ERP primitives entirely. Rejected: the user explicitly wanted the ERP-layer awareness preserved, and it sharpens our understanding of the API boundary we sit on.
-- Treat the ERP-internal math as in-scope and try to mirror it. Rejected: category error — we don't *implement* the ERP, we integrate against it. Confirmed in the Gemini scope-realignment exchange (raw_truth.md iteration 4).
+- Treat the ERP-internal math as in-scope and try to mirror it. Rejected: category error — we don't *implement* the ERP, we integrate against it. Confirmed in the Gemini scope-realignment exchange (raw-truth.md iteration 4).
 
 **Why.** Keeps focus on the layer we actually build: integration, reconciliation, and agentic orchestration. Prevents the ERP-internal mathematical sketches from accidentally pulling design weight onto the wrong problem.
 
@@ -140,7 +140,7 @@ Status legend: **locked** (committed, not revisiting without cause), **provision
 
 **Date:** 2026-05-09
 **Status:** locked
-**Source:** Gemini iteration 6 (`raw_truth.md`).
+**Source:** Gemini iteration 6 (`raw-truth.md`).
 
 **Decision.** Default disaggregation kernel for retailers with no historical EPOS is a **config-declared static day-of-week profile**:
 
@@ -169,7 +169,7 @@ The constraint $\mathbf{1}^T K = \mathbf{1}^T$ ensures column-stochasticity, sat
 
 **Date:** 2026-05-09
 **Status:** locked
-**Source:** Gemini iteration 7 (`raw_truth.md`).
+**Source:** Gemini iteration 7 (`raw-truth.md`).
 
 **Decision.** Three components:
 
@@ -198,7 +198,7 @@ The constraint $\mathbf{1}^T K = \mathbf{1}^T$ ensures column-stochasticity, sat
 
 **Date:** 2026-05-09 (initial), updated 2026-05-09 with iterations 8 & 9
 **Status:** **locked** — all sub-gaps from initial provisional lock have been resolved
-**Source:** Gemini iterations 5, 8, 9 (`raw_truth.md`).
+**Source:** Gemini iterations 5, 8, 9 (`raw-truth.md`).
 
 **Decision (locked parts).**
 

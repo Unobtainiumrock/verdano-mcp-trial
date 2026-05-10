@@ -24,7 +24,7 @@ def test_tesco_w20_pipeline_produces_classifications(
     erp_snapshot: ErpSnapshot, project_root: Path
 ) -> None:
     result = analyze_week_fulfillment(
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
         retailer="tesco",
         iso_week="2026-W20",
         erp=erp_snapshot,
@@ -43,7 +43,7 @@ def test_tesco_lines_resolve_via_alias_or_better(
     """Tesco strings have no GTINs, so resolution falls through to E_3 (alias).
     The master has each Tesco-style name as an alias, so all should auto-resolve."""
     result = analyze_week_fulfillment(
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
         retailer="tesco",
         iso_week="2026-W20",
         erp=erp_snapshot,
@@ -65,7 +65,7 @@ def test_tesco_falafel_bowl_pair_maps_to_distinct_skus(
     Each Tesco-side string is unique enough to alias a different ERP SKU,
     so they should map to *different* SKUs (not collapse)."""
     result = analyze_week_fulfillment(
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
         retailer="tesco",
         iso_week="2026-W20",
         erp=erp_snapshot,
@@ -83,7 +83,7 @@ def test_tesco_classifications_explain_themselves(
 ) -> None:
     """Every classification should carry a non-empty operator-readable reason."""
     result = analyze_week_fulfillment(
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
         retailer="tesco",
         iso_week="2026-W20",
         erp=erp_snapshot,
@@ -96,7 +96,7 @@ def test_tesco_safe_lines_have_ftp_at_least_demand(
     erp_snapshot: ErpSnapshot, project_root: Path
 ) -> None:
     result = analyze_week_fulfillment(
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
         retailer="tesco",
         iso_week="2026-W20",
         erp=erp_snapshot,
@@ -116,13 +116,13 @@ def test_pipeline_is_deterministic(
     """Per formalism §6.2, DAG nodes are pure. Two runs over the same
     inputs must produce identical outputs."""
     a = analyze_week_fulfillment(
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
         retailer="tesco",
         iso_week="2026-W20",
         erp=erp_snapshot,
     )
     b = analyze_week_fulfillment(
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
         retailer="tesco",
         iso_week="2026-W20",
         erp=erp_snapshot,
@@ -139,7 +139,7 @@ def test_pipeline_returns_empty_on_other_weeks(
 ) -> None:
     """Filtering to a non-W20 ISO week should produce zero classifications."""
     result = analyze_week_fulfillment(
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
         retailer="tesco",
         iso_week=iso_week,
         erp=erp_snapshot,

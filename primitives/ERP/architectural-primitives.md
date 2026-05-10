@@ -1,13 +1,13 @@
 # ERP Architectural Primitives — the System Layer
 
-This file populates the **architectural** layer of the ERP-primitives ontology from [raw_truth.md](../../raw_truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+This file populates the **architectural** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
 
 ---
 
 ## (a) Abstract definition
 
 > The technical constraints that separate an ERP from a loose collection of disparate software tools.
-> *(— `raw_truth.md` §2)*
+> *(— `raw-truth.md` §2)*
 
 Three sub-primitives:
 
@@ -52,6 +52,6 @@ What this means concretely:
 ## Cross-references
 
 - Canonical entity model: [verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
-- ERP API auth and endpoints: [ERP API.md](../../ERP%20API.md).
+- ERP API auth and endpoints: [ERP API.md](../../docs/reference/erp-api.md).
 - `.env` and gitignore policy: [.gitignore](../../.gitignore).
 - Decisions referenced: D-002 (storage cache, not source-of-truth), D-004 (primitives backbone). See [DECISIONS.md](../../DECISIONS.md).

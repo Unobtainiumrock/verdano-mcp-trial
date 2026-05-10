@@ -44,7 +44,7 @@ This optionality is the main reason DuckDB beat "in-memory only" — the file-ba
 
 - **No ORM.** Pydantic models for HTTP I/O; raw SQL or Polars expressions for the DB. Avoid the SQLAlchemy ORM-layer overhead inside this trial. (`SQLAlchemy Core` is fine if we ever migrate to Postgres.)
 - **No dbt** in the trial. The transformations are small and fit naturally in Polars expressions; dbt's value (lineage, materialized models, test packs) doesn't pay back at this scale.
-- **No Redis / no message bus.** No identified hot path; no event-stream driver. (Per [working-doc.md](../../working-doc.md) Process / scope, the speculative tooling list is deferred.)
+- **No Redis / no message bus.** No identified hot path; no event-stream driver. (Per [working-doc.md](../process/working-doc.md) Process / scope, the speculative tooling list is deferred.)
 
 ## Dev-experience notes
 
@@ -56,4 +56,4 @@ This optionality is the main reason DuckDB beat "in-memory only" — the file-ba
 
 - Decision record: [DECISIONS.md](../../DECISIONS.md) §D-002.
 - Architectural framing: [primitives/ERP/architectural-primitives.md](../../primitives/ERP/architectural-primitives.md).
-- Working doc: [working-doc.md](../../working-doc.md).
+- Working doc: [working-doc.md](../process/working-doc.md).

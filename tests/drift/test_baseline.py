@@ -28,8 +28,8 @@ def test_tesco_drift_pipeline_runs(
         retailer="tesco",
         iso_week_forecast="2026-W20",
         iso_week_actuals="2026-W19",
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
-        actuals_csv=project_root / "tesco_epos_actuals_week19.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
+        actuals_csv=project_root / "data" / "tesco_epos_actuals_week19.csv",
         erp=erp_snapshot,
     )
     # All 12 Tesco rows resolve, so no skipped_unmapped.
@@ -49,8 +49,8 @@ def test_tesco_promo_lines_are_segmented(
         retailer="tesco",
         iso_week_forecast="2026-W20",
         iso_week_actuals="2026-W19",
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
-        actuals_csv=project_root / "tesco_epos_actuals_week19.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
+        actuals_csv=project_root / "data" / "tesco_epos_actuals_week19.csv",
         erp=erp_snapshot,
     )
     promo_signals = [s for s in report.signals if s.promo_segmented]
@@ -70,8 +70,8 @@ def test_tesco_thresholding_finds_at_least_one_high(
         retailer="tesco",
         iso_week_forecast="2026-W20",
         iso_week_actuals="2026-W19",
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
-        actuals_csv=project_root / "tesco_epos_actuals_week19.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
+        actuals_csv=project_root / "data" / "tesco_epos_actuals_week19.csv",
         erp=erp_snapshot,
     )
     assert report.summary["high"] >= 1
@@ -87,8 +87,8 @@ def test_sainsburys_drift_skips_unresolved(
         retailer="sainsburys",
         iso_week_forecast="2026-W20",
         iso_week_actuals="2026-W19",
-        forecast_csv=project_root / "sainsburys_forecast_week20.csv",
-        actuals_csv=project_root / "sainsburys_epos_actuals_week19.csv",
+        forecast_csv=project_root / "data" / "sainsburys_forecast_week20.csv",
+        actuals_csv=project_root / "data" / "sainsburys_epos_actuals_week19.csv",
         erp=erp_snapshot,
     )
     assert report.summary["skipped_unmapped"] >= 2
@@ -105,8 +105,8 @@ def test_sainsburys_promo_asymmetry(
         retailer="sainsburys",
         iso_week_forecast="2026-W20",
         iso_week_actuals="2026-W19",
-        forecast_csv=project_root / "sainsburys_forecast_week20.csv",
-        actuals_csv=project_root / "sainsburys_epos_actuals_week19.csv",
+        forecast_csv=project_root / "data" / "sainsburys_forecast_week20.csv",
+        actuals_csv=project_root / "data" / "sainsburys_epos_actuals_week19.csv",
         erp=erp_snapshot,
     )
     for s in report.signals:
@@ -121,16 +121,16 @@ def test_drift_pipeline_is_deterministic(
         retailer="tesco",
         iso_week_forecast="2026-W20",
         iso_week_actuals="2026-W19",
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
-        actuals_csv=project_root / "tesco_epos_actuals_week19.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
+        actuals_csv=project_root / "data" / "tesco_epos_actuals_week19.csv",
         erp=erp_snapshot,
     )
     b = analyze_forecast_plausibility(
         retailer="tesco",
         iso_week_forecast="2026-W20",
         iso_week_actuals="2026-W19",
-        forecast_csv=project_root / "tesco_forecast_week20.csv",
-        actuals_csv=project_root / "tesco_epos_actuals_week19.csv",
+        forecast_csv=project_root / "data" / "tesco_forecast_week20.csv",
+        actuals_csv=project_root / "data" / "tesco_epos_actuals_week19.csv",
         erp=erp_snapshot,
     )
     assert a.summary == b.summary

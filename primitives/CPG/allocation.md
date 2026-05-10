@@ -2,7 +2,7 @@
 
 The allocation primitive answers the operational question: **given resolved retailer demand and ERP supply, what can we fulfill?** This is where the safe / at-risk / needs-review classification is computed.
 
-This primitive is the **allocation constraint** Gemini surfaced in [`raw_truth.md`](../../raw_truth.md) iteration 4 §"The CPG Primitives" #3, extended with the temperature-band and warehouse-compatibility structure that the Gemini sketch glossed over.
+This primitive is the **allocation constraint** Gemini surfaced in [`raw-truth.md`](../../docs/process/raw-truth.md) iteration 4 §"The CPG Primitives" #3, extended with the temperature-band and warehouse-compatibility structure that the Gemini sketch glossed over.
 
 ## Free-to-promise (FTP)
 
@@ -105,6 +105,6 @@ Allocation reads from `InventoryPosition`, `OpenSalesOrder` (open-order subtract
 ## Cross-references
 
 - Formal treatment: [`docs/architecture/formalism.md`](../../docs/architecture/formalism.md) §5.
-- Related design gap: free-to-promise math, [`working-doc.md`](../../working-doc.md) Design gaps vs README evaluation criteria #4.
-- Related fixture gotcha: temperature-band cross-check, [`working-doc.md`](../../working-doc.md) Data-driven gotchas #4.
+- Related design gap: free-to-promise math, [`working-doc.md`](../../docs/process/working-doc.md) Design gaps vs README evaluation criteria #4.
+- Related fixture gotcha: temperature-band cross-check, [`working-doc.md`](../../docs/process/working-doc.md) Data-driven gotchas #4.
 - Decisions: D-002 (storage), D-003 (provisional polymorphism on `FulfillmentClassification`).

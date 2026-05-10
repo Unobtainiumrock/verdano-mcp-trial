@@ -21,7 +21,7 @@ The CPG-side primitives — bipartite mapping, demand alignment, allocation cons
 
 ## Source
 
-These files derive from [`raw_truth.md`](../../raw_truth.md) iterations 1–3 (the Gemini conversation establishing the ERP-primitives ontology). The mathematical framing of those primitives (linear algebra, set theory) is preserved in `raw_truth.md` but **not** elevated into operational scope here.
+These files derive from [`raw-truth.md`](../../docs/process/raw-truth.md) iterations 1–3 (the Gemini conversation establishing the ERP-primitives ontology). The mathematical framing of those primitives (linear algebra, set theory) is preserved in `raw-truth.md` but **not** elevated into operational scope here.
 
 ## What this directory deliberately does *not* contain
 

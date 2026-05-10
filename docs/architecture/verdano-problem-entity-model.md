@@ -7,7 +7,7 @@ isProject: false
 
 # Verdano Foods problem space — entity model (first pass)
 
-This is derived from [README.md](../../README.md), [ERP API.md](../../ERP API.md), and the four mock CSVs (Tesco/Sainsbury forecast week 20, EPOS week 19).
+This is derived from [README.md](../../README.md), [ERP API.md](../reference/erp-api.md), and the four mock CSVs (Tesco/Sainsbury forecast week 20, EPOS week 19).
 
 ## Core tension (what the diagram encodes)
 
@@ -143,7 +143,7 @@ erDiagram
 
 - **`RetailerProductKey`** is a deliberate composite abstraction: for Tesco the natural key skews toward `tesco_item`; for Sainsbury's it skews toward `gtin` + `item_name` with **nullable GTIN** in the mock data (ambiguous identity).
 - **`TimeGrain`** is not one table in any source — Tesco forecasts use **delivery dates**; Sainsbury's uses **ISO weeks** (`receipt_week`); EPOS files use **week ending** (Tesco) vs **week** (Sainsbury's). Any “compare next week” logic spans this boundary.
-- **`RetailerLocationGrain`**: Tesco `depot` (e.g. Daventry Chilled) vs Sainsbury's `geography` ("All Depots") vs ERP `ship_to` / `warehouse_id` — fulfillment and temperature rules ([order-drafts validation in ERP API](../../ERP API.md)) tie **ship-to** and **warehouse temperature** to **product temperature_band**.
+- **`RetailerLocationGrain`**: Tesco `depot` (e.g. Daventry Chilled) vs Sainsbury's `geography` ("All Depots") vs ERP `ship_to` / `warehouse_id` — fulfillment and temperature rules ([order-drafts validation in ERP API](../reference/erp-api.md)) tie **ship-to** and **warehouse temperature** to **product temperature_band**.
 - **Units**: Tesco forecast is **cases**; Sainsbury's forecast is **units**; Tesco EPOS is **eaches**; Sainsbury's EPOS is **units** — normalization to a single demand/supply unit (typically ERP **cases** via `case_pack`) is a cross-cutting derivation, not a raw column.
 
 ## Problem-space map: sources → normalized facts → decisions
@@ -232,7 +232,7 @@ flowchart TB
 
 ## Entities you may want as interfaces (README evaluation criteria)
 
-Polymorphism lines up naturally on **`RetailerAdapter` → `NormalizedRow`**, **`RetailerProductKey` refinements** (Tesco key vs Sainsbury key), and **`DemandQuantity`** (cases vs units with `case_pack` resolution from [`GET /erp/products`](../../ERP API.md)).
+Polymorphism lines up naturally on **`RetailerAdapter` → `NormalizedRow`**, **`RetailerProductKey` refinements** (Tesco key vs Sainsbury key), and **`DemandQuantity`** (cases vs units with `case_pack` resolution from [`GET /erp/products`](../reference/erp-api.md)).
 
 ---
 

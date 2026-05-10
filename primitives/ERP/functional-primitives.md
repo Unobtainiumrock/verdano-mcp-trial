@@ -1,13 +1,13 @@
 # ERP Functional Primitives — the Application Modules
 
-This file populates the **functional** layer of the ERP-primitives ontology from [raw_truth.md](../../raw_truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+This file populates the **functional** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
 
 ---
 
 ## (a) Abstract definition
 
 > These are the user-facing pillars that interact with the underlying database and workflows. At a minimum, a true ERP requires:
-> *(— `raw_truth.md` §4)*
+> *(— `raw-truth.md` §4)*
 
 Three sub-primitives:
 

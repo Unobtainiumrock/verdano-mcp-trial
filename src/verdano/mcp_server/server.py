@@ -46,11 +46,11 @@ def _validate_iso_week(iso_week: str) -> dict[str, Any] | None:
 # Trial-scope: forecast CSV path is determined by retailer code at the
 # project root. Production: this would come from a config / object-store.
 def _forecast_csv_for(retailer: RetailerCode, project_root: Path) -> Path:
-    return project_root / f"{retailer}_forecast_week20.csv"
+    return project_root / "data" / f"{retailer}_forecast_week20.csv"
 
 
 def _actuals_csv_for(retailer: RetailerCode, project_root: Path) -> Path:
-    return project_root / f"{retailer}_epos_actuals_week19.csv"
+    return project_root / "data" / f"{retailer}_epos_actuals_week19.csv"
 
 
 def _erp_snapshot_from_live(client: Client) -> ErpSnapshot:
