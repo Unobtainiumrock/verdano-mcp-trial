@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+import sys
 from collections.abc import Callable
 from contextlib import AbstractContextManager
 from pathlib import Path
@@ -357,7 +358,58 @@ def get_tool_handler(server: FastMCP, tool_name: str) -> Any:
     return server._tool_manager._tools[tool_name].fn  # type: ignore[attr-defined]
 
 
+def _run_health_check(project_root: Path) -> int:
+    """Verify env, ERP connectivity, and tool registration. Returns exit code."""
+    from verdano.config import Settings
+
+    checks: list[tuple[str, bool, str]] = []
+
+    env_path = project_root / ".env"
+    checks.append((".env exists", env_path.is_file(), str(env_path)))
+
+    try:
+        settings = Settings()  # type: ignore[call-arg]
+        has_key = bool(settings.verdano_erp_api_key)
+    except Exception:
+        has_key = False
+    checks.append(("API key configured", has_key, "VERDANO_ERP_API_KEY"))
+
+    erp_ok = False
+    erp_detail = ""
+    if has_key:
+        try:
+            with Client.from_env() as client:
+                prods = client.list_products()
+                erp_ok = len(prods) > 0
+                erp_detail = f"{len(prods)} products"
+        except Exception as exc:
+            erp_detail = str(exc)[:120]
+    checks.append(("ERP connectivity", erp_ok, erp_detail))
+
+    server = build_server(project_root=project_root)
+    tool_names = sorted(server._tool_manager._tools.keys())  # type: ignore[attr-defined]
+    checks.append(("Tools registered", len(tool_names) >= 4, ", ".join(tool_names)))
+
+    all_ok = True
+    for label, ok, detail in checks:
+        symbol = "+" if ok else "x"
+        print(f"  [{symbol}] {label}: {detail}")
+        if not ok:
+            all_ok = False
+
+    print()
+    if all_ok:
+        print("All checks passed — MCP server is ready.")
+    else:
+        print("Some checks failed — see above.")
+    return 0 if all_ok else 1
+
+
 def run() -> None:
-    """Entry-point for `python -m verdano.mcp_server`."""
+    """Entry-point for `verdano-mcp` / `python -m verdano.mcp_server`."""
+    if "--health" in sys.argv:
+        env_root = os.environ.get("VERDANO_PROJECT_ROOT")
+        root = Path(env_root) if env_root else Path.cwd()
+        raise SystemExit(_run_health_check(root))
     server = build_server(project_root=Path.cwd())
     server.run()

@@ -4,6 +4,16 @@
 >
 > The original trial brief is preserved verbatim below. The submission deliverable is the rest of this repository.
 >
+> **Quick start (MCP setup in one command):**
+>
+> ```bash
+> git clone <repo-url> && cd challenge
+> ./scripts/setup-mcp.sh    # installs deps, configures .env, wires Cursor + Claude Desktop
+> uv run pytest              # 96 tests, fully offline
+> ```
+>
+> Then restart Cursor / Claude Desktop and ask: *"Analyze Tesco week 2026-W20"*.
+>
 > **Quick orientation for a 5-minute scan:**
 >
 > | Want to see... | Look at |

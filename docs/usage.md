@@ -97,34 +97,54 @@ data/
 ├── sainsburys_forecast_week20.csv
 └── sainsburys_epos_actuals_week19.csv
 
-docs/process/
-├── working-doc.md        operating index — open questions, locked decisions, gotchas
-├── raw-truth.md          Gemini conversation transcripts (1..9)
-├── prompts-for-gemini.md prompts for future iterations of MATH-SOT
-└── prompts.md            early brainstorming prompts
+scripts/
+├── setup-mcp.sh          one-command MCP setup for Cursor + Claude Desktop
+└── live_draft_run.py     exercise MCP tools against the live ERP
 ```
 
 ## Running the MCP server
 
-The server speaks stdio for direct use under Claude Desktop or `mcp-cli`:
+### One-command setup (recommended)
+
+The setup script installs dependencies, configures `.env`, injects MCP entries into both Cursor and Claude Desktop, and runs a health check:
 
 ```bash
-uv run python -m verdano.mcp_server
+./scripts/setup-mcp.sh
 ```
 
-For Claude Desktop, add to `claude_desktop_config.json`:
+After the script finishes, restart Cursor / Claude Desktop to pick up the new configuration.
+
+Verify the server is healthy at any time:
+
+```bash
+uv run verdano-mcp --health
+```
+
+### Manual configuration (alternative)
+
+If you prefer to configure MCP manually, add the following entry to your host's config file:
+
+- **Cursor**: `~/.cursor/mcp.json`
+- **Claude Desktop (macOS)**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Claude Desktop (Linux)**: `~/.config/Claude/claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "verdano": {
       "command": "uv",
-      "args": ["--directory", "/absolute/path/to/challenge", "run",
-               "python", "-m", "verdano.mcp_server"]
+      "args": ["--directory", "/absolute/path/to/challenge", "run", "verdano-mcp"],
+      "env": {
+        "VERDANO_PROJECT_ROOT": "/absolute/path/to/challenge"
+      }
     }
   }
 }
 ```
+
+Replace `/absolute/path/to/challenge` with the actual path to this repository on your machine.
+
+The server speaks stdio transport — it is launched by the MCP host automatically; you do not run it directly in a terminal.
 
 ### Tools exposed
 

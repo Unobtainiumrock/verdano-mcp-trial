@@ -16,6 +16,9 @@ dependencies = [
   "mcp>=1.0",
 ]
 
+[project.scripts]
+verdano-mcp = "verdano.mcp_server:run"
+
 [dependency-groups]
 dev = [
   "pytest>=8.0",
