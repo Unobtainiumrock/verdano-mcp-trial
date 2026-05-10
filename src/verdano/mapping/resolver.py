@@ -3,8 +3,9 @@
 The `MasterIndex` pre-computes the Fellegi-Sunter collision dictionary K_x for
 every key class (current_gtins, legacy_gtins, aliases, names) at construction
 time. The `Resolver` walks an ordered chain of `StratumHandler` functions,
-returning the first `MappingResult` produced. New strata (e.g. LLM-augmented
-E5) are added by appending a handler — no if/elif surgery required.
+returning the first `MappingResult` produced. New strata (e.g.
+`llm_augmented`) are added by appending a handler — no if/elif surgery
+required.
 """
 
 from __future__ import annotations
@@ -263,7 +264,7 @@ class MasterIndex:
 class Resolver:
     """Walks an ordered chain of stratum handlers and returns the first hit.
 
-    New strata (e.g. LLM-augmented E5) can be appended to the handler list
+    New strata (e.g. `llm_augmented`) can be appended to the handler list
     without modifying this class.
     """
 

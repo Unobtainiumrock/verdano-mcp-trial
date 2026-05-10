@@ -1,8 +1,9 @@
-"""E5 LLM-augmented entity resolution stratum handler.
+"""LLM-augmented entity resolution stratum handler (``llm_augmented``).
 
-Sits after E4 in the cascade. Sends top-N fuzzy candidates to the LLM with a
-structured prompt asking for the best match + confidence.  Only registered when
-an ``LLMClient`` is available — the cascade degrades gracefully without it.
+Sits after ``fuzzy_jw`` in the cascade. Sends top-N fuzzy candidates to the
+LLM with a structured prompt asking for the best match + confidence.  Only
+registered when an ``LLMClient`` is available — the cascade degrades gracefully
+without it.
 """
 
 from __future__ import annotations
@@ -49,7 +50,7 @@ def make_llm_stratum(
     top_n: int = 5,
     min_confidence: float = 0.30,
 ) -> "StratumHandler":
-    """Create an E5 stratum handler backed by the given LLM client."""
+    """Create an ``llm_augmented`` stratum handler backed by the given LLM client."""
 
     register_stratum("llm_augmented", after="fuzzy_jw")
 
@@ -84,7 +85,7 @@ def make_llm_stratum(
                 raw = raw.split("\n", 1)[1].rsplit("```", 1)[0]
             parsed = json.loads(raw)
         except Exception:
-            log.warning("E5 LLM stratum failed for %s — skipping", key.name, exc_info=True)
+            log.warning("llm_augmented stratum failed for %s — skipping", key.name, exc_info=True)
             return None
 
         chosen_sku: str | None = parsed.get("sku")

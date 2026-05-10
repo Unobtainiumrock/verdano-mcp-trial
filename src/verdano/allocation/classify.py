@@ -49,7 +49,7 @@ class Classifier:
                 ftp_cases=None,
                 fill_rate=None,
                 classification="Blocked",
-                reason="no mapping found in cascade (E_1..E_4)",
+                reason="no mapping found in cascade (gtin_current..fuzzy_jw)",
             )
 
         if mapping.state == "NeedsVerification":

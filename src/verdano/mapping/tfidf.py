@@ -3,7 +3,7 @@
 Per D-011 + Gemini iteration 5 option 1: score retailer-side strings against
 ERP product vocabularies using IDF-weighted token overlap. A match on a rare
 token (e.g., "falafel") carries more signal than a match on a common one
-(e.g., "400g", "soup"). Locked as stratum **E3b** under **D-013**.
+(e.g., "400g", "soup"). Locked as stratum ``tfidf_overlap`` (formerly E3b) under **D-013**.
 
 Scoring formula (Gemini iteration 5):
 
@@ -13,9 +13,9 @@ Score is in `[0, 1]`. Interpret as: the fraction of the retailer string's
 information content that this ERP product's vocabulary supports.
 
 Asymmetric: a single rare token in s matched against any product containing
-that token gives a high score. The cascade compensates: E3b only fires when
-exact alias (E3) misses, and below E3b is JW² (E4) which is much stricter on
-short strings.
+that token gives a high score. The cascade compensates: ``tfidf_overlap`` only
+fires when ``alias_exact`` misses, and below it is ``fuzzy_jw`` (JW²) which is
+much stricter on short strings.
 """
 
 from __future__ import annotations
