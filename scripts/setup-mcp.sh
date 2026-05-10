@@ -104,7 +104,7 @@ config_path.write_text(json.dumps(cfg, indent=2) + '\n')
 
 inject_config() {
   local label="$1" config_file="$2"
-  if python3 -c "$MCP_ENTRY_PYTHON" "$config_file" 2>/dev/null; then
+  if python3 -c "$MCP_ENTRY_PYTHON" "$config_file"; then
     ok "$label config updated: $config_file"
   else
     warn "Could not update $label config at $config_file"

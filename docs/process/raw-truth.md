@@ -179,7 +179,7 @@ To satisfy the evaluation criteria prioritizing OOP, adapters, and scalability, 
 
 ---
 
-> **Where this source's recommendations diverge from project commitments**, see [`docs/architecture/formalism.md`](docs/architecture/formalism.md) §"Where this diverges from the Gemini source, and why" for the explicit deltas (Markov-not-fully-discarded for drift; subclass-vs-config adapter shape; bipartite-graph framing extended with stratified evidence; demand tensor recast as change-of-basis between incompatible bases).
+> **Where this source's recommendations diverge from project commitments**, see [`docs/architecture/formalism.md`](../architecture/formalism.md) §"Where this diverges from the Gemini source, and why" for the explicit deltas (Markov-not-fully-discarded for drift; subclass-vs-config adapter shape; bipartite-graph framing extended with stratified evidence; demand tensor recast as change-of-basis between incompatible bases).
 
 ---
 

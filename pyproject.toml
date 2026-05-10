@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
   "polars>=1.0",
-  "duckdb>=1.0",
   "httpx>=0.27",
   "certifi>=2024.0.0",
   "pydantic>=2.7",
@@ -15,6 +14,9 @@ dependencies = [
   "rapidfuzz>=3.14.5",
   "mcp>=1.0",
 ]
+
+[project.optional-dependencies]
+storage = ["duckdb>=1.0"]
 
 [project.scripts]
 verdano-mcp = "verdano.mcp_server:run"

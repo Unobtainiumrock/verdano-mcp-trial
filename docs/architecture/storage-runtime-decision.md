@@ -4,6 +4,8 @@
 
 This document records the rationale for committing to **Polars** (compute) plus **DuckDB** (persistence) as the data substrate for the Verdano MCP work-trial.
 
+> **Trial status:** Polars is fully operational as the compute engine. DuckDB is wired as a dependency and configurable via `VERDANO_DUCKDB_PATH` in [`config.py`](../../src/verdano/config.py), but **persistence tables are not yet implemented** — the trial pipeline operates entirely in-memory per HTTP-fetched ERP state. DuckDB cache/audit tables are a **phase-2 production target**. See the [Trial scope vs production roadmap](../usage.md#trial-scope-vs-production-roadmap) table in `docs/usage.md`.
+
 ## Stack
 
 - **Compute:** [Polars](https://pola.rs/) ≥ 1.0. LazyFrames where possible. Eager `DataFrame` only at I/O boundaries.

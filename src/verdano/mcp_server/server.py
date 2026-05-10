@@ -34,13 +34,19 @@ from verdano.pipeline import (
 )
 
 
-_ISO_WEEK_RE = re.compile(r"^\d{4}-W\d{2}$")
+_ISO_WEEK_RE = re.compile(r"^(\d{4})-W(\d{2})$")
 
 
 def _validate_iso_week(iso_week: str) -> dict[str, Any] | None:
-    """Return an error dict if `iso_week` is malformed, else None."""
-    if not _ISO_WEEK_RE.match(iso_week):
+    """Return an error dict if `iso_week` is malformed or out of range, else None."""
+    m = _ISO_WEEK_RE.match(iso_week)
+    if not m:
         return {"error": f"invalid iso_week format {iso_week!r}; expected YYYY-Wnn"}
+    from datetime import date
+    try:
+        date.fromisocalendar(int(m.group(1)), int(m.group(2)), 1)
+    except ValueError:
+        return {"error": f"iso_week {iso_week!r} is out of range"}
     return None
 
 
@@ -240,6 +246,8 @@ def build_server(
             for c in result.classifications:
                 if c.classification != "Safe" or c.erp_sku is None:
                     continue
+                if c.demand.quantity_cases < 1:
+                    continue
                 # Pre-filter: skip cross-band SKUs that the ERP would reject.
                 product = products_by_sku.get(c.erp_sku)
                 product_band = product.temperature_band if product else None
@@ -360,6 +368,8 @@ def get_tool_handler(server: FastMCP, tool_name: str) -> Any:
 
 def _run_health_check(project_root: Path) -> int:
     """Verify env, ERP connectivity, and tool registration. Returns exit code."""
+    from pydantic import ValidationError
+
     from verdano.config import Settings
 
     checks: list[tuple[str, bool, str]] = []
@@ -369,8 +379,8 @@ def _run_health_check(project_root: Path) -> int:
 
     try:
         settings = Settings()  # type: ignore[call-arg]
-        has_key = bool(settings.verdano_erp_api_key)
-    except Exception:
+        has_key = bool(settings.erp_api_key.get_secret_value().strip())
+    except (ValidationError, OSError):
         has_key = False
     checks.append(("API key configured", has_key, "VERDANO_ERP_API_KEY"))
 
@@ -405,11 +415,16 @@ def _run_health_check(project_root: Path) -> int:
     return 0 if all_ok else 1
 
 
+def _resolve_project_root() -> Path:
+    """Resolve project root from env or CWD, shared by all entry paths."""
+    env_root = os.environ.get("VERDANO_PROJECT_ROOT")
+    return Path(env_root) if env_root else Path.cwd()
+
+
 def run() -> None:
     """Entry-point for `verdano-mcp` / `python -m verdano.mcp_server`."""
+    root = _resolve_project_root()
     if "--health" in sys.argv:
-        env_root = os.environ.get("VERDANO_PROJECT_ROOT")
-        root = Path(env_root) if env_root else Path.cwd()
         raise SystemExit(_run_health_check(root))
-    server = build_server(project_root=Path.cwd())
+    server = build_server(project_root=root)
     server.run()

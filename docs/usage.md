@@ -66,7 +66,7 @@ src/verdano/
 ├── allocation/        FTP math + Safe/AtRisk/AtRiskSevere/NeedsVerification/Blocked classifier
 ├── pipeline/          analyze_week_fulfillment — end-to-end DAG
 ├── erp/               hand-rolled HTTP client + Pydantic response models
-├── mcp_server/        FastMCP server exposing 3 tools
+├── mcp_server/        FastMCP server exposing 4 tools
 ├── config.py          .env loader (pydantic-settings)
 └── logging.py         structlog setup
 
@@ -89,7 +89,7 @@ docs/
     ├── prompts-for-gemini.md              MATH-SOT prompts
     └── prompts.md                         early brainstorming
 
-DECISIONS.md              chronological D-001..D-014 with rationale + alternatives
+DECISIONS.md              chronological D-001..D-015 with rationale + alternatives
 
 data/
 ├── tesco_forecast_week20.csv
@@ -170,7 +170,9 @@ uv run pytest -v
 | `tests/pipeline/test_sainsburys_config_only.py` | Validates that onboarding Sainsbury required *no new Python* — only the `SAINSBURYS_SPEC` instance. Verifies legacy-GTIN routing, no-GTIN fuzzy fallback, units→cases ceiling (5 tests). |
 | `tests/allocation/test_ftp.py` | FTPCalculator unit tests — band filtering, open-order week filtering, `sold_to=None` conservative path, negative FTP clamping, unknown SKU (8 tests). |
 | `tests/allocation/test_classifier.py` | Classifier unit tests — Safe, AtRisk, AtRiskSevere, NeedsVerification, Blocked, zero-demand (6 tests). |
-| `tests/mcp_server/` | MCP tool surface against a faked ERP client. Draft-tool validation errors, iso_week rejection, exact classification counts (9 tests). |
+| `tests/mcp_server/` | MCP tool surface against a faked ERP client. Draft-tool validation errors, iso_week rejection, exact classification counts, live-cassette regression (11 tests). |
+| `tests/drift/` | Lagged-actuals plausibility / drift comparison — ratio logic, promo segmentation, MCP tool wiring (7 tests). |
+| `tests/mapping/` | Cascade resolver, TF-IDF index, normalizer — stratified matching, collision handling, floor gating, Jaro-Winkler scoring (37 tests). |
 | `tests/test_negative.py` | Error paths — empty/malformed CSV, invalid drift thresholds, unknown retailer spec (6 tests). |
 
 The test suite runs fully offline. ERP responses are replayed from `tests/erp/cassettes/`; the pipeline tests reuse the same cassettes for snapshot construction.
@@ -187,9 +189,9 @@ uv run python scripts/live_draft_run.py
 
 For reviewers wanting to see the design reasoning rather than just the code:
 
-- **[`DECISIONS.md`](../DECISIONS.md)** — 14 chronological decisions, each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration) are the load-bearing ones.
+- **[`DECISIONS.md`](../DECISIONS.md)** — 15 chronological decisions (D-001..D-015), each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration) are the load-bearing ones.
 
-- **[`docs/architecture/formalism.md`](architecture/formalism.md)** — LaTeX-rendered mathematical model. §3 (entity resolution as stratified bipartite matching with FS posteriors), §4 (demand alignment as change-of-basis with non-trivial null space), §5 (allocation as constrained LP with water-filling), §6 (FSM-DAG interlock), §8 (10 explicit pushbacks against the Gemini source where the math diverged from the project's needs).
+- **[`docs/architecture/formalism.md`](architecture/formalism.md)** — LaTeX-rendered mathematical model. §3 (entity resolution as stratified bipartite matching with FS posteriors), §4 (demand alignment as change-of-basis with non-trivial null space), §5 (allocation as constrained LP with water-filling), §6 (FSM-DAG interlock), §8 (11 explicit pushbacks against the Gemini source where the math diverged from the project's needs).
 
 - **[`primitives/CPG/`](../primitives/CPG/)** — conceptual treatment of the four CPG primitives (Entity Resolution, Demand Alignment, Allocation, Workflow). Cross-references the formalism.
 

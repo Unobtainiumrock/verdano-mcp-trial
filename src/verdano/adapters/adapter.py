@@ -43,16 +43,22 @@ class Adapter:
         rows = df.to_dicts()
 
         intermediate: list[RawDemandLine] = []
-        for row in rows:
-            iso_week = self._iso_week_from_row(row)
-            key = self._product_key_from_forecast_row(row)
-            promo_col = self._spec.forecast.promo_flag
-            promo = self._truthy(row.get(promo_col)) if promo_col else False
-            notes_col = self._spec.forecast.notes
-            notes_val = row.get(notes_col) if notes_col else None
-            notes = str(notes_val) if notes_val else None
-            quantity = int(row[self._spec.forecast.quantity])
-            location = str(row[self._spec.forecast.location])
+        for row_idx, row in enumerate(rows):
+            try:
+                iso_week = self._iso_week_from_row(row)
+                key = self._product_key_from_forecast_row(row)
+                promo_col = self._spec.forecast.promo_flag
+                promo = self._truthy(row.get(promo_col)) if promo_col else False
+                notes_col = self._spec.forecast.notes
+                notes_val = row.get(notes_col) if notes_col else None
+                notes = str(notes_val) if notes_val else None
+                quantity = int(row[self._spec.forecast.quantity])
+                location = str(row[self._spec.forecast.location])
+            except (ValueError, KeyError, TypeError) as exc:
+                logger.warning(
+                    "forecast row %d skipped (%s: %s)", row_idx, type(exc).__name__, exc
+                )
+                continue
 
             intermediate.append(
                 RawDemandLine(
@@ -82,19 +88,25 @@ class Adapter:
         rows = df.to_dicts()
 
         out: list[RawActualsLine] = []
-        for row in rows:
-            iso_week = self._iso_week_from_actuals_row(row)
-            key = self._product_key_from_actuals_row(row)
-            out.append(
-                RawActualsLine(
-                    retailer=self._spec.code,
-                    iso_week=iso_week,
-                    retailer_key=key,
-                    segment_label=str(row[self._spec.actuals.segment]),
-                    units_sold=int(row[self._spec.actuals.units_sold]),
-                    sales_value_gbp=Decimal(str(row[self._spec.actuals.sales_value])),
+        for row_idx, row in enumerate(rows):
+            try:
+                iso_week = self._iso_week_from_actuals_row(row)
+                key = self._product_key_from_actuals_row(row)
+                out.append(
+                    RawActualsLine(
+                        retailer=self._spec.code,
+                        iso_week=iso_week,
+                        retailer_key=key,
+                        segment_label=str(row[self._spec.actuals.segment]),
+                        units_sold=int(row[self._spec.actuals.units_sold]),
+                        sales_value_gbp=Decimal(str(row[self._spec.actuals.sales_value])),
+                    )
                 )
-            )
+            except (ValueError, KeyError, TypeError) as exc:
+                logger.warning(
+                    "actuals row %d skipped (%s: %s)", row_idx, type(exc).__name__, exc
+                )
+                continue
         return out
 
     # ----------------------------------------------------------------- internal

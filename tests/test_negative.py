@@ -1,7 +1,7 @@
 """Negative / error-path tests.
 
 Covers:
-- Adapter: empty CSV, wrong headers, non-numeric quantity
+- Adapter: empty CSV, wrong headers (rows skipped with warning)
 - Drift: invalid threshold
 - get_spec: unknown retailer
 """
@@ -11,6 +11,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
+import polars as pl
 import pytest
 
 from verdano.adapters.adapter import Adapter
@@ -25,21 +26,19 @@ class TestAdapterNegative:
     def tesco_spec(self):
         return get_spec("tesco")
 
-    def test_empty_csv_raises(self, tesco_spec) -> None:
+    def test_empty_csv_raises(self, tesco_spec, tmp_path: Path) -> None:
+        csv = tmp_path / "empty.csv"
+        csv.write_text("")
         adapter = Adapter(tesco_spec)
-        with tempfile.NamedTemporaryFile(suffix=".csv", mode="w", delete=False) as f:
-            f.write("")
-            f.flush()
-            with pytest.raises(Exception):
-                adapter.normalize_forecast(Path(f.name), "2026-W20")
+        with pytest.raises(pl.exceptions.NoDataError):
+            adapter.normalize_forecast(csv)
 
-    def test_wrong_headers_raises(self, tesco_spec) -> None:
+    def test_wrong_headers_skips_all_rows(self, tesco_spec, tmp_path: Path) -> None:
+        csv = tmp_path / "bad_headers.csv"
+        csv.write_text("col_a,col_b,col_c\n1,2,3\n")
         adapter = Adapter(tesco_spec)
-        with tempfile.NamedTemporaryFile(suffix=".csv", mode="w", delete=False) as f:
-            f.write("col_a,col_b,col_c\n1,2,3\n")
-            f.flush()
-            with pytest.raises(Exception):
-                adapter.normalize_forecast(Path(f.name), "2026-W20")
+        result = adapter.normalize_forecast(csv)
+        assert result == [], "malformed rows should be skipped, yielding empty list"
 
 
 class TestDriftNegative:

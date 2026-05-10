@@ -206,7 +206,7 @@ The constraint $\mathbf{1}^T K = \mathbf{1}^T$ ensures column-stochasticity, sat
 
 2. **Production calibration path (≥ ~200 labels):** Logistic regression (Platt scaling) over multi-feature input — Jaro-Winkler similarity, token-overlap (TF-IDF weighted), vertex degree in the bipartite graph — trained on operator review resolutions. Beta calibration as alternative for bounded scores.
 
-3. **Information-theoretic alias scoring (TF-IDF):** Per Gemini's option 1, treat the ERP master as a corpus and weight matched-token IDF. **Deferred** as over-investment for the 8-hour trial; named as the next-most-rigorous unsupervised technique once the trial ships.
+3. **Information-theoretic alias scoring (TF-IDF):** Per Gemini's option 1, treat the ERP master as a corpus and weight matched-token IDF. Originally deferred; **partially implemented** as stratum E3b per D-013 (token-overlap gated at `tfidf_min_score=0.5`, `tfidf_min_matched_tokens=2`).
 
 **Future upgrade path beyond LR-as-calibrator: isotonic regression at $N \gtrsim 1000$.**
 
@@ -279,11 +279,11 @@ This sharpens the calibration table:
 
 **Alternatives considered.**
 
-- TF-IDF for fuzzy scoring. Deferred (above).
+- TF-IDF for fuzzy scoring. Originally deferred; partially shipped as E3b per D-013.
 - Normalized Levenshtein. Rejected: linear penalty mis-models SKU-string editing reality.
 - Embedding cosine. Out of scope at trial budget.
 
-**Why.** Locks the parts that are unambiguously correct (Jaro-Winkler shape, Platt-scaling production path) without committing to the contested parts (band derivation, cascade consistency). Captured as `provisional` so the gap tracking is honest.
+**Why.** Locks the parts that are unambiguously correct (Jaro-Winkler shape, Platt-scaling production path). Sub-gaps around band derivation and cascade consistency were resolved via iterations 8 and 9; status is now **locked**.
 
 **Captured in:** [`primitives/CPG/entity-resolution.md`](primitives/CPG/entity-resolution.md), [`docs/architecture/formalism.md`](docs/architecture/formalism.md) §3.
 

@@ -1125,7 +1125,6 @@ version = "0.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "certifi" },
-    { name = "duckdb" },
     { name = "httpx" },
     { name = "mcp" },
     { name = "polars" },
@@ -1133,6 +1132,11 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "rapidfuzz" },
     { name = "structlog" },
+]
+
+[package.optional-dependencies]
+storage = [
+    { name = "duckdb" },
 ]
 
 [package.dev-dependencies]
@@ -1147,7 +1151,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "certifi", specifier = ">=2024.0.0" },
-    { name = "duckdb", specifier = ">=1.0" },
+    { name = "duckdb", marker = "extra == 'storage'", specifier = ">=1.0" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "mcp", specifier = ">=1.0" },
     { name = "polars", specifier = ">=1.0" },
@@ -1156,6 +1160,7 @@ requires-dist = [
     { name = "rapidfuzz", specifier = ">=3.14.5" },
     { name = "structlog", specifier = ">=24.1" },
 ]
+provides-extras = ["storage"]
 
 [package.metadata.requires-dev]
 dev = [

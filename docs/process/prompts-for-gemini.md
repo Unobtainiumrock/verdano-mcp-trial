@@ -1,6 +1,6 @@
 # Prompts for Gemini — MATH-SOT iteration #2
 
-Three pasteable prompts, one per open mathematical thread surfaced in [`docs/architecture/formalism.md`](docs/architecture/formalism.md) §9. Each is self-contained enough to drop into a fresh conversation and tight enough that it won't sprawl.
+Three pasteable prompts, one per open mathematical thread surfaced in [`docs/architecture/formalism.md`](../architecture/formalism.md) §9. Each is self-contained enough to drop into a fresh conversation and tight enough that it won't sprawl.
 
 After Gemini responds, paste the answers into [`raw-truth.md`](raw-truth.md) as Iteration 5 / 6 / 7 (one per thread), and ping me to integrate.
 
@@ -122,9 +122,9 @@ Output format: comparison table (objective, formulation, winner profile, literat
 ## Notes for integrating Gemini's responses
 
 - New chat sections append to [`raw-truth.md`](raw-truth.md) under `## Iteration N` headers (next available is iteration 8).
-- Push back on specific Gemini moves that conflict with project commitments; the [`docs/architecture/formalism.md`](docs/architecture/formalism.md) §8 pattern is the canonical place to capture pushback.
-- Update [`primitives/CPG/entity-resolution.md`](primitives/CPG/entity-resolution.md), [`primitives/CPG/demand-alignment.md`](primitives/CPG/demand-alignment.md), [`primitives/CPG/allocation.md`](primitives/CPG/allocation.md) respectively after each thread integrates.
-- Add new `D-NNN` entries to [`DECISIONS.md`](DECISIONS.md) when each thread reaches a commitment.
+- Push back on specific Gemini moves that conflict with project commitments; the [`docs/architecture/formalism.md`](../architecture/formalism.md) §8 pattern is the canonical place to capture pushback.
+- Update [`primitives/CPG/entity-resolution.md`](../../primitives/CPG/entity-resolution.md), [`primitives/CPG/demand-alignment.md`](../../primitives/CPG/demand-alignment.md), [`primitives/CPG/allocation.md`](../../primitives/CPG/allocation.md) respectively after each thread integrates.
+- Add new `D-NNN` entries to [`DECISIONS.md`](../../DECISIONS.md) when each thread reaches a commitment.
 
 ---
 

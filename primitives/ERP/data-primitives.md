@@ -29,7 +29,7 @@ These come from the ERP API's read-only master endpoints; we never write canonic
 | `Customer` (`sold_to` / `bill_to` / `ship_to`) | `GET /erp/customers` | hierarchy | `ship_to_location_id` is required for `POST /erp/order-drafts`; depot-string → `ship_to_location_id` is its own mapping problem (parallel to product mapping). |
 | `Warehouse` | `GET /erp/warehouses` | `warehouse_id`, `temperature_band` | Free-to-promise sums available cases by *temperature-compatible* warehouse, not just by SKU. |
 
-Master data is **read** from the ERP, **cached** locally as DuckDB tables (per [storage-runtime-decision.md](../../docs/architecture/storage-runtime-decision.md)), and refreshed on a per-run basis or on a coarser schedule. We do not author master records.
+Master data is **read** from the ERP and held in-memory for the duration of each pipeline run. The target architecture caches master data locally as DuckDB tables (per [storage-runtime-decision.md](../../docs/architecture/storage-runtime-decision.md)); DuckDB persistence is wired as a dependency but **not yet implemented** in the trial — see the trial-scope roadmap in [`docs/usage.md`](../../docs/usage.md). We do not author master records.
 
 ### Transactional Data — Verdano
 

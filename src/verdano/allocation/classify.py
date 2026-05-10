@@ -80,11 +80,11 @@ class Classifier:
             cls = "Safe"
             reason = "demand is 0; nothing to fulfill"
         else:
-            fill_rate = ftp / demand.quantity_cases if demand.quantity_cases else None
+            fill_rate = ftp / demand.quantity_cases
             if ftp >= demand.quantity_cases:
                 cls = "Safe"
                 reason = f"ftp ({ftp}) ≥ demand ({demand.quantity_cases})"
-            elif fill_rate is not None and fill_rate >= self._tau_safe:
+            elif fill_rate >= self._tau_safe:
                 cls = "AtRisk"
                 reason = (
                     f"fill rate {fill_rate:.2%} ≥ τ_safe {self._tau_safe:.0%}; "

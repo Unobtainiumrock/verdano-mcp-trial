@@ -18,7 +18,7 @@ This document is the **operating index**, not the authority. Authoritative conte
 
 ## Locked decisions
 
-Each entry below points at its full decision record in [`DECISIONS.md`](DECISIONS.md).
+Each entry below points at its full decision record in [`DECISIONS.md`](../../DECISIONS.md).
 
 | ID | Status | Rule (one-line) |
 |---|---|---|
@@ -36,6 +36,7 @@ Each entry below points at its full decision record in [`DECISIONS.md`](DECISION
 | **D-012** | locked | Drift signal: lagged-actuals plausibility check (ratio f_{t+1}/max(a_t, 1) with thresholds [0.5, 1.5]). Promo-segmented (Tesco only; Sainsbury's has no flag column). NOT classical residual drift — fixture has no W19 forecast. Markov-style true drift reserved per D-006. |
 | **D-013** | locked | Canonicalization: (1) size-unit regex normalizer in `_norm` — `kg→g`, `l→ml`, idempotent, symmetric on both sides; (2) new TF-IDF stratum E3b in the cascade between alias-exact (E3) and JW² fuzzy (E4), gated at τ_tfidf=0.5 with FS K_x penalty. Closes the lexical half of the size-aliasing gotcha; cleanly captures K_x=2 ambiguity on no-GTIN Falafel Bowl. |
 | **D-014** | locked | Cascade-floor + dedup fixes (post-D-013 probe): (1) `MasterIndex` builds per-key SKU sets to prevent same-SKU K_x inflation (bug fix); (2) E4 minimum-confidence floor `e4_min_score=0.30` returns `Unmapped` instead of misleading low-confidence candidates; (3) E3b requires `tfidf_min_matched_tokens=2` shared tokens to fire — eliminates single-rare-token auto-allocations like `"VD"→Lentil Dal`. |
+| **D-015** | locked | `RetailerCode` extensibility gap: current `Literal["tesco", "sainsburys"]` type is closed at definition time. Scaling to ~200 retailers requires a runtime-extensible alternative (registry-constrained `str` or validated `NewType`). Deferred — trial ships with `Literal` for type safety at small scale. |
 
 ## Open questions
 
