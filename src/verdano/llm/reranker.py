@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from verdano.canonical import MappingEvidence, MappingResult
-from verdano.canonical.models import register_stratum
+from verdano.canonical.models import _STRATUM_REGISTRY, register_stratum
 from verdano.llm.client import strip_json_fences
 
 if TYPE_CHECKING:
@@ -25,7 +25,10 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-register_stratum("llm_rerank", after="llm_augmented")
+if "llm_augmented" in _STRATUM_REGISTRY:
+    register_stratum("llm_rerank", after="llm_augmented")
+else:
+    register_stratum("llm_rerank")
 
 _SYSTEM_PROMPT = (
     "You are an expert in UK grocery/CPG product data. "
@@ -95,15 +98,31 @@ def rerank_mapping(
     Returns a ``ReRankResult``. On any LLM failure the result defaults to
     ``agrees=True`` so the original mapping is preserved (graceful degradation).
     """
-    assert mapping.erp_sku is not None
+    if mapping.erp_sku is None:
+        return ReRankResult(
+            agrees=True, suggested_sku=None, confidence=0.0,
+            reason="no erp_sku to validate",
+        )
 
     current_product = master.products.get(mapping.erp_sku)
     current_name = current_product.name if current_product else mapping.erp_sku
 
-    all_products = list(master.products.values())
-    candidates = [{"sku": p.sku, "name": p.name} for p in all_products[:top_n]]
+    fuzzy_hit = master.fuzzy_search(mapping.retailer_key.name)
+    if fuzzy_hit is not None:
+        matched_name, _ = fuzzy_hit
+        related_skus = master.skus_for_canonical_name(matched_name)
+    else:
+        related_skus = []
 
-    if mapping.erp_sku not in {c["sku"] for c in candidates}:
+    seen: set[str] = set()
+    candidates: list[dict[str, str]] = []
+    for sku in related_skus[:top_n]:
+        p = master.products.get(sku)
+        if p and sku not in seen:
+            candidates.append({"sku": sku, "name": p.name})
+            seen.add(sku)
+
+    if mapping.erp_sku not in seen:
         candidates.append({"sku": mapping.erp_sku, "name": current_name})
 
     retailer_name = mapping.retailer_key.name

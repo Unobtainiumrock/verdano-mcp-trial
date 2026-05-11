@@ -111,7 +111,7 @@ def _run_analysis(
         fuzzy_jw_min_score=cfg.fuzzy_jw_min_score,
         llm_client=llm_client,
         rerank_threshold=cfg.rerank_threshold,
-        rerank_strata=cfg.rerank_strata,
+        rerank_strata=cfg.get_rerank_strata(),
         rerank_min_llm_confidence=cfg.rerank_min_llm_confidence,
     )
 
@@ -250,6 +250,7 @@ def build_server(
                     first_label, erp.customers, retailer,
                     fuzzy_threshold=cfg.depot_fuzzy_threshold,
                     llm_client=llm_client,
+                    depot_llm_min_confidence=cfg.depot_llm_min_confidence,
                 )
                 if resolved:
                     effective_ship_to = resolved

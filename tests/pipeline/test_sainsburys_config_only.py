@@ -46,8 +46,8 @@ def test_sainsburys_gtin_rows_resolve_via_e1(
         if c.mapping.evidence is not None and c.mapping.evidence.stratum == "gtin_current"
     ]
     # 12 fixture rows total; 2 have blank GTIN (Tom Basil, Falafel Bowl) and
-    # 1 (Berry Smoothie 5060000099999) is on legacy_gtins so fires E2 not E1.
-    # Net: 9 rows resolve via E1.
+    # 1 (Berry Smoothie 5060000099999) is on legacy_gtins so fires gtin_legacy not gtin_current.
+    # Net: 9 rows resolve via gtin_current.
     assert len(e1_rows) == 9
     assert all(c.mapping.confidence >= 0.95 for c in e1_rows)
 
@@ -84,10 +84,10 @@ def test_no_gtin_falafel_bowl_routes_to_review(
 ) -> None:
     """The no-GTIN, no-size 'Falafel Bowl' row is a deliberate ambiguity.
 
-    With TF-IDF (E3b, per D-013), both `falafel` and `bowl` tokens match the
+    With tfidf_overlap (per D-013), both `falafel` and `bowl` tokens match the
     vocab of *two* ERP products (VG-FALA-350 and VG-FALA-500). The resolver
-    fires E3b at the top score, with K_x = 2 — and the FS collision penalty
-    correctly drops confidence below auto-allocate, routing to review.
+    fires tfidf_overlap at the top score, with K_x = 2 — and the FS collision
+    penalty correctly drops confidence below auto-allocate, routing to review.
     """
     result = analyze_week_fulfillment(
         forecast_csv=project_root / "data" / "sainsburys_forecast_week20.csv",
@@ -103,7 +103,7 @@ def test_no_gtin_falafel_bowl_routes_to_review(
     assert len(no_gtin) == 1
     falafel = no_gtin[0]
     assert falafel.mapping.evidence is not None
-    # E3b under D-013 supersedes the previous E4 routing — the TF-IDF gate
+    # tfidf_overlap under D-013 supersedes the previous fuzzy_jw routing — the TF-IDF gate
     # surfaces the ambiguity more cleanly (K_x captures both candidates).
     assert falafel.mapping.evidence.stratum == "tfidf_overlap"
     assert falafel.mapping.evidence.collision_count == 2

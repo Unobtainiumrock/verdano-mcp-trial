@@ -4,13 +4,13 @@ Three regressions surfaced by an empirical probe of the live ERP master:
 1. Same-SKU appearing twice under one alias key (when D-013 size-normalizer
    collapses a product's canonical name + alias into the same string)
    inflated K_x from 1 to 2 → false NeedsVerification on a clean exact match.
-2. E4 had no minimum-confidence floor → garbage strings ("Bicycle Tyre")
+2. fuzzy_jw had no minimum-confidence floor → garbage strings ("Bicycle Tyre")
    returned a misleading candidate ("Chickpea Curry"). Now drops to Unmapped
    below `fuzzy_jw_min_score`.
-3. E3b would fire on a single-rare-token retailer string (e.g., "VD")
+3. tfidf_overlap would fire on a single-rare-token retailer string (e.g., "VD")
    because the IDF-overlap ratio normalizes by retailer mass — a 1-of-1 match
-   scores 1.0. Now E3b requires at least `tfidf_min_matched_tokens` tokens
-   shared with the candidate.
+   scores 1.0. Now tfidf_overlap requires at least `tfidf_min_matched_tokens`
+   tokens shared with the candidate.
 """
 
 from __future__ import annotations
@@ -68,9 +68,9 @@ def test_kx_dedup_in_current_gtin_index() -> None:
     assert r.evidence.collision_count == 1
 
 
-# --------------------------- Fix #2: E4 floor ------------------------------
+# ---------------------- Fix #2: fuzzy_jw floor ----------------------------
 
-def test_e4_floor_drops_low_confidence_candidates_to_unmapped() -> None:
+def test_fuzzy_jw_floor_drops_low_confidence_candidates_to_unmapped() -> None:
     """Strings that don't legitimately match anything must not produce a
     candidate. The cascade should return Unmapped instead of a misleading
     'NeedsVerification' on a 0.28-confidence guess."""
@@ -85,7 +85,7 @@ def test_e4_floor_drops_low_confidence_candidates_to_unmapped() -> None:
     assert r.evidence is None
 
 
-def test_e4_floor_is_configurable() -> None:
+def test_fuzzy_jw_floor_is_configurable() -> None:
     """An aggressive operator-tuned floor cuts more candidates."""
     products = [_p("VG-DAAL", "Lentil Dal 400g")]
     # JW² of "Bicycle Tyre" against "Lentil Dal 400g" is around 0.30 — sits
@@ -96,12 +96,12 @@ def test_e4_floor_is_configurable() -> None:
     assert r.state == "Unmapped"
 
 
-# ---------------------- Fix #3: E3b min-matched-tokens ---------------------
+# ------------------- Fix #3: tfidf_overlap min-matched-tokens -------------
 
-def test_e3b_does_not_fire_on_single_rare_token_match() -> None:
+def test_tfidf_does_not_fire_on_single_rare_token_match() -> None:
     """A retailer string whose only token happens to be a rare ERP-master
-    token used to auto-Resolve via E3b at top_score=1.0. With the min-tokens
-    guard, single-token matches fall through to E4."""
+    token used to auto-Resolve via tfidf_overlap at top_score=1.0. With the
+    min-tokens guard, single-token matches fall through to fuzzy_jw."""
     products = [
         _p("VG-DAAL", "Lentil Dal 400g", aliases=["VD Lentil Dal 400g"]),
         _p("VG-CHCK", "Chickpea Curry 400g"),
@@ -109,14 +109,14 @@ def test_e3b_does_not_fire_on_single_rare_token_match() -> None:
     res = Resolver(MasterIndex(products))
     # "VD" shares only 1 token (`vd`) with the master.
     r = res.resolve(RetailerProductKey(retailer="sainsburys", name="VD"))
-    # Either Unmapped (E4 also fails) or E4 at low conf — but never E3b.
+    # Either Unmapped (fuzzy_jw also fails) or fuzzy_jw at low conf — but never tfidf_overlap.
     assert r.evidence is None or r.evidence.stratum != "tfidf_overlap"
-    # The pre-fix behavior was E3b @ w=0.98; with the guard, it's not auto-resolved.
+    # The pre-fix behavior was tfidf_overlap @ w=0.98; with the guard, it's not auto-resolved.
     assert r.state != "Resolved"
 
 
-def test_e3b_still_fires_when_two_or_more_tokens_match() -> None:
-    """Sanity check: the guard must not regress legitimate E3b cases."""
+def test_tfidf_still_fires_when_two_or_more_tokens_match() -> None:
+    """Sanity check: the guard must not regress legitimate tfidf_overlap cases."""
     products = [
         _p("VG-FALA-350", "Falafel Bowl 350g"),
         _p("VG-FALA-500", "Falafel Bowl 500g", aliases=["Falafel Bowl Large"]),
@@ -129,11 +129,11 @@ def test_e3b_still_fires_when_two_or_more_tokens_match() -> None:
     assert r.state == "NeedsVerification"
 
 
-def test_e3b_min_tokens_is_configurable() -> None:
+def test_tfidf_min_tokens_is_configurable() -> None:
     """A more-permissive operator can lower the guard if their data is clean."""
     products = [_p("VG-DAAL", "Lentil Dal 400g", aliases=["VD Lentil Dal 400g"])]
     res = Resolver(MasterIndex(products), tfidf_min_matched_tokens=1)
     r = res.resolve(RetailerProductKey(retailer="sainsburys", name="VD"))
-    # With min_tokens=1, the cascade reaches E3b on the single rare match.
+    # With min_tokens=1, the cascade reaches tfidf_overlap on the single rare match.
     assert r.evidence is not None
     assert r.evidence.stratum == "tfidf_overlap"

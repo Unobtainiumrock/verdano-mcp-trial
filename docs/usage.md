@@ -90,7 +90,7 @@ docs/
     ├── prompts-for-gemini.md              MATH-SOT prompts
     └── prompts.md                         early brainstorming
 
-DECISIONS.md              chronological D-001..D-018 with rationale + alternatives
+DECISIONS.md              chronological D-001..D-019 with rationale + alternatives
 
 data/
 ├── tesco_forecast_week20.csv

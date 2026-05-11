@@ -1,4 +1,4 @@
-"""TF-IDF token-overlap scorer (D-013, stratum E3b).
+"""TF-IDF token-overlap scorer (D-013, stratum tfidf_overlap).
 
 Per Gemini iteration 5 option 1 + our pushback on the formalism: rare-token
 matches carry more signal than common-token matches. These tests pin the

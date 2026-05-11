@@ -58,7 +58,7 @@ class Settings(BaseSettings):
 
     @model_validator(mode="before")
     @classmethod
-    def _compat_e4_min_score(cls, values: dict) -> dict:  # type: ignore[type-arg]
+    def _compat_aliases(cls, values: dict) -> dict:  # type: ignore[type-arg]
         """Accept legacy VERDANO_E4_MIN_SCORE as an alias."""
         legacy = values.get("e4_min_score")
         if legacy is not None and values.get("fuzzy_jw_min_score") is None:
@@ -76,6 +76,7 @@ class Settings(BaseSettings):
 
     # --- Depot resolver ---
     depot_fuzzy_threshold: int = Field(default=75, ge=0, le=100)
+    depot_llm_min_confidence: float = Field(default=0.50, ge=0.0, le=1.0)
 
     # --- LLM integration (optional) ---
     llm_model: str = Field(default="gpt-4o")
@@ -84,10 +85,12 @@ class Settings(BaseSettings):
 
     # --- LLM re-ranker (D-019) ---
     rerank_threshold: float = Field(default=0.92, ge=0.0, le=1.0)
-    rerank_strata: frozenset[str] = Field(
-        default=frozenset({"tfidf_overlap", "fuzzy_jw"}),
-    )
+    rerank_strata: str = Field(default="tfidf_overlap,fuzzy_jw")
     rerank_min_llm_confidence: float = Field(default=0.70, ge=0.0, le=1.0)
+
+    def get_rerank_strata(self) -> frozenset[str]:
+        """Parse comma-separated stratum names into a frozenset."""
+        return frozenset(s.strip() for s in self.rerank_strata.split(",") if s.strip())
 
 
 def load_settings() -> Settings:

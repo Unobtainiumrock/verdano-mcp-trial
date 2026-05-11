@@ -41,6 +41,7 @@ def resolve_depot(
     *,
     fuzzy_threshold: int = FUZZY_THRESHOLD,
     llm_client: "LLMClient | None" = None,
+    depot_llm_min_confidence: float = 0.50,
 ) -> str | None:
     """Resolve a CSV location label to an ERP ``ship_to`` customer ID.
 
@@ -90,7 +91,10 @@ def resolve_depot(
 
     # Pass 3: LLM fallback
     if llm_client is not None:
-        result = _llm_depot_fallback(llm_client, location_label, candidates)
+        result = _llm_depot_fallback(
+            llm_client, location_label, candidates,
+            min_confidence=depot_llm_min_confidence,
+        )
         if result is not None:
             return result
 
@@ -105,6 +109,8 @@ def _llm_depot_fallback(
     client: "LLMClient",
     location_label: str,
     candidates: list["Customer"],
+    *,
+    min_confidence: float = 0.50,
 ) -> str | None:
     """Ask the LLM to pick the best depot match from the candidate list."""
     cand_lines = "\n".join(f"  - {c.id}: {c.name}" for c in candidates)
@@ -138,7 +144,7 @@ def _llm_depot_fallback(
     chosen_id: str | None = parsed.get("id")
     conf: float = float(parsed.get("confidence", 0.0))
 
-    if not chosen_id or conf < 0.5:
+    if not chosen_id or conf < min_confidence:
         return None
 
     valid_ids = {c.id for c in candidates}

@@ -56,7 +56,7 @@ class TestCreateLLMClient:
 
 
 class TestLLMEntityResolution:
-    def test_e5_handler_returns_result(self) -> None:
+    def test_llm_augmented_handler_returns_result(self) -> None:
         from verdano.canonical import MappingResult, RetailerProductKey
         from verdano.erp.models import Product
         from verdano.llm.entity_resolution import make_llm_stratum
@@ -103,7 +103,7 @@ class TestLLMEntityResolution:
         assert result.evidence is not None
         assert result.evidence.stratum == "llm_augmented"
 
-    def test_e5_handler_returns_none_on_low_confidence(self) -> None:
+    def test_llm_augmented_handler_returns_none_on_low_confidence(self) -> None:
         from verdano.canonical import RetailerProductKey
         from verdano.erp.models import Product
         from verdano.llm.entity_resolution import make_llm_stratum
@@ -144,7 +144,7 @@ class TestLLMEntityResolution:
         result = handler(ctx, key)
         assert result is None
 
-    def test_e5_handler_returns_none_on_json_error(self) -> None:
+    def test_llm_augmented_handler_returns_none_on_json_error(self) -> None:
         from verdano.canonical import RetailerProductKey
         from verdano.erp.models import Product
         from verdano.llm.entity_resolution import make_llm_stratum
