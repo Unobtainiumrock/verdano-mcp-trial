@@ -48,7 +48,7 @@ class TestAdapterNegative:
 
 
 class TestDriftNegative:
-    """BaselineCompare validation."""
+    """BaselineCompare threshold validation (backward-compat wrapper)."""
 
     def test_invalid_threshold_order_raises(self) -> None:
         with pytest.raises(ValueError, match="require 0 < threshold_low"):

@@ -30,7 +30,6 @@ from verdano.mapping.priors import CalibrationPriors
 from verdano.pipeline import (
     AnalysisResult,
     ErpSnapshot,
-    analyze_forecast_plausibility,
     analyze_week_fulfillment,
 )
 from verdano.pipeline.drift import analyze_drift
@@ -352,20 +351,23 @@ def build_server(
 
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
-        report = analyze_drift(
-            forecast_csv=_forecast_csv_for(retailer, project_root),
-            actuals_csv=_actuals_csv_for(retailer, iso_week_actuals, project_root),
-            retailer=retailer,
-            iso_week_forecast=iso_week_forecast,
-            iso_week_actuals=iso_week_actuals,
-            erp=erp,
-            mode=mode,
-            priors=priors,
-            auto_threshold=cfg.auto_threshold,
-            threshold_low=cfg.drift_threshold_low,
-            threshold_high=cfg.drift_threshold_high,
-            residual_threshold=cfg.drift_residual_threshold,
-        )
+        try:
+            report = analyze_drift(
+                forecast_csv=_forecast_csv_for(retailer, project_root),
+                actuals_csv=_actuals_csv_for(retailer, iso_week_actuals, project_root),
+                retailer=retailer,
+                iso_week_forecast=iso_week_forecast,
+                iso_week_actuals=iso_week_actuals,
+                erp=erp,
+                mode=mode,
+                priors=priors,
+                auto_threshold=cfg.auto_threshold,
+                threshold_low=cfg.drift_threshold_low,
+                threshold_high=cfg.drift_threshold_high,
+                residual_threshold=cfg.drift_residual_threshold,
+            )
+        except ValueError as exc:
+            return {"error": str(exc)}
         return report.model_dump(mode="json")
 
     return server

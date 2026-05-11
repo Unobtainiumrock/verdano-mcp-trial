@@ -13,7 +13,7 @@ uv sync
 cp .env.example .env
 # then edit .env and paste in the trial API key from the README brief.
 
-# 3. Confirm everything is wired up (212 tests, fully offline — no .env needed).
+# 3. Confirm everything is wired up (213 tests, fully offline — no .env needed).
 uv run pytest
 
 # 4. Run a one-shot analysis (paste into a Python REPL or a script).
@@ -173,7 +173,7 @@ uv run pytest -v
 | `tests/allocation/test_ftp.py` | FTPCalculator unit tests — band filtering, open-order week filtering, `sold_to=None` conservative path, negative FTP clamping, unknown SKU (8 tests). |
 | `tests/allocation/test_classifier.py` | Classifier unit tests — Safe, AtRisk, AtRiskSevere, NeedsVerification, Blocked, zero-demand, threshold boundaries, frozen band (10 tests). |
 | `tests/mcp_server/` | MCP tool surface against a faked ERP client. Draft-tool validation errors, retailer + iso_week rejection, exact classification counts, zero-qty skip, live-cassette regression (13 tests). |
-| `tests/drift/` | Drift analysis — plausibility (ratio, promo segmentation, MCP tool wiring), residual (synthetic fixtures, direction registry, analyzer dispatch), backward compatibility (26 tests). |
+| `tests/drift/` | Drift analysis — plausibility (ratio, promo segmentation, MCP tool wiring), residual (synthetic fixtures, direction registry, analyzer dispatch), invalid-mode error path, backward compatibility (27 tests). |
 | `tests/mapping/` | Cascade resolver, TF-IDF index, normalizer, depot resolver — stratified matching, collision handling, floor gating, Jaro-Winkler scoring, depot auto-resolution (46 tests). |
 | `tests/test_negative.py` | Error paths — empty/malformed CSV, non-numeric quantities, float truncation, invalid drift thresholds, unknown retailer spec, registry validation (13 tests). |
 | `tests/test_config.py` | Config resolution (`_find_env_file` paths) and `_validate_iso_week` edge cases (10 tests). |
@@ -242,7 +242,7 @@ The trial ships a complete, tested end-to-end pipeline. Several capabilities wer
 
 ## Non-goals (deliberate)
 
-- Drift detection (formalism §9.2) — named, deferred.
+- Markov-style true drift detection (formalism §9.2) — named, deferred. Classical residual drift is implemented as `mode="residual"` (D-020); Markov requires multi-week residual history.
 - Retailer-depot-string → `ship_to_location_id` mapping — now auto-resolved by `mapping/depot.py` (substring + fuzzy). `create_drafts_for_safe_lines_tool` still accepts an explicit override.
 - Supervised Cascaded Classification calibrator — D-011 names the path; trial scope ships only the unsupervised Fellegi-Sunter posteriors.
 - Production-grade DOW kernel learning — D-009 uses the static UK-grocery profile; the simplex-NNLS upgrade path is documented for ≥ ~26 weeks of EPOS.

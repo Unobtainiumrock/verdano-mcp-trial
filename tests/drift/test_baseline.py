@@ -206,6 +206,22 @@ def test_drift_mcp_tool_residual_week_mismatch(
     assert "same period" in result["error"]
 
 
+def test_drift_mcp_tool_unknown_mode_returns_error(
+    project_root: Path, fake_client_factory: Any,
+) -> None:
+    """An unknown drift mode must return a friendly error dict, not raise."""
+    server = build_server(project_root=project_root, erp_client_factory=fake_client_factory)
+    handler = get_tool_handler(server, "compare_actuals_vs_forecast_tool")
+    result = handler(
+        retailer="tesco",
+        iso_week_forecast="2026-W20",
+        iso_week_actuals="2026-W19",
+        mode="nonexistent",
+    )
+    assert "error" in result
+    assert "unknown drift mode" in result["error"]
+
+
 # -------------------------------------------------------------------
 # DriftDirection registry extensibility
 # -------------------------------------------------------------------

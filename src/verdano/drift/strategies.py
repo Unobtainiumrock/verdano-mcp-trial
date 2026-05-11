@@ -1,7 +1,9 @@
 """Pluggable drift strategies beyond the built-in plausibility check (D-020).
 
-Each strategy is a plain function ``(DriftContext) -> DriftReport``. Register
-new strategies by inserting into ``DEFAULT_STRATEGIES`` in ``baseline.py``.
+Each strategy is a plain function ``(DriftContext) -> DriftReport``. New
+strategies are added by appending to ``baseline.DEFAULT_STRATEGIES`` at
+import time (as this module does for ``residual``). Importing
+``verdano.drift`` ensures all built-in strategies are registered.
 """
 
 from __future__ import annotations
@@ -50,6 +52,11 @@ def residual_strategy(ctx: DriftContext) -> DriftReport:
     - ``over_forecast``: pct_error < -threshold (forecast significantly exceeds actuals)
     - ``under_forecast``: pct_error > threshold (actuals significantly exceed forecast)
     - ``accurate``: abs(pct_error) <= threshold
+
+    Note: unlike ``plausibility_strategy``, promo-flagged lines are **not**
+    segmented out. When forecast and actuals share the same period, promo
+    uplift has already materialized in actuals, so residual comparison is
+    valid regardless of promo state.
     """
     actuals_by_sku = _index_actuals(ctx.actuals_lines, ctx.mappings_by_key)
 
