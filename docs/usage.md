@@ -13,7 +13,7 @@ uv sync
 cp .env.example .env
 # then edit .env and paste in the trial API key from the README brief.
 
-# 3. Confirm everything is wired up (193 tests, fully offline — no .env needed).
+# 3. Confirm everything is wired up (212 tests, fully offline — no .env needed).
 uv run pytest
 
 # 4. Run a one-shot analysis (paste into a Python REPL or a script).
@@ -66,6 +66,7 @@ src/verdano/
 ├── allocation/        FTP math + Safe/AtRisk/AtRiskSevere/NeedsVerification/Blocked classifier
 ├── pipeline/          analyze_week_fulfillment DAG + draft-creation logic (drafts.py)
 ├── erp/               hand-rolled HTTP client + Pydantic response models
+├── drift/             extensible drift analysis — strategy pattern (plausibility + residual modes)
 ├── llm/               provider-agnostic LLM client + llm_augmented stratum + post-cascade re-ranker (optional)
 ├── mcp_server/        FastMCP server exposing 4 tools
 ├── config.py          .env loader (pydantic-settings) — all thresholds + LLM config
@@ -90,7 +91,7 @@ docs/
     ├── prompts-for-gemini.md              MATH-SOT prompts
     └── prompts.md                         early brainstorming
 
-DECISIONS.md              chronological D-001..D-019 with rationale + alternatives
+DECISIONS.md              chronological D-001..D-020 with rationale + alternatives
 
 data/
 ├── tesco_forecast_week20.csv
@@ -154,7 +155,7 @@ The server speaks stdio transport — it is launched by the MCP host automatical
 | `analyze_week_fulfillment_tool(retailer, iso_week)` | Compare retailer forecast vs ERP supply for a given ISO week. Returns Safe / AtRisk / AtRiskSevere / Blocked per line, with operator-readable reasoning. |
 | `list_review_queue_tool(retailer, iso_week)` | Filter to only the lines requiring human review (Blocked + AtRiskSevere + low-confidence mappings). The operator's first surface. |
 | `create_drafts_for_safe_lines_tool(retailer, iso_week, required_date, ship_to_location_id?)` | Create `OrderDraft`s for every Safe-classified line. `ship_to_location_id` is optional — if omitted, the depot resolver auto-resolves from the first forecast line's location label (substring + fuzzy match). Pre-filters cross-band SKUs (`skipped`), catches per-line ERP errors (`failed`). Idempotent via `external_reference = sha256(retailer, sku, week, ship_to)`. |
-| `compare_actuals_vs_forecast_tool(retailer, iso_week_forecast, iso_week_actuals)` | **Lagged-actuals plausibility check**, not classical residual drift (per D-012). Computes ratio `forecast_eaches / max(actuals_eaches, 1)` per resolved SKU, threshold-flags as high/low/ok, segments out promo-flagged forecast rows. The fixture's W19 actuals + W20 forecast forces this framing — Markov-style true drift requires a same-period forecast/actuals pair which the fixture doesn't provide. See [DECISIONS.md D-012](../DECISIONS.md) and [formalism §10](architecture/formalism.md). |
+| `compare_actuals_vs_forecast_tool(retailer, iso_week_forecast, iso_week_actuals, mode?)` | **Drift analysis** with two modes (D-020): `"plausibility"` (default) for lagged-actuals ratio check (D-012), `"residual"` for classical signed-residual on same-period data. Plausibility computes `forecast_eaches / max(actuals_eaches, 1)` with promo segmentation. Residual computes `actuals − forecast` with configurable threshold. See [DECISIONS.md D-012, D-020](../DECISIONS.md). |
 
 Tools are coarse-grained intentionally (per Gemini iteration 4 + the morphism formalism in `docs/architecture/formalism.md` §6.2) — the LLM gets one round-trip per question.
 
@@ -172,7 +173,7 @@ uv run pytest -v
 | `tests/allocation/test_ftp.py` | FTPCalculator unit tests — band filtering, open-order week filtering, `sold_to=None` conservative path, negative FTP clamping, unknown SKU (8 tests). |
 | `tests/allocation/test_classifier.py` | Classifier unit tests — Safe, AtRisk, AtRiskSevere, NeedsVerification, Blocked, zero-demand, threshold boundaries, frozen band (10 tests). |
 | `tests/mcp_server/` | MCP tool surface against a faked ERP client. Draft-tool validation errors, retailer + iso_week rejection, exact classification counts, zero-qty skip, live-cassette regression (13 tests). |
-| `tests/drift/` | Lagged-actuals plausibility / drift comparison — ratio logic, promo segmentation, MCP tool wiring (7 tests). |
+| `tests/drift/` | Drift analysis — plausibility (ratio, promo segmentation, MCP tool wiring), residual (synthetic fixtures, direction registry, analyzer dispatch), backward compatibility (26 tests). |
 | `tests/mapping/` | Cascade resolver, TF-IDF index, normalizer, depot resolver — stratified matching, collision handling, floor gating, Jaro-Winkler scoring, depot auto-resolution (46 tests). |
 | `tests/test_negative.py` | Error paths — empty/malformed CSV, non-numeric quantities, float truncation, invalid drift thresholds, unknown retailer spec, registry validation (13 tests). |
 | `tests/test_config.py` | Config resolution (`_find_env_file` paths) and `_validate_iso_week` edge cases (10 tests). |
@@ -197,7 +198,7 @@ uv run python scripts/live_draft_run.py
 
 For reviewers wanting to see the design reasoning rather than just the code:
 
-- **[`DECISIONS.md`](../DECISIONS.md)** — 19 chronological decisions (D-001..D-019), each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration), D-016 (config externalization), D-017 (LLM integration layer), D-018 (semantic stratum naming), D-019 (LLM re-ranker) are the load-bearing ones.
+- **[`DECISIONS.md`](../DECISIONS.md)** — 20 chronological decisions (D-001..D-020), each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration), D-016 (config externalization), D-017 (LLM integration layer), D-018 (semantic stratum naming), D-019 (LLM re-ranker), D-020 (drift extensibility refactor) are the load-bearing ones.
 
 - **[`docs/architecture/formalism.md`](architecture/formalism.md)** — LaTeX-rendered mathematical model. §3 (entity resolution as stratified bipartite matching with FS posteriors), §4 (demand alignment as change-of-basis with non-trivial null space), §5 (allocation as constrained LP with water-filling), §6 (FSM-DAG interlock), §8 (11 explicit pushbacks against the Gemini source where the math diverged from the project's needs).
 
@@ -228,7 +229,7 @@ The trial ships a complete, tested end-to-end pipeline. Several capabilities wer
 | Simplex-NNLS learned kernel | Static config | At >= 26 weeks EPOS | D-009 |
 | Supervised calibrator (Cascaded Classification LR) | Fellegi-Sunter + JW² unsupervised | At >= 200 labels | D-011 |
 | Isotonic regression calibrator | n/a | At >= 1000 labels, replace LR-as-calibrator | D-011 |
-| Classical residual drift | Lagged-actuals plausibility (D-012) | When same-period forecast+actuals pair exists | D-006, D-012 |
+| Classical residual drift | Implemented as `residual` mode in drift strategy pattern (D-020) | Activate via `mode="residual"` when same-period data available | D-006, D-012, D-020 |
 | Markov drift detection | Reserved | Multi-week residual history | D-006 |
 | Temperature-band confidence penalty | Documented, deferred | Pass band through RetailerProductKey | formalism §3.2 |
 | Retailer-depot-string mapping | Depot resolver (substring + fuzzy + optional LLM fallback) | Implemented in `mapping/depot.py` | D-015, D-017 |

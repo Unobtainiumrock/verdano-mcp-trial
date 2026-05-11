@@ -12,11 +12,12 @@ from verdano.pipeline.analyze import (
     case_pack_convert,
     customer_for_retailer,
 )
-from verdano.pipeline.drift import analyze_forecast_plausibility
+from verdano.pipeline.drift import analyze_drift, analyze_forecast_plausibility
 
 __all__ = [
     "AnalysisResult",
     "ErpSnapshot",
+    "analyze_drift",
     "analyze_forecast_plausibility",
     "analyze_week_fulfillment",
     "case_pack_convert",

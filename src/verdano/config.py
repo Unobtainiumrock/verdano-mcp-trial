@@ -73,6 +73,10 @@ class Settings(BaseSettings):
     # --- Drift thresholds ---
     drift_threshold_low: float = Field(default=0.5, gt=0.0, lt=1.0)
     drift_threshold_high: float = Field(default=1.5, gt=1.0)
+    drift_residual_threshold: float = Field(
+        default=0.10, ge=0.0, le=1.0,
+        description="Residual-mode tolerance: abs(pct_error) within this is 'accurate'.",
+    )
 
     # --- Depot resolver ---
     depot_fuzzy_threshold: int = Field(default=75, ge=0, le=100)

@@ -1,33 +1,55 @@
-"""Drift-signal record carrying provenance for the operator UI."""
+"""Drift-signal record carrying provenance for the operator UI.
+
+Supports multiple drift modes (D-020):
+- ``plausibility``: ratio-based lagged-actuals check (D-012)
+- ``residual``: classical signed residual for same-period comparison
+"""
 
 from __future__ import annotations
-
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from verdano.canonical import RetailerCode, RetailerProductKey
 
-DriftDirection = Literal["high", "low", "ok"]
-"""`high`: forecast >> lagged actuals (over-forecast risk).
-`low`: forecast << lagged actuals (under-forecast risk).
-`ok`: ratio within bounds, OR promo-segmented (excluded from threshold)."""
+# ---------------------------------------------------------------------------
+# DriftDirection: runtime-extensible (D-020, mirrors D-016 pattern)
+# ---------------------------------------------------------------------------
+
+DriftDirection = str
+"""Runtime-extensible drift direction identifier."""
+
+_DRIFT_DIRECTION_REGISTRY: set[str] = set()
+
+
+def register_drift_direction(d: str) -> None:
+    """Register a drift direction as valid."""
+    _DRIFT_DIRECTION_REGISTRY.add(d)
+
+
+def known_drift_directions() -> frozenset[str]:
+    return frozenset(_DRIFT_DIRECTION_REGISTRY)
+
+
+for _d in ("high", "low", "ok"):
+    register_drift_direction(_d)
 
 
 class DriftSignal(BaseModel):
     """A single (retailer, sku, weekpair) drift result.
 
-    Per D-012, the underlying math is a ratio not a residual:
+    Supports multiple analysis modes via the ``mode`` discriminator:
 
-        ratio = forecast_eaches / max(actuals_eaches, 1)
+    - **plausibility** (D-012): ``ratio = forecast_eaches / max(actuals_eaches, 1)``
+    - **residual** (D-020): ``residual = actuals_eaches - forecast_eaches``
 
-    A ratio of 1.0 means forecast and lagged actuals are equal in eaches.
-    Thresholds default to [0.5, 1.5]; outside that range, `direction` flags
-    the side of the deviation.
+    Common fields (``forecast_eaches``, ``actuals_eaches``, ``direction``,
+    ``reason``) are always populated. Mode-specific fields are ``None`` when
+    the signal was produced by a different mode.
     """
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(frozen=True)
 
+    mode: str = "plausibility"
     retailer: RetailerCode
     iso_week_forecast: str
     iso_week_actuals: str
@@ -35,13 +57,17 @@ class DriftSignal(BaseModel):
     retailer_key: RetailerProductKey
     forecast_eaches: int = Field(ge=0)
     actuals_eaches: int = Field(ge=0)
-    ratio: float = Field(ge=0.0)
+
+    ratio: float | None = None
+    """Plausibility mode: forecast / max(actuals, 1). None in residual mode."""
+
+    residual: int | None = None
+    """Residual mode: actuals - forecast (signed). None in plausibility mode."""
+
+    pct_error: float | None = None
+    """Residual mode: residual / max(forecast, 1). None in plausibility mode."""
+
     direction: DriftDirection
     promo_flag: bool = False
-    """The forecast row's declared promo state (False if retailer doesn't publish a flag)."""
-
     promo_segmented: bool = False
-    """True iff this signal was excluded from threshold-based flagging because
-    it sits on a promo period (Tesco only — Sainsbury's has no promo column)."""
-
     reason: str

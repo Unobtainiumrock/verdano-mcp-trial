@@ -1,16 +1,33 @@
-"""Forecast-vs-actuals plausibility check (trial-scope drift signal).
+"""Forecast-vs-actuals drift detection (D-012, D-020).
 
-Per **D-012** + formalism §10: this is a *lagged-actuals plausibility check*,
-not classical residual drift. We compare a forward-week forecast (e.g., W20)
-against the prior week's EPOS actuals (e.g., W19) to flag implausible
-deviations. Promo-flagged forecast lines are segmented out (uplift expected).
+Supports multiple drift modes via a strategy pattern:
 
-Classical drift detection requires forecast and actuals from the same period;
-the trial fixture only provides forward forecasts and lagged actuals.
-Markov-style true-drift modeling stays reserved per **D-006**.
+- **plausibility** (D-012): lagged-actuals ratio check. Compares a
+  forward-week forecast against the prior week's EPOS actuals.
+- **residual** (D-020): classical signed-residual check for same-period
+  forecast vs actuals.
+
+New strategies register without modifying existing code — see ``strategies.py``.
 """
 
-from verdano.drift.baseline import BaselineCompare, DriftReport
+from verdano.drift.baseline import (
+    BaselineCompare,
+    DriftAnalyzer,
+    DriftContext,
+    DriftReport,
+    DriftStrategy,
+    plausibility_strategy,
+)
+from verdano.drift.strategies import residual_strategy
 from verdano.drift.types import DriftSignal
 
-__all__ = ["BaselineCompare", "DriftReport", "DriftSignal"]
+__all__ = [
+    "BaselineCompare",
+    "DriftAnalyzer",
+    "DriftContext",
+    "DriftReport",
+    "DriftSignal",
+    "DriftStrategy",
+    "plausibility_strategy",
+    "residual_strategy",
+]

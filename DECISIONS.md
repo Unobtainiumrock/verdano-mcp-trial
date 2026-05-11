@@ -539,3 +539,24 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 **Captured in:** [`src/verdano/llm/reranker.py`](src/verdano/llm/reranker.py) (core logic), [`src/verdano/pipeline/analyze.py`](src/verdano/pipeline/analyze.py) (integration), [`src/verdano/config.py`](src/verdano/config.py) (settings), [`tests/test_reranker.py`](tests/test_reranker.py) (16 tests).
 
 ---
+
+## D-020: Drift module extensibility refactor — strategy pattern + residual mode
+
+**Date:** 2026-05-10
+
+**Context:** The drift module was the only subsystem not built with the same extensibility patterns as the rest of the codebase. The cascade resolver has `StratumHandler` chains (D-018); the adapters have `RetailerSpec` configs (D-001); the classifier has runtime registries (D-016). But drift had a monolithic `BaselineCompare` class with one hardcoded algorithm, a closed `Literal` type for `DriftDirection`, a frozen `DriftSignal` model that couldn't carry residual fields, and hardcoded CSV paths tied to the trial fixture's filenames.
+
+**Resolution:** Refactor drift to follow the same patterns as D-016 (runtime registries) and D-018 (handler chains):
+
+1. **`DriftDirection` → runtime registry:** Replace `Literal["high", "low", "ok"]` with `str` + `register_drift_direction()` + `_DRIFT_DIRECTION_REGISTRY`. Residual mode registers `over_forecast`, `under_forecast`, `accurate` without editing `types.py`.
+2. **`DriftSignal` extensibility:** Add optional `mode`, `residual`, `pct_error` fields alongside the existing `ratio` field. Both modes populate the common fields (`forecast_eaches`, `actuals_eaches`, `direction`, `reason`); mode-specific fields are `None` when inapplicable. Relaxed `extra="forbid"` to plain `frozen=True`.
+3. **Strategy pattern:** Introduce `DriftStrategy = Callable[[DriftContext], DriftReport]`, a `DriftContext` dataclass holding shared inputs, and a `DriftAnalyzer` dispatcher. The existing ratio logic is extracted into `plausibility_strategy`; a new `residual_strategy` computes `r = actuals − forecast` with configurable `residual_threshold`. `BaselineCompare` is preserved as a thin backward-compatible wrapper.
+4. **Pipeline + MCP:** `analyze_drift(mode=...)` replaces the internal call path; `analyze_forecast_plausibility` is preserved as a backward-compatible alias. The `compare_actuals_vs_forecast_tool` gains an optional `mode` parameter (default `"plausibility"`). Residual mode validates `iso_week_forecast == iso_week_actuals` and returns a clear error if weeks differ.
+5. **Generic CSV resolver:** `_data_csv_for(retailer, kind, iso_week, root)` tries `{retailer}_{kind}_week{NN}.csv` first, then falls back to legacy filenames, so the system works with new data files without code changes.
+6. **Config:** Added `drift_residual_threshold` (default 0.10) to `Settings`.
+
+**Trade-off:** The existing `plausibility` mode behavior is preserved exactly — all 7 original drift tests pass unchanged. The refactor adds 19 new tests (26 total drift tests). The MCP tool signature is backward-compatible; callers that don't pass `mode` get the current behavior. Future drift modes (Markov, learned DOW kernel) slot in as additional strategy functions registered in `DEFAULT_STRATEGIES`.
+
+**Captured in:** [`src/verdano/drift/types.py`](src/verdano/drift/types.py) (registry), [`src/verdano/drift/baseline.py`](src/verdano/drift/baseline.py) (protocol + plausibility), [`src/verdano/drift/strategies.py`](src/verdano/drift/strategies.py) (residual), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (entry-point), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (tool + CSV resolver), [`src/verdano/config.py`](src/verdano/config.py) (threshold), [`tests/drift/`](tests/drift/) (26 tests).
+
+---

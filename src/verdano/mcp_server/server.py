@@ -33,6 +33,7 @@ from verdano.pipeline import (
     analyze_forecast_plausibility,
     analyze_week_fulfillment,
 )
+from verdano.pipeline.drift import analyze_drift
 from verdano.pipeline.drafts import create_drafts
 
 ErpClientFactory = Callable[[], AbstractContextManager[Client]]
@@ -63,12 +64,44 @@ def _validate_iso_week(iso_week: str) -> dict[str, Any] | None:
     return None
 
 
+def _data_csv_for(
+    retailer: RetailerCode,
+    kind: str,
+    iso_week: str,
+    project_root: Path,
+) -> Path:
+    """Resolve a data CSV by (retailer, kind, iso_week).
+
+    Looks for ``{retailer}_{kind}_{iso_week}.csv`` first (generic pattern).
+    Falls back to the legacy hardcoded filenames from the trial fixture so
+    the trial data keeps working without renaming files.
+    """
+    week_num = iso_week.split("-W")[-1] if "-W" in iso_week else iso_week
+    generic = project_root / "data" / f"{retailer}_{kind}_week{week_num}.csv"
+    if generic.is_file():
+        return generic
+
+    _LEGACY: dict[tuple[str, str], str] = {
+        ("forecast", "20"): f"{retailer}_forecast_week20.csv",
+        ("epos_actuals", "19"): f"{retailer}_epos_actuals_week19.csv",
+    }
+    legacy_name = _LEGACY.get((kind, week_num))
+    if legacy_name:
+        legacy_path = project_root / "data" / legacy_name
+        if legacy_path.is_file():
+            return legacy_path
+
+    return generic
+
+
 def _forecast_csv_for(retailer: RetailerCode, project_root: Path) -> Path:
-    return project_root / "data" / f"{retailer}_forecast_week20.csv"
+    return _data_csv_for(retailer, "forecast", "2026-W20", project_root)
 
 
-def _actuals_csv_for(retailer: RetailerCode, project_root: Path) -> Path:
-    return project_root / "data" / f"{retailer}_epos_actuals_week19.csv"
+def _actuals_csv_for(
+    retailer: RetailerCode, iso_week: str, project_root: Path,
+) -> Path:
+    return _data_csv_for(retailer, "epos_actuals", iso_week, project_root)
 
 
 def _erp_snapshot_from_live(client: Client) -> ErpSnapshot:
@@ -279,45 +312,59 @@ def build_server(
         retailer: RetailerCode,
         iso_week_forecast: str,
         iso_week_actuals: str,
+        mode: str = "plausibility",
     ) -> dict[str, Any]:
-        """Lagged-actuals plausibility check on the retailer's forecast.
+        """Drift analysis comparing a retailer's forecast against actuals.
 
-        **Important framing:** this is *not* classical drift detection.
-        Classical drift compares a forecast to the actuals from the same
-        period; the trial fixture only provides forward-looking forecasts and
-        lagged actuals. We instead compute the ratio
-        `forecast_eaches / max(lagged_actuals_eaches, 1)` per resolved SKU,
-        threshold-flagging implausible deviations after promo segmentation.
-        See DECISIONS.md D-012 for the framing.
+        Supports two modes (D-020):
 
-        Promo-flagged forecast lines (Tesco only — Sainsbury's has no flag
-        column) are excluded from threshold-based flagging since promo
-        creates expected uplift. Markov-style true-drift modeling is
-        deferred per D-006.
+        **plausibility** (default): Lagged-actuals ratio check. Computes
+        ``forecast_eaches / max(lagged_actuals_eaches, 1)`` per resolved SKU
+        and threshold-flags implausible deviations. Promo-flagged forecast
+        lines are segmented out. The forecast and actuals weeks should differ
+        (e.g., W20 forecast vs W19 actuals). See D-012.
+
+        **residual**: Classical signed-residual drift. Computes
+        ``actuals - forecast`` for the same period. Requires
+        ``iso_week_forecast == iso_week_actuals``. Returns direction as
+        ``over_forecast`` / ``under_forecast`` / ``accurate``.
 
         Args:
             retailer: Registered retailer code (e.g. "tesco", "sainsburys").
             iso_week_forecast: e.g. "2026-W20".
             iso_week_actuals:  e.g. "2026-W19".
+            mode: "plausibility" (default) or "residual".
         """
         if err := _validate_retailer(retailer):
             return err
         for wk in (iso_week_forecast, iso_week_actuals):
             if err := _validate_iso_week(wk):
                 return err
+
+        if mode == "residual" and iso_week_forecast != iso_week_actuals:
+            return {
+                "error": (
+                    f"residual mode requires forecast and actuals from the same "
+                    f"period; got forecast={iso_week_forecast}, "
+                    f"actuals={iso_week_actuals}"
+                ),
+            }
+
         with factory() as client:
             erp = _erp_snapshot_from_live(client)
-        report = analyze_forecast_plausibility(
+        report = analyze_drift(
             forecast_csv=_forecast_csv_for(retailer, project_root),
-            actuals_csv=_actuals_csv_for(retailer, project_root),
+            actuals_csv=_actuals_csv_for(retailer, iso_week_actuals, project_root),
             retailer=retailer,
             iso_week_forecast=iso_week_forecast,
             iso_week_actuals=iso_week_actuals,
             erp=erp,
+            mode=mode,
             priors=priors,
             auto_threshold=cfg.auto_threshold,
             threshold_low=cfg.drift_threshold_low,
             threshold_high=cfg.drift_threshold_high,
+            residual_threshold=cfg.drift_residual_threshold,
         )
         return report.model_dump(mode="json")
 
