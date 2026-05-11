@@ -13,7 +13,7 @@ uv sync
 cp .env.example .env
 # then edit .env and paste in the trial API key from the README brief.
 
-# 3. Confirm everything is wired up (177 tests, fully offline — no .env needed).
+# 3. Confirm everything is wired up (193 tests, fully offline — no .env needed).
 uv run pytest
 
 # 4. Run a one-shot analysis (paste into a Python REPL or a script).
@@ -66,7 +66,7 @@ src/verdano/
 ├── allocation/        FTP math + Safe/AtRisk/AtRiskSevere/NeedsVerification/Blocked classifier
 ├── pipeline/          analyze_week_fulfillment DAG + draft-creation logic (drafts.py)
 ├── erp/               hand-rolled HTTP client + Pydantic response models
-├── llm/               provider-agnostic LLM client + llm_augmented entity resolution stratum (optional)
+├── llm/               provider-agnostic LLM client + llm_augmented stratum + post-cascade re-ranker (optional)
 ├── mcp_server/        FastMCP server exposing 4 tools
 ├── config.py          .env loader (pydantic-settings) — all thresholds + LLM config
 └── logging.py         structlog setup
@@ -178,6 +178,7 @@ uv run pytest -v
 | `tests/test_config.py` | Config resolution (`_find_env_file` paths) and `_validate_iso_week` edge cases (10 tests). |
 | `tests/test_registries.py` | Runtime registries for FulfillmentClass, MappingState, Stratum, DriftClass — builtins, registration, idempotency, ordered insertion (11 tests). |
 | `tests/test_llm.py` | LLM client protocol, factory, `llm_augmented` stratum handler (mocked), depot LLM fallback — confidence gating, JSON error handling (7 tests). |
+| `tests/test_reranker.py` | LLM post-cascade re-ranker (D-019) — should_rerank gating, agree/disagree/low-conf/failure paths, integration flow (16 tests). |
 | `tests/mapping/test_normalize_pipeline.py` | Composable NormalizationPipeline — individual steps, brand stripping, stop words, pipeline composition, backward compatibility (12 tests). |
 | `tests/mapping/test_handler_chain.py` | Stratum handler chain — default registration, custom handler short-circuit, append, `gtin_current` preemption, config exposure (5 tests). |
 | `tests/adapters/test_aggregation.py` | `_aggregate_to_weekly` unit tests — promo-flag OR-ing, note dedup/sort, quantity summing, grouping-key correctness (9 tests). |
@@ -196,7 +197,7 @@ uv run python scripts/live_draft_run.py
 
 For reviewers wanting to see the design reasoning rather than just the code:
 
-- **[`DECISIONS.md`](../DECISIONS.md)** — 18 chronological decisions (D-001..D-018), each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration), D-016 (config externalization), D-017 (LLM integration layer), D-018 (semantic stratum naming) are the load-bearing ones.
+- **[`DECISIONS.md`](../DECISIONS.md)** — 19 chronological decisions (D-001..D-019), each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration), D-016 (config externalization), D-017 (LLM integration layer), D-018 (semantic stratum naming), D-019 (LLM re-ranker) are the load-bearing ones.
 
 - **[`docs/architecture/formalism.md`](architecture/formalism.md)** — LaTeX-rendered mathematical model. §3 (entity resolution as stratified bipartite matching with FS posteriors), §4 (demand alignment as change-of-basis with non-trivial null space), §5 (allocation as constrained LP with water-filling), §6 (FSM-DAG interlock), §8 (11 explicit pushbacks against the Gemini source where the math diverged from the project's needs).
 
@@ -235,6 +236,7 @@ The trial ships a complete, tested end-to-end pipeline. Several capabilities wer
 | `RetailerCode` runtime extensibility | Registry-constrained `str` (implemented) | `register_retailer()` + `validate_retailer_code()` | D-015 |
 | Config externalization | All thresholds in `Settings` with `VERDANO_` env prefix | Operator-tunable without code deploys | D-016 |
 | LLM entity resolution (`llm_augmented` stratum) | Provider-agnostic client, `llm_augmented` handler, depot LLM fallback — all optional | Enable via `VERDANO_LLM_API_KEY` | D-017 |
+| LLM post-cascade re-ranker | Validates low-confidence / ambiguous cascade matches via LLM second opinion (optional) | Tune via `VERDANO_RERANK_*` settings | D-019 |
 | FulfillmentClass / Stratum / MappingState / DriftClass extensibility | Runtime registries (same pattern as RetailerCode) | `register_*()` functions | D-016 |
 
 ## Non-goals (deliberate)

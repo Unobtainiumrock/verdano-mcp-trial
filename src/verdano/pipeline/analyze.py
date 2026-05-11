@@ -148,6 +148,9 @@ def analyze_week_fulfillment(
     fuzzy_jw_min_score: float = 0.30,
     handlers: list[tuple[str, StratumHandler]] | None = None,
     llm_client: LLMClient | None = None,
+    rerank_threshold: float = 0.92,
+    rerank_strata: frozenset[str] = frozenset({"tfidf_overlap", "fuzzy_jw"}),
+    rerank_min_llm_confidence: float = 0.70,
 ) -> AnalysisResult:
     """Run the DAG end-to-end for a single (retailer, week) input.
 
@@ -196,9 +199,29 @@ def analyze_week_fulfillment(
     customer = customer_for_retailer(erp.customers, retailer)
     sold_to = customer.id if customer else None
 
+    _reranker = None
+    if llm_client is not None:
+        from verdano.llm.reranker import apply_rerank, rerank_mapping, should_rerank
+
+        _reranker = (should_rerank, rerank_mapping, apply_rerank)
+
     classifications: list[FulfillmentClassification] = []
     for raw in raw_lines:
         mapping = resolver.resolve(raw.retailer_key)
+
+        if _reranker is not None and _reranker[0](
+            mapping,
+            rerank_threshold=rerank_threshold,
+            rerank_strata=rerank_strata,
+        ):
+            rr = _reranker[1](
+                mapping,
+                master,
+                llm_client,
+                min_llm_confidence=rerank_min_llm_confidence,
+            )
+            mapping = _reranker[2](mapping, rr)
+
         canonical = case_pack_convert(raw, mapping, products_by_sku)
         classifications.append(classifier.classify(canonical, mapping, sold_to))
 

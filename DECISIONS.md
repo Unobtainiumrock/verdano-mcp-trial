@@ -519,3 +519,23 @@ The rename spans source files, tests, and active documentation. The mathematical
 **Captured in:** [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (handler renames + DEFAULT_HANDLERS), [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (registry seeds), [`src/verdano/llm/entity_resolution.py`](src/verdano/llm/entity_resolution.py), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py), 8 test files.
 
 ---
+
+## D-019: LLM post-cascade re-ranker — validator mode for false-positive detection
+
+**Date:** 2026-05-10
+
+**Context:** The `llm_augmented` stratum (D-017) sits at position 6 of 6 in the cascade, firing only when *all* deterministic strata fail. For well-aliased datasets this means the LLM never activates — the cascade short-circuits at `alias_exact` or earlier. The more dangerous failure mode is *false positives from earlier strata*: a stale alias or weak fuzzy hit resolving to the wrong product at high confidence, with no second opinion.
+
+**Resolution:** Add a **re-ranking pass** that runs *after* the cascade resolves each line. The re-ranker selectively sends low-confidence or stratum-gated matches to the LLM for validation:
+
+- **`rerank_threshold`** (default 0.92): mappings below this confidence are re-ranked.
+- **`rerank_strata`** (default `{tfidf_overlap, fuzzy_jw}`): mappings from these strata are *always* re-ranked regardless of confidence.
+- **`rerank_min_llm_confidence`** (default 0.70): the LLM must exceed this confidence for its disagreement to take effect.
+
+If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficient confidence, the mapping's state is downgraded from `Resolved` to `NeedsVerification` and evidence is replaced with `stratum="llm_rerank"` so operators see why it was flagged. On any LLM failure, the original mapping is preserved (graceful degradation).
+
+**Trade-off:** The existing `llm_augmented` fallback stratum is *preserved* for total cascade misses. The re-ranker is orthogonal — it validates *successful* cascade hits. Without an LLM key the re-ranker is a complete no-op. High-confidence GTIN matches (0.98+) are never sent to the LLM, keeping API cost proportional to ambiguity. All three parameters are configurable via `Settings` / environment variables.
+
+**Captured in:** [`src/verdano/llm/reranker.py`](src/verdano/llm/reranker.py) (core logic), [`src/verdano/pipeline/analyze.py`](src/verdano/pipeline/analyze.py) (integration), [`src/verdano/config.py`](src/verdano/config.py) (settings), [`tests/test_reranker.py`](tests/test_reranker.py) (16 tests).
+
+---

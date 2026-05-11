@@ -110,6 +110,9 @@ def _run_analysis(
         tfidf_min_matched_tokens=cfg.tfidf_min_matched_tokens,
         fuzzy_jw_min_score=cfg.fuzzy_jw_min_score,
         llm_client=llm_client,
+        rerank_threshold=cfg.rerank_threshold,
+        rerank_strata=cfg.rerank_strata,
+        rerank_min_llm_confidence=cfg.rerank_min_llm_confidence,
     )
 
 

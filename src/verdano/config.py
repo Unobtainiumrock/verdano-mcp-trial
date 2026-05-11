@@ -82,6 +82,13 @@ class Settings(BaseSettings):
     llm_api_key: SecretStr = Field(default=SecretStr(""))
     llm_base_url: str = Field(default="https://api.openai.com/v1")
 
+    # --- LLM re-ranker (D-019) ---
+    rerank_threshold: float = Field(default=0.92, ge=0.0, le=1.0)
+    rerank_strata: frozenset[str] = Field(
+        default=frozenset({"tfidf_overlap", "fuzzy_jw"}),
+    )
+    rerank_min_llm_confidence: float = Field(default=0.70, ge=0.0, le=1.0)
+
 
 def load_settings() -> Settings:
     return Settings()
