@@ -13,7 +13,7 @@ uv sync
 cp .env.example .env
 # then edit .env and paste in the trial API key from the README brief.
 
-# 3. Confirm everything is wired up (213 tests, fully offline — no .env needed).
+# 3. Confirm everything is wired up (218 tests, fully offline — no .env needed).
 uv run pytest
 
 # 4. Run a one-shot analysis (paste into a Python REPL or a script).
@@ -176,8 +176,8 @@ uv run pytest -v
 | `tests/drift/` | Drift analysis — plausibility (ratio, promo segmentation, MCP tool wiring), residual (synthetic fixtures, direction registry, analyzer dispatch), invalid-mode error path, backward compatibility (27 tests). |
 | `tests/mapping/` | Cascade resolver, TF-IDF index, normalizer, depot resolver — stratified matching, collision handling, floor gating, Jaro-Winkler scoring, depot auto-resolution (46 tests). |
 | `tests/test_negative.py` | Error paths — empty/malformed CSV, non-numeric quantities, float truncation, invalid drift thresholds, unknown retailer spec, registry validation (13 tests). |
-| `tests/test_config.py` | Config resolution (`_find_env_file` paths) and `_validate_iso_week` edge cases (10 tests). |
-| `tests/test_registries.py` | Runtime registries for FulfillmentClass, MappingState, Stratum, DriftClass — builtins, registration, idempotency, ordered insertion (11 tests). |
+| `tests/test_config.py` | Config resolution (`_find_env_file` paths), `_validate_iso_week` edge cases, and `drift_residual_threshold` field (12 tests). |
+| `tests/test_registries.py` | Runtime registries for FulfillmentClass, MappingState, Stratum, DriftClass, DriftDirection — builtins, residual extensions, registration, idempotency, ordered insertion (14 tests). |
 | `tests/test_llm.py` | LLM client protocol, factory, `llm_augmented` stratum handler (mocked), depot LLM fallback — confidence gating, JSON error handling (7 tests). |
 | `tests/test_reranker.py` | LLM post-cascade re-ranker (D-019) — should_rerank gating, agree/disagree/low-conf/failure paths, integration flow (16 tests). |
 | `tests/mapping/test_normalize_pipeline.py` | Composable NormalizationPipeline — individual steps, brand stripping, stop words, pipeline composition, backward compatibility (12 tests). |

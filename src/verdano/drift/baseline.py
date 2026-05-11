@@ -220,13 +220,19 @@ class DriftAnalyzer:
     """Dispatches to pluggable drift strategy functions by mode name.
 
     New strategies are registered by adding to ``DEFAULT_STRATEGIES`` or
-    passing a custom dict at construction time.
+    passing a custom dict at construction time. When using defaults, the
+    constructor ensures ``verdano.drift.strategies`` is imported so all
+    built-in strategies are registered regardless of import path.
     """
 
     def __init__(
         self, strategies: dict[str, DriftStrategy] | None = None
     ) -> None:
-        self._strategies = strategies if strategies is not None else dict(DEFAULT_STRATEGIES)
+        if strategies is not None:
+            self._strategies = strategies
+        else:
+            import verdano.drift.strategies  # noqa: F401 — registers into DEFAULT_STRATEGIES
+            self._strategies = dict(DEFAULT_STRATEGIES)
 
     @property
     def available_modes(self) -> list[str]:

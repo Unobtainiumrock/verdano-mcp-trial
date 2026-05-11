@@ -1,4 +1,4 @@
-"""Tests for runtime registries (FulfillmentClass, MappingState, Stratum, DriftClass)."""
+"""Tests for runtime registries (FulfillmentClass, MappingState, Stratum, DriftClass, DriftDirection)."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from verdano.canonical.models import (
     register_stratum,
 )
 from verdano.drift.baseline import _DRIFT_CLASS_REGISTRY, register_drift_class
+from verdano.drift.types import known_drift_directions
 
 
 class TestFulfillmentClassRegistry:
@@ -75,7 +76,22 @@ class TestDriftClassRegistry:
         expected = {"high", "low", "ok", "skipped_unmapped"}
         assert expected <= _DRIFT_CLASS_REGISTRY
 
+    def test_residual_classes_registered(self) -> None:
+        import verdano.drift.strategies  # noqa: F401
+        expected = {"over_forecast", "under_forecast", "accurate"}
+        assert expected <= _DRIFT_CLASS_REGISTRY
+
     def test_register_new_class(self) -> None:
         register_drift_class("anomalous")
         assert "anomalous" in _DRIFT_CLASS_REGISTRY
         _DRIFT_CLASS_REGISTRY.discard("anomalous")
+
+
+class TestDriftDirectionRegistry:
+    def test_builtins_registered(self) -> None:
+        assert {"high", "low", "ok"} <= known_drift_directions()
+
+    def test_residual_directions_registered(self) -> None:
+        import verdano.drift.strategies  # noqa: F401
+        expected = {"over_forecast", "under_forecast", "accurate"}
+        assert expected <= known_drift_directions()

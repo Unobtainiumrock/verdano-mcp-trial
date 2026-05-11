@@ -468,7 +468,7 @@ Status legend: ✅ resolved · 🟡 partially resolved · ⏳ still open.
 
 1. ✅ **Confidence calibration.** Resolved by D-011 (Jaro-Winkler² for $E_4$, Platt scaling at $N \gtrsim 200$ for production). Two sub-gaps remain (band derivation for $E_1$/$E_2$/$E_3$; cascade-band consistency under JW²) — tracked under MATH-SOT-IT3, still open.
 
-2. 🟡 **Drift detection as signal-detection.** Trial-scope answer locked by **D-012**: lagged-actuals plausibility check (ratio $\rho = f_{t+1} / \max(a_t, 1)$ with thresholds $[0.5, 1.5]$, promo-segmented). See §10. Production-scope (Markov-style residual on archived forecast histories) remains open per **D-006**.
+2. 🟡 **Drift detection as signal-detection.** Trial-scope answer locked by **D-012**: lagged-actuals plausibility check (ratio $\rho = f_{t+1} / \max(a_t, 1)$ with thresholds $[0.5, 1.5]$, promo-segmented). See §10. **D-020** adds a classical residual mode ($r = a_t - f_t$, same-period) via the strategy pattern; Markov-style drift over multi-week histories remains open per **D-006**.
 
 3. ✅ **Allocation policy under supply constraint.** Resolved by D-010 (pro-rata default; water-filling for weighted; fill-rate thresholding tripwire with config $\tau_{\text{safe}}$). See §5.3.
 
@@ -527,11 +527,13 @@ where $\pi = \mathbb{1}[\text{promo}_{t+1}]$. The signal record carries both `pr
 
 This framing is not classical residual drift. The fixture forces it. **Markov-style true-drift detection is reserved per D-006** for the production scope where multi-week residual histories accumulate. Forecast-vs-actuals residuals over the same period are a noisy signal best modeled as a stochastic process; the lagged-actuals check is a deterministic diagnostic.
 
+> **D-020 addendum:** A `residual` strategy is now available alongside this plausibility check. When same-period forecast + actuals CSVs exist, `analyze_drift(mode="residual")` computes $r = a_t - f_t$ with a configurable percentage-error threshold (`drift_residual_threshold`, default 10%). The strategy pattern in `drift/baseline.py` dispatches to either mode. See `drift/strategies.py` for the residual implementation.
+
 ### 10.5 Mapping flow
 
 Forecast lines whose mapping is `Blocked` or `NeedsVerification` are not turned into signals — they're counted under `summary["skipped_unmapped"]` to keep the signal stream clean while preserving the volume of un-comparable lines.
 
-Cross-references: `src/verdano/drift/` (module), `src/verdano/pipeline/drift.py` (entry-point), `tests/drift/test_baseline.py` (7 tests on the fixtures).
+Cross-references: `src/verdano/drift/` (module), `src/verdano/pipeline/drift.py` (entry-point), `tests/drift/test_baseline.py` (plausibility + infrastructure tests), `tests/drift/test_residual.py` (residual mode tests).
 
 ---
 

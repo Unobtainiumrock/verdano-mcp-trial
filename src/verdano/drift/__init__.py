@@ -16,10 +16,15 @@ from verdano.drift.baseline import (
     DriftContext,
     DriftReport,
     DriftStrategy,
+    register_drift_class,
     plausibility_strategy,
 )
 from verdano.drift.strategies import residual_strategy
-from verdano.drift.types import DriftSignal
+from verdano.drift.types import (
+    DriftSignal,
+    register_drift_direction,
+    known_drift_directions,
+)
 
 __all__ = [
     "BaselineCompare",
@@ -28,6 +33,9 @@ __all__ = [
     "DriftReport",
     "DriftSignal",
     "DriftStrategy",
+    "known_drift_directions",
     "plausibility_strategy",
+    "register_drift_class",
+    "register_drift_direction",
     "residual_strategy",
 ]

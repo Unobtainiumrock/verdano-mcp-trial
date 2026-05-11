@@ -9,8 +9,9 @@ from __future__ import annotations
 import pytest
 
 from verdano.adapters.raw import RawActualsLine, RawDemandLine
+from verdano.pipeline import ErpSnapshot
 from verdano.canonical import MappingEvidence, MappingResult, RetailerProductKey
-from verdano.drift import DriftAnalyzer, DriftContext
+from verdano.drift import DriftAnalyzer, DriftContext, DriftReport
 from verdano.drift.strategies import residual_strategy
 from verdano.drift.types import _DRIFT_DIRECTION_REGISTRY
 from verdano.erp.models import Product
@@ -239,7 +240,7 @@ def test_drift_analyzer_residual_mode() -> None:
 def test_drift_analyzer_custom_strategy() -> None:
     """Custom strategies plug in without modifying defaults."""
 
-    def custom(ctx: DriftContext) -> None:
+    def custom(ctx: DriftContext) -> DriftReport:
         raise NotImplementedError("custom strategy called")
 
     analyzer = DriftAnalyzer(strategies={"custom": custom})
@@ -254,7 +255,7 @@ def test_drift_analyzer_custom_strategy() -> None:
 
 
 def test_analyze_drift_plausibility_backward_compat(
-    erp_snapshot, project_root: Path,
+    erp_snapshot: ErpSnapshot, project_root: Path,
 ) -> None:
     """analyze_drift with mode=plausibility matches analyze_forecast_plausibility."""
     from verdano.pipeline import analyze_forecast_plausibility

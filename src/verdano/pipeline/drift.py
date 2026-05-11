@@ -45,12 +45,23 @@ def analyze_drift(
         ``"plausibility"`` (default) for lagged-actuals ratio check.
         ``"residual"`` for classical signed-residual (same-period only).
 
+    Raises
+    ------
+    ValueError
+        If ``mode="residual"`` but the forecast and actuals weeks differ.
+
     Stages:
       1. Adapter: forecast CSV -> list[RawDemandLine] (week-aggregated if daily).
       2. Adapter: actuals CSV  -> list[RawActualsLine].
       3. Resolver: per retailer-key MappingResult.
       4. DriftAnalyzer: dispatch to the selected strategy and produce DriftReport.
     """
+    if mode == "residual" and iso_week_forecast != iso_week_actuals:
+        raise ValueError(
+            f"residual mode requires forecast and actuals from the same "
+            f"period; got forecast={iso_week_forecast}, actuals={iso_week_actuals}"
+        )
+
     spec = get_spec(retailer)
     adapter = Adapter(spec)
 

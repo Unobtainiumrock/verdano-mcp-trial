@@ -1,4 +1,4 @@
-"""Tests for config helpers and iso_week validation."""
+"""Tests for config helpers, Settings fields, and iso_week validation."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from verdano.config import _find_env_file
+from verdano.config import Settings, _find_env_file
 from verdano.mcp_server.server import _validate_iso_week
 
 
@@ -73,3 +73,18 @@ class TestValidateIsoWeek:
         err = _validate_iso_week("2026-20")
         assert err is not None
         assert "invalid iso_week format" in err["error"]
+
+
+class TestDriftResidualThreshold:
+    """drift_residual_threshold config field."""
+
+    def test_default_value(self) -> None:
+        with patch.dict(os.environ, {"VERDANO_ERP_API_KEY": "test"}, clear=False):
+            cfg = Settings()  # type: ignore[call-arg]
+        assert cfg.drift_residual_threshold == 0.10
+
+    def test_env_override(self) -> None:
+        env = {"VERDANO_ERP_API_KEY": "test", "VERDANO_DRIFT_RESIDUAL_THRESHOLD": "0.25"}
+        with patch.dict(os.environ, env, clear=False):
+            cfg = Settings()  # type: ignore[call-arg]
+        assert cfg.drift_residual_threshold == 0.25
