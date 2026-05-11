@@ -143,9 +143,9 @@ def build_server(
     ) -> dict[str, Any]:
         """Compare a retailer's forecast for a given ISO week against ERP inventory and open orders.
 
-        Returns a per-line classification (Safe / AtRisk / AtRiskSevere / Blocked)
-        with the resolved ERP SKU, free-to-promise cases, fill rate, and an
-        operator-readable reason.
+        Returns a per-line classification (Safe / AtRisk / AtRiskSevere /
+        NeedsVerification / Blocked) with the resolved ERP SKU, free-to-promise
+        cases, fill rate, and an operator-readable reason.
 
         Args:
             retailer: Registered retailer code (e.g. "tesco", "sainsburys").

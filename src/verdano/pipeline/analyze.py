@@ -203,7 +203,7 @@ def analyze_week_fulfillment(
         classifications.append(classifier.classify(canonical, mapping, sold_to))
 
     counts: Counter[FulfillmentClass] = Counter(c.classification for c in classifications)
-    # Ensure all four labels present in the summary for stable consumer parsing.
+    # Ensure all five labels present in the summary for stable consumer parsing.
     summary: dict[FulfillmentClass, int] = {
         cls: counts.get(cls, 0) for cls in _ALL_CLASSES
     }

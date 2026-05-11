@@ -78,7 +78,6 @@ class Settings(BaseSettings):
     depot_fuzzy_threshold: int = Field(default=75, ge=0, le=100)
 
     # --- LLM integration (optional) ---
-    llm_provider: str = Field(default="openai")
     llm_model: str = Field(default="gpt-4o")
     llm_api_key: SecretStr = Field(default=SecretStr(""))
     llm_base_url: str = Field(default="https://api.openai.com/v1")
