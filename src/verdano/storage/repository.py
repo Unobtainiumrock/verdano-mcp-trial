@@ -1,4 +1,4 @@
-"""Repository protocol and backends for Verdano persistence (D-021).
+"""Repository protocol and backends for Verdano persistence (D-021, D-025).
 
 The ``Repository`` protocol defines a narrow interface for the four
 persistence domains the system needs. Each method pair (save/get) operates
@@ -8,14 +8,16 @@ S3 — can satisfy the contract.
 The ``InMemoryRepository`` is the default for the trial: zero external
 dependencies, process-lifetime scope, suitable for tests and demos.
 
-The ``DuckDBRepository`` is the production-path placeholder: it will
-provide persistent storage, OLAP-friendly queries over audit logs, and
-indexed lookup for the calibration training pipeline.
+The ``DuckDBRepository`` provides persistent, file-backed storage via
+DuckDB. Schema is auto-initialised on first connection (``CREATE TABLE
+IF NOT EXISTS``). The ``duckdb`` package is optional — import is guarded.
 """
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -166,54 +168,221 @@ class InMemoryRepository:
 
 
 class DuckDBRepository:
-    """Placeholder for DuckDB-backed persistence (D-021).
+    """File-backed persistence via DuckDB (D-025).
 
-    The production implementation will require the ``duckdb`` package and
-    a writable path. The planned schema will include:
+    Schema is auto-initialised on first connection. The ``duckdb`` package
+    is an optional dependency (``pip install verdano-mcp[storage]``).
+
+    Tables:
       - ``mapping_cache``: keyed on retailer_key_name, stores full
-        MappingResult JSON.
+        MappingResult as JSON blob.
       - ``review_labels``: training data for the supervised calibrator.
-      - ``audit_log``: append-only, partitioned by ISO week.
+      - ``audit_log``: append-only tool invocation records.
       - ``residual_history``: per-SKU weekly residual classifications
         for Markov drift detection (D-024).
+    """
 
-    Raises ``NotImplementedError`` until the DuckDB schema is finalized.
+    _SCHEMA_SQL = """
+        CREATE TABLE IF NOT EXISTS mapping_cache (
+            retailer_key_name VARCHAR PRIMARY KEY,
+            result_json       VARCHAR NOT NULL,
+            updated_at        TIMESTAMP DEFAULT current_timestamp
+        );
+        CREATE TABLE IF NOT EXISTS review_labels (
+            id                INTEGER PRIMARY KEY,
+            retailer_key_name VARCHAR NOT NULL,
+            retailer_key_gtin VARCHAR,
+            original_erp_sku  VARCHAR,
+            corrected_erp_sku VARCHAR NOT NULL,
+            reviewer          VARCHAR DEFAULT 'unknown',
+            created_at        TIMESTAMP DEFAULT current_timestamp
+        );
+        CREATE SEQUENCE IF NOT EXISTS review_labels_seq START 1;
+        CREATE TABLE IF NOT EXISTS audit_log (
+            id         INTEGER PRIMARY KEY,
+            tool_name  VARCHAR NOT NULL,
+            retailer   VARCHAR NOT NULL,
+            iso_week   VARCHAR NOT NULL,
+            parameters VARCHAR DEFAULT '{}',
+            summary    VARCHAR DEFAULT '',
+            created_at TIMESTAMP DEFAULT current_timestamp
+        );
+        CREATE SEQUENCE IF NOT EXISTS audit_log_seq START 1;
+        CREATE TABLE IF NOT EXISTS residual_history (
+            id         INTEGER PRIMARY KEY,
+            erp_sku    VARCHAR NOT NULL,
+            iso_week   VARCHAR NOT NULL,
+            direction  VARCHAR NOT NULL,
+            pct_error  DOUBLE NOT NULL,
+            created_at TIMESTAMP DEFAULT current_timestamp
+        );
+        CREATE SEQUENCE IF NOT EXISTS residual_history_seq START 1;
     """
 
     def __init__(self, db_path: str = ".local/verdano.duckdb") -> None:
-        self._db_path = db_path
+        try:
+            import duckdb
+        except ImportError as exc:
+            raise ImportError(
+                "DuckDBRepository requires the 'duckdb' package. "
+                "Install it with: pip install verdano-mcp[storage]"
+            ) from exc
 
-    def _not_impl(self) -> NotImplementedError:
-        return NotImplementedError(
-            f"DuckDBRepository at {self._db_path!r} is not yet implemented; "
-            "use InMemoryRepository for trial scope"
-        )
+        self._db_path = db_path
+        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+        self._conn = duckdb.connect(db_path)
+        self._conn.execute("BEGIN TRANSACTION")
+        for stmt in self._SCHEMA_SQL.strip().split(";"):
+            stmt = stmt.strip()
+            if stmt:
+                self._conn.execute(stmt)
+        self._conn.execute("COMMIT")
+
+    # --- Mapping cache ---
 
     def save_mapping(self, result: MappingResult) -> None:
-        raise self._not_impl()
+        self._conn.execute(
+            """
+            INSERT OR REPLACE INTO mapping_cache (retailer_key_name, result_json, updated_at)
+            VALUES (?, ?, current_timestamp)
+            """,
+            [result.retailer_key.name, result.model_dump_json()],
+        )
 
     def get_mapping(self, retailer_key_name: str) -> MappingResult | None:
-        raise self._not_impl()
+        row = self._conn.execute(
+            "SELECT result_json FROM mapping_cache WHERE retailer_key_name = ?",
+            [retailer_key_name],
+        ).fetchone()
+        if row is None:
+            return None
+        return MappingResult.model_validate_json(row[0])
+
+    # --- Review labels ---
 
     def save_review_label(self, label: ReviewLabel) -> None:
-        raise self._not_impl()
+        self._conn.execute(
+            """
+            INSERT INTO review_labels
+                (id, retailer_key_name, retailer_key_gtin, original_erp_sku,
+                 corrected_erp_sku, reviewer, created_at)
+            VALUES (nextval('review_labels_seq'), ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                label.retailer_key_name,
+                label.retailer_key_gtin,
+                label.original_erp_sku,
+                label.corrected_erp_sku,
+                label.reviewer,
+                label.timestamp,
+            ],
+        )
 
     def get_review_labels(self) -> list[ReviewLabel]:
-        raise self._not_impl()
+        rows = self._conn.execute(
+            """
+            SELECT retailer_key_name, retailer_key_gtin, original_erp_sku,
+                   corrected_erp_sku, reviewer, created_at
+            FROM review_labels ORDER BY created_at
+            """
+        ).fetchall()
+        return [
+            ReviewLabel(
+                retailer_key_name=r[0],
+                retailer_key_gtin=r[1],
+                original_erp_sku=r[2],
+                corrected_erp_sku=r[3],
+                reviewer=r[4],
+                timestamp=r[5],
+            )
+            for r in rows
+        ]
 
     def count_review_labels(self) -> int:
-        raise self._not_impl()
+        row = self._conn.execute("SELECT COUNT(*) FROM review_labels").fetchone()
+        return row[0] if row else 0
+
+    # --- Audit log ---
 
     def log_audit(self, entry: AuditEntry) -> None:
-        raise self._not_impl()
+        self._conn.execute(
+            """
+            INSERT INTO audit_log
+                (id, tool_name, retailer, iso_week, parameters, summary, created_at)
+            VALUES (nextval('audit_log_seq'), ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                entry.tool_name,
+                entry.retailer,
+                entry.iso_week,
+                json.dumps(entry.parameters),
+                entry.summary,
+                entry.timestamp,
+            ],
+        )
 
     def get_audit_log(self, limit: int = 100) -> list[AuditEntry]:
-        raise self._not_impl()
+        if limit <= 0:
+            return []
+        rows = self._conn.execute(
+            """
+            SELECT tool_name, retailer, iso_week, parameters, summary, created_at
+            FROM audit_log ORDER BY created_at DESC LIMIT ?
+            """,
+            [limit],
+        ).fetchall()
+        return [
+            AuditEntry(
+                tool_name=r[0],
+                retailer=r[1],
+                iso_week=r[2],
+                parameters=json.loads(r[3]) if isinstance(r[3], str) else r[3],
+                summary=r[4],
+                timestamp=r[5],
+            )
+            for r in rows
+        ]
+
+    # --- Residual history (D-024) ---
 
     def save_residual_history(self, record: ResidualRecord) -> None:
-        raise self._not_impl()
+        self._conn.execute(
+            """
+            INSERT INTO residual_history
+                (id, erp_sku, iso_week, direction, pct_error, created_at)
+            VALUES (nextval('residual_history_seq'), ?, ?, ?, ?, ?)
+            """,
+            [
+                record.erp_sku,
+                record.iso_week,
+                record.direction,
+                record.pct_error,
+                record.timestamp,
+            ],
+        )
 
     def get_residual_history(
         self, erp_sku: str, max_weeks: int = 52
     ) -> list[ResidualRecord]:
-        raise self._not_impl()
+        if max_weeks <= 0:
+            return []
+        rows = self._conn.execute(
+            """
+            SELECT erp_sku, iso_week, direction, pct_error, created_at
+            FROM residual_history
+            WHERE erp_sku = ?
+            ORDER BY created_at ASC
+            LIMIT ?
+            """,
+            [erp_sku, max_weeks],
+        ).fetchall()
+        return [
+            ResidualRecord(
+                erp_sku=r[0],
+                iso_week=r[1],
+                direction=r[2],
+                pct_error=r[3],
+                timestamp=r[4],
+            )
+            for r in rows
+        ]

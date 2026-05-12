@@ -573,11 +573,11 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 
 2. **`KernelLearner` protocol** (`adapters/kernel.py`): `learn(retailer_code) → DOWKernel`. `StaticKernelLearner` returns the existing UK-grocery profile — exact current behavior. `NNLSKernelLearner` is a placeholder that raises `NotImplementedError` until >= 4 weeks of daily EPOS data is available per retailer.
 
-3. **`Repository` protocol** (`storage/repository.py`): Seven methods across three domains — mapping cache, review labels, and audit log. `InMemoryRepository` provides process-lifetime storage (suitable for trial + tests). `DuckDBRepository` is a placeholder that raises `NotImplementedError`. The MCP server's `build_server()` now accepts an optional `repository` parameter (defaults to `InMemoryRepository`) and logs audit entries on tool invocations.
+3. **`Repository` protocol** (`storage/repository.py`): Nine methods across four domains — mapping cache, review labels, audit log, and residual history (extended by D-024). `InMemoryRepository` provides process-lifetime storage (suitable for trial + tests). `DuckDBRepository` was initially a placeholder; fully implemented in **D-025**. The MCP server's `build_server()` now accepts an optional `repository` parameter (defaults to `InMemoryRepository`) and logs audit entries on tool invocations.
 
 **Trade-off:** All three defaults reproduce the exact pre-refactor behavior — zero functional change. The full test suite passes unchanged (218 existing + 38 new = 256 total). Implementing the production backends becomes: (a) write the backend class satisfying the protocol, (b) pass it to `Resolver` / `build_server` / wherever the protocol is consumed. No core code surgery required.
 
-**Captured in:** [`src/verdano/mapping/calibration.py`](src/verdano/mapping/calibration.py) (protocol + 2 backends), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (wiring), [`src/verdano/adapters/kernel.py`](src/verdano/adapters/kernel.py) (protocol + 2 backends), [`src/verdano/storage/`](src/verdano/storage/) (protocol + 2 backends + models), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (repository injection + audit logging), [`tests/test_extensibility.py`](tests/test_extensibility.py) (38 tests).
+**Captured in:** [`src/verdano/mapping/calibration.py`](src/verdano/mapping/calibration.py) (protocol + 2 backends), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (wiring), [`src/verdano/adapters/kernel.py`](src/verdano/adapters/kernel.py) (protocol + 2 backends), [`src/verdano/storage/`](src/verdano/storage/) (protocol + 2 backends + models), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (repository injection + audit logging), [`tests/test_extensibility.py`](tests/test_extensibility.py) (56 tests — parametrized across InMemory + DuckDB per D-025).
 
 ---
 
@@ -666,5 +666,27 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 **Trade-off:** The context hierarchy pattern adds one subclass per strategy that needs custom data. This is a deliberate trade-off: a small per-strategy cost avoids base-type pollution that would grow linearly with the number of strategies. The pattern is identical to what a hypothetical "seasonal" or "ensemble" strategy would follow.
 
 **Captured in:** [`src/verdano/drift/markov.py`](src/verdano/drift/markov.py) (ResidualRecord re-export, TransitionMatrix, MarkovDriftContext, markov_strategy), [`src/verdano/storage/repository.py`](src/verdano/storage/repository.py) (ResidualRecord model, Repository protocol extension, InMemory + DuckDB impls), [`src/verdano/drift/types.py`](src/verdano/drift/types.py) (DriftSignal Markov fields), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (context construction, history accumulation), [`src/verdano/config.py`](src/verdano/config.py) (3 new config fields), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (Markov mode support, config wiring), [`tests/drift/test_markov.py`](tests/drift/test_markov.py) (45 tests).
+
+---
+
+## D-025: DuckDB persistence — file-backed Repository implementation
+
+**Date:** 2026-05-11
+
+**Context:** The `Repository` protocol (D-021) defines four persistence domains (mapping cache, review labels, audit log, residual history). The `InMemoryRepository` default loses all data when the process exits, making Markov drift (D-024) effectively single-session and preventing supervised calibration from accumulating labeled data across runs. DuckDB was selected in D-002 as the persistence target; the protocol was designed with exactly this swap in mind.
+
+**Resolution:**
+
+1. **`DuckDBRepository`** (`storage/repository.py`): Replaces the placeholder with a fully functional implementation. Schema is auto-initialised via `CREATE TABLE IF NOT EXISTS` in `__init__` (no separate migration step). Parent directories are auto-created. The `duckdb` import is guarded behind `try/except ImportError` — the package remains optional.
+
+2. **Schema**: Four tables (`mapping_cache`, `review_labels`, `audit_log`, `residual_history`). `MappingResult` stored as JSON blob (complex nested Pydantic model; DuckDB has native JSON). Sequences for auto-incrementing IDs on the three append tables. `mapping_cache` uses `INSERT OR REPLACE` for upsert semantics.
+
+3. **Config-driven backend selection**: New `storage_backend: str = "memory"` field on `Settings`. When set to `"duckdb"`, `build_server()` constructs `DuckDBRepository(cfg.duckdb_path)` instead of `InMemoryRepository()`. Explicit `repository` parameter to `build_server()` takes precedence over config.
+
+4. **Tests**: Replaced the old `TestDuckDBRepository` (which tested for `NotImplementedError`) with `TestRepositoryContract` — a parametrized test class that runs every contract test against both backends (`InMemory` and `DuckDB` via `tmp_path`). Added `TestDuckDBSpecific` for persistence-across-connections, schema auto-init, path handling, and config-driven selection. Total: 56 tests in `test_extensibility.py` (up from 38).
+
+**Trade-off:** JSON blob storage for `MappingResult` means no SQL queries on individual fields within the blob. This is acceptable because the mapping cache is keyed by `retailer_key_name` (a separate column), and the only operation is point-lookup by that key. If production needs arose for querying by `erp_sku` or `confidence`, a column extraction migration would be straightforward.
+
+**Captured in:** [`src/verdano/storage/repository.py`](src/verdano/storage/repository.py) (DuckDBRepository implementation), [`src/verdano/storage/__init__.py`](src/verdano/storage/__init__.py) (updated docstring), [`src/verdano/config.py`](src/verdano/config.py) (`storage_backend` field), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (backend selection wiring), [`tests/test_extensibility.py`](tests/test_extensibility.py) (56 tests), [`.env.example`](.env.example) (`VERDANO_STORAGE_BACKEND`).
 
 ---

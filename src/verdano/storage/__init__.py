@@ -1,8 +1,8 @@
-"""Pluggable persistence layer (D-021, D-024).
+"""Pluggable persistence layer (D-021, D-024, D-025).
 
 Defines the ``Repository`` protocol and concrete backends:
   - ``InMemoryRepository``: process-lifetime storage for trial / tests.
-  - ``DuckDBRepository``:   placeholder for production DuckDB backend.
+  - ``DuckDBRepository``:   file-backed DuckDB storage (D-025).
 
 The Repository holds four concerns:
   1. Mapping result cache — avoids re-resolving known keys.

@@ -36,7 +36,7 @@ from verdano.pipeline import (
 )
 from verdano.pipeline.drift import analyze_drift
 from verdano.pipeline.drafts import create_drafts
-from verdano.storage import AuditEntry, InMemoryRepository, Repository
+from verdano.storage import AuditEntry, DuckDBRepository, InMemoryRepository, Repository
 
 ErpClientFactory = Callable[[], AbstractContextManager[Client]]
 
@@ -170,7 +170,13 @@ def build_server(
     factory = erp_client_factory or Client.from_env
     cfg = settings or load_settings()
     llm_client = create_llm_client(cfg)
-    repo = repository or InMemoryRepository()
+
+    if repository is not None:
+        repo: Repository = repository
+    elif cfg.storage_backend == "duckdb":
+        repo = DuckDBRepository(cfg.duckdb_path)
+    else:
+        repo = InMemoryRepository()
 
     priors = CalibrationPriors(
         epsilon=cfg.fs_epsilon,

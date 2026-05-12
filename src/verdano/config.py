@@ -45,6 +45,12 @@ class Settings(BaseSettings):
     # --- ERP connection ---
     erp_base_url: HttpUrl = Field(default=HttpUrl("https://erp.corvera.ai"))
     erp_api_key: SecretStr
+
+    # --- Storage backend (D-025) ---
+    storage_backend: str = Field(
+        default="memory",
+        description='Persistence backend: "memory" (default) or "duckdb".',
+    )
     duckdb_path: str = Field(default=".local/verdano.duckdb")
 
     # --- Classification thresholds ---
