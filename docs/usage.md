@@ -212,6 +212,18 @@ For reviewers wanting to see the design reasoning rather than just the code:
 
 - **[`working-doc.md`](process/working-doc.md)** — operating index linking everything else; locked-decisions table; open questions; data-driven gotchas with explicit fixture references.
 
+## Architectural highlights
+
+A few patterns worth calling out if you're scanning the codebase for design quality:
+
+**Resolver as handler chain** ([`src/verdano/mapping/resolver.py`](../src/verdano/mapping/resolver.py)). The `StratumHandler` callable type + `ResolverContext` + ordered `DEFAULT_HANDLERS` list means adding a new matching stratum is `handlers.append(("name", my_handler))` — zero surgery on existing code. `ResolverContext.build_result` centralizes state/confidence logic so handlers can't reimplement it inconsistently. The separation between discovery order (handler chain) and scoring (Fellegi-Sunter posteriors) directly reflects the formalism (§3.5.3 — cascade is blocking strategy, not band constraint).
+
+**Config-driven adapter** ([`src/verdano/adapters/`](../src/verdano/adapters/)). Adding a retailer is purely declarative: define a `RetailerSpec` with column mappings and register it. The Sainsbury's test (`test_sainsburys_config_only.py`) proves the claim — zero new Python was needed to onboard a second retailer. The adapter is a morphism (formalism §2) realized as config, not as a subclass — this passes the README's "2 to 200 customers" scaling criterion by inspection.
+
+**Provenance as first-class data** ([`src/verdano/canonical/models.py`](../src/verdano/canonical/models.py)). `MappingEvidence` carries stratum + matched_value + collision_count, so the operator UI can always explain *why* a mapping was made. Runtime registries (D-015, D-016) enable extensibility without editing type definitions — adding a new fulfillment class or stratum is a function call, not a source change.
+
+**Mathematical formalism with independent pushback** ([`docs/architecture/formalism.md`](architecture/formalism.md)). §8 documents 11 explicit divergences from the Gemini source material, each with mathematical justification (e.g., §8.8 — closed-form weighted allocation violates upper-bound constraints, use water-filling instead). The notation bridge (D-018) cleanly maps legacy LaTeX `$E_1$`–`$E_4$` identifiers to the semantic codebase names (`gtin_current`, `fuzzy_jw`, etc.).
+
 ## Re-recording cassettes
 
 If the ERP API mock state changes:

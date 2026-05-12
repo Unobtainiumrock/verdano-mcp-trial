@@ -24,6 +24,7 @@
 > | Empirical evidence the system works against the live ERP | [`docs/live-run-results.md`](docs/live-run-results.md) — 7 real drafts created, idempotency confirmed |
 > | The four MCP tools | `analyze_week_fulfillment_tool`, `list_review_queue_tool`, `create_drafts_for_safe_lines_tool`, `compare_actuals_vs_forecast_tool` (in [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py)) |
 > | Tests (354 passing, fully offline) | `uv run pytest` |
+> | Architectural highlights (why key patterns were chosen) | [`docs/usage.md` § Architectural highlights](docs/usage.md#architectural-highlights) |
 > | Conceptual ontology (CPG primitives) | [`primitives/CPG/`](primitives/CPG/) |
 > | The Gemini conversation transcripts I iterated against | [`raw-truth.md`](docs/process/raw-truth.md) (process artifact, not deliverable) |
 >
