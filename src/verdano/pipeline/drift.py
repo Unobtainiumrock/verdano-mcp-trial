@@ -62,6 +62,7 @@ def analyze_drift(
     markov_min_weeks: int = 4,
     markov_persistence_threshold: int = 3,
     markov_max_weeks: int = 52,
+    markov_kl_threshold: float = 0.5,
 ) -> DriftReport:
     """Run the drift DAG end-to-end for a single (retailer, week-pair) input.
 
@@ -147,6 +148,7 @@ def analyze_drift(
             min_weeks=markov_min_weeks,
             persistence_threshold=markov_persistence_threshold,
             max_history_weeks=markov_max_weeks,
+            kl_divergence_threshold=markov_kl_threshold,
         )
     else:
         ctx = base_ctx

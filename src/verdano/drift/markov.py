@@ -61,6 +61,7 @@ class MarkovDriftContext(DriftContext):
     min_weeks: int = 4
     persistence_threshold: int = 3
     max_history_weeks: int = 52
+    kl_divergence_threshold: float = 0.5
 
 
 # ---------------------------------------------------------------------------
@@ -295,7 +296,7 @@ def markov_strategy(ctx: DriftContext) -> DriftReport:
         else:
             sku_stationary = mat.stationary_distribution()
             divergence = _kl_divergence(sku_stationary, pop_stationary)
-            if divergence > 0.5:
+            if divergence > ctx.kl_divergence_threshold:
                 direction = "regime_drift"
                 reason = (
                     f"{sku} stationary dist {sku_stationary} diverges from "

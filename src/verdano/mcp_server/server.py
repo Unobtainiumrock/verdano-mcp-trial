@@ -424,6 +424,7 @@ def build_server(
                 markov_min_weeks=cfg.drift_markov_min_weeks,
                 markov_persistence_threshold=cfg.drift_markov_persistence_threshold,
                 markov_max_weeks=cfg.drift_markov_max_weeks,
+                markov_kl_threshold=cfg.drift_markov_kl_threshold,
             )
         except ValueError as exc:
             return {"error": str(exc)}

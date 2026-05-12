@@ -70,8 +70,7 @@ src/verdano/
 ├── drift/             extensible drift analysis — strategy pattern (plausibility + residual + markov modes)
 ├── llm/               provider-agnostic LLM client + llm_augmented stratum + post-cascade re-ranker (optional)
 ├── mcp_server/        FastMCP server exposing 4 tools
-├── config.py          .env loader (pydantic-settings) — all thresholds + LLM config
-└── logging.py         structlog setup
+└── config.py          .env loader (pydantic-settings) — all thresholds + LLM config
 
 primitives/
 ├── ERP/               ontological grounding (out of scope for the build, kept for context)
@@ -153,7 +152,7 @@ The server speaks stdio transport — it is launched by the MCP host automatical
 
 | Tool | Purpose |
 |---|---|
-| `analyze_week_fulfillment_tool(retailer, iso_week)` | Compare retailer forecast vs ERP supply for a given ISO week. Returns Safe / AtRisk / AtRiskSevere / Blocked per line, with operator-readable reasoning. |
+| `analyze_week_fulfillment_tool(retailer, iso_week)` | Compare retailer forecast vs ERP supply for a given ISO week. Returns Safe / AtRisk / AtRiskSevere / NeedsVerification / Blocked per line, with operator-readable reasoning. |
 | `list_review_queue_tool(retailer, iso_week)` | Filter to only the lines requiring human review (Blocked + AtRiskSevere + low-confidence mappings). The operator's first surface. |
 | `create_drafts_for_safe_lines_tool(retailer, iso_week, required_date, ship_to_location_id?)` | Create `OrderDraft`s for every Safe-classified line. `ship_to_location_id` is optional — if omitted, the depot resolver auto-resolves from the first forecast line's location label (substring + fuzzy match). Pre-filters cross-band SKUs (`skipped`), catches per-line ERP errors (`failed`). Idempotent via `external_reference = sha256(retailer, sku, week, ship_to)`. |
 | `compare_actuals_vs_forecast_tool(retailer, iso_week_forecast, iso_week_actuals, mode?)` | **Drift analysis** with three modes (D-020, D-024): `"plausibility"` (default) for lagged-actuals ratio check (D-012), `"residual"` for classical signed-residual on same-period data, `"markov"` for regime-detection via transition-matrix analysis over accumulated residual histories (D-024). See [DECISIONS.md D-012, D-020, D-024](../DECISIONS.md). |

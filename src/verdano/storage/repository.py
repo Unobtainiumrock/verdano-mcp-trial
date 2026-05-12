@@ -219,7 +219,7 @@ class DuckDBRepository:
         CREATE SEQUENCE IF NOT EXISTS residual_history_seq START 1;
     """
 
-    def __init__(self, db_path: str = ".local/verdano.duckdb") -> None:
+    def __init__(self, db_path: str) -> None:
         try:
             import duckdb
         except ImportError as exc:

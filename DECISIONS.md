@@ -555,9 +555,9 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 5. **Generic CSV resolver:** `_data_csv_for(retailer, kind, iso_week, root)` tries `{retailer}_{kind}_week{NN}.csv` first, then falls back to legacy filenames, so the system works with new data files without code changes.
 6. **Config:** Added `drift_residual_threshold` (default 0.10) to `Settings`.
 
-**Trade-off:** The existing `plausibility` mode behavior is preserved exactly — all 7 original drift tests pass unchanged. The refactor adds 20 new tests (27 total drift tests). The MCP tool signature is backward-compatible; callers that don't pass `mode` get the current behavior. Future drift modes (Markov, learned DOW kernel) slot in as additional strategy functions registered in `DEFAULT_STRATEGIES`.
+**Trade-off:** The existing `plausibility` mode behavior is preserved exactly — all 7 original drift tests pass unchanged. The refactor adds 20 new tests (27 at time of D-020; later extended to 72 by D-024). The MCP tool signature is backward-compatible; callers that don't pass `mode` get the current behavior. Future drift modes slot in as additional strategy functions registered in `DEFAULT_STRATEGIES`.
 
-**Captured in:** [`src/verdano/drift/types.py`](src/verdano/drift/types.py) (registry), [`src/verdano/drift/baseline.py`](src/verdano/drift/baseline.py) (protocol + plausibility), [`src/verdano/drift/strategies.py`](src/verdano/drift/strategies.py) (residual), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (entry-point), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (tool + CSV resolver), [`src/verdano/config.py`](src/verdano/config.py) (threshold), [`tests/drift/`](tests/drift/) (27 tests).
+**Captured in:** [`src/verdano/drift/types.py`](src/verdano/drift/types.py) (registry), [`src/verdano/drift/baseline.py`](src/verdano/drift/baseline.py) (protocol + plausibility), [`src/verdano/drift/strategies.py`](src/verdano/drift/strategies.py) (residual), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (entry-point), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (tool + CSV resolver), [`src/verdano/config.py`](src/verdano/config.py) (threshold), [`tests/drift/`](tests/drift/) (72 tests as of D-024).
 
 ---
 
@@ -565,7 +565,7 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 
 **Date:** 2026-05-10
 
-**Context:** The three P2 work items — supervised calibration (Cascaded Classification LR), learned DOW kernel (simplex-NNLS from EPOS), and DuckDB persistence — are all data-blocked. However, the code currently has no extension points for them: the resolver hard-clamps confidence to `[0, 1]` inline; DOW weights are a static tuple on `RetailerSpec`; and there is no persistence layer at all. When data does arrive, the alternative is modifying core production code to wire in new backends — exactly the kind of surgery our earlier extensibility refactors (D-016, D-018, D-020) were designed to prevent.
+**Context (at time of writing — pre-D-025):** The three P2 work items — supervised calibration (Cascaded Classification LR), learned DOW kernel (simplex-NNLS from EPOS), and DuckDB persistence — were data-blocked. The code had no extension points for them: the resolver hard-clamped confidence to `[0, 1]` inline; DOW weights were a static tuple on `RetailerSpec`; and there was no persistence layer. When data arrives, the alternative is modifying core production code to wire in new backends — exactly the kind of surgery our earlier extensibility refactors (D-016, D-018, D-020) were designed to prevent.
 
 **Resolution:** Scaffold all three as protocol + default + placeholder, following the same pattern as `DriftStrategy` (D-020) and `StratumHandler` (D-018):
 
@@ -575,7 +575,7 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 
 3. **`Repository` protocol** (`storage/repository.py`): Nine methods across four domains — mapping cache, review labels, audit log, and residual history (extended by D-024). `InMemoryRepository` provides process-lifetime storage (suitable for trial + tests). `DuckDBRepository` was initially a placeholder; fully implemented in **D-025**. The MCP server's `build_server()` now accepts an optional `repository` parameter (defaults to `InMemoryRepository`) and logs audit entries on tool invocations.
 
-**Trade-off:** All three defaults reproduce the exact pre-refactor behavior — zero functional change. The full test suite passes unchanged (218 existing + 38 new = 256 total). Implementing the production backends becomes: (a) write the backend class satisfying the protocol, (b) pass it to `Resolver` / `build_server` / wherever the protocol is consumed. No core code surgery required.
+**Trade-off:** All three defaults reproduce the exact pre-refactor behavior — zero functional change. At time of writing, 218 existing + 38 new = 256 total tests passed; subsequent D-entries have grown this to 354. Implementing the production backends becomes: (a) write the backend class satisfying the protocol, (b) pass it to `Resolver` / `build_server` / wherever the protocol is consumed. No core code surgery required.
 
 **Captured in:** [`src/verdano/mapping/calibration.py`](src/verdano/mapping/calibration.py) (protocol + 2 backends), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (wiring), [`src/verdano/adapters/kernel.py`](src/verdano/adapters/kernel.py) (protocol + 2 backends), [`src/verdano/storage/`](src/verdano/storage/) (protocol + 2 backends + models), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (repository injection + audit logging), [`tests/test_extensibility.py`](tests/test_extensibility.py) (56 tests — parametrized across InMemory + DuckDB per D-025).
 
@@ -627,7 +627,7 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
    - `analyze_week_fulfillment` and `analyze_drift` accept and forward `normalizer`.
    - `_run_analysis` and `build_server` construct the pipeline from config and pass it through all tool invocations.
 
-4. **Backward compatibility:** `normalizer=None` everywhere defaults to the original `DEFAULT_PIPELINE` behavior. All 273 pre-existing tests pass unchanged.
+4. **Backward compatibility:** `normalizer=None` everywhere defaults to the original `DEFAULT_PIPELINE` behavior. All pre-existing tests pass unchanged.
 
 **Trade-off:** Threading the normalizer through the stack adds one parameter to several constructors and pipeline functions. This is a one-time cost that enables runtime pipeline customization — no source-code changes needed to activate brand stripping or stop-word removal in a specific deployment.
 

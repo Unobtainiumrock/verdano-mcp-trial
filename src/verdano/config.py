@@ -97,6 +97,10 @@ class Settings(BaseSettings):
         default=52, ge=4,
         description="Maximum weeks of history to load per SKU (caps query cost).",
     )
+    drift_markov_kl_threshold: float = Field(
+        default=0.5, gt=0.0,
+        description="KL divergence threshold for regime-drift flagging.",
+    )
 
     # --- Normalization (D-023) ---
     normalize_brand_stripping: bool = Field(default=False)

@@ -29,7 +29,7 @@ These come from the ERP API's read-only master endpoints; we never write canonic
 | `Customer` (`sold_to` / `bill_to` / `ship_to`) | `GET /erp/customers` | hierarchy | `ship_to_location_id` is required for `POST /erp/order-drafts`; depot-string → `ship_to_location_id` is its own mapping problem (parallel to product mapping). |
 | `Warehouse` | `GET /erp/warehouses` | `warehouse_id`, `temperature_band` | Free-to-promise sums available cases by *temperature-compatible* warehouse, not just by SKU. |
 
-Master data is **read** from the ERP and held in-memory for the duration of each pipeline run. The target architecture caches master data locally as DuckDB tables (per [storage-runtime-decision.md](../../docs/architecture/storage-runtime-decision.md)); DuckDB persistence is wired as a dependency but **not yet implemented** in the trial — see the trial-scope roadmap in [`docs/usage.md`](../../docs/usage.md). We do not author master records.
+Master data is **read** from the ERP and held in-memory for the duration of each pipeline run. Local persistence is available via `DuckDBRepository` (D-025) — mapping cache, review labels, audit log, and residual history are stored across sessions when `VERDANO_STORAGE_BACKEND=duckdb`. See [storage-runtime-decision.md](../../docs/architecture/storage-runtime-decision.md) and [`docs/usage.md`](../../docs/usage.md). We do not author master records.
 
 ### Transactional Data — Verdano
 
@@ -47,7 +47,7 @@ The retailer-side facts (`ForecastDemandLine`, `EPOSActualLine`) are technically
 
 The configuration layer is where the system's own metadata lives. None of this is owned by the ERP API; it's owned by our project.
 
-- **Retailer adapter specs** (one per retailer; YAML/Pydantic). Per D-001. Each spec declares column mappings, parsing rules (date format, week convention, unit semantics), default fan-out policy for aggregated geography (`"All Depots"`), default temperature-band declaration handling.
+- **Retailer adapter specs** (one per retailer; Pydantic `RetailerSpec`). Per D-001. Each spec declares column mappings, parsing rules (date format, week convention, unit semantics), default fan-out policy for aggregated geography (`"All Depots"`), default temperature-band declaration handling.
 - **Mapping policy** — fall-through order, fuzzy-match thresholds, confidence-weighting rules, temperature-band-mismatch penalty.
 - **FTP window definitions** — what counts as "next week" (calendar week vs. ISO week vs. retailer-specific receipt week), and how a daily forecast (Tesco) rolls up to weekly.
 - **Idempotency policy** — deterministic `external_reference` formula (e.g., `sha256(retailer | erp_sku | iso_week | ship_to_location_id)`).

@@ -1,7 +1,7 @@
 """Config-driven retailer adapters (per D-001).
 
 Per Gemini iteration 4 + our pushback: a single `Adapter` class parameterized
-by a `RetailerSpec`. Onboarding retailer N+1 is a YAML/Pydantic spec, not a
+by a `RetailerSpec`. Onboarding retailer N+1 is a Pydantic spec, not a
 new subclass. The morphism `Φ_r: P_CPG → P_normalized` (formalism §2) is the
 adapter; its parameterization is the spec.
 """

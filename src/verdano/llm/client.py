@@ -40,7 +40,7 @@ class OpenAIClient:
             from openai import OpenAI
         except ImportError as exc:
             raise ImportError(
-                "Install the 'llm' extra: `pip install verdano-mcp-server[llm]`"
+                "Install the 'llm' extra: `pip install verdano-mcp[llm]`"
             ) from exc
 
         self._client = OpenAI(api_key=api_key, base_url=base_url)
