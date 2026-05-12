@@ -1,4 +1,4 @@
-# Mathematical formalism — Verdano reconciliation layer
+# Mathematical formalism — CPG reconciliation layer
 
 This document is the **co-created mathematical model** of the system. It draws on the Gemini conversation in [`raw-truth.md`](../process/raw-truth.md) but is not subordinate to it — Gemini provided sketches; this document is where we make the math precise, push back where the sketches mislead, and surface the gaps.
 
@@ -10,7 +10,7 @@ The formalism is **iterative**. Sections 3–7 are first-pass and will sharpen. 
 
 ### 0.1 What we model
 
-The Verdano trial is an **integration and reconciliation layer** between retailer-published facts and an external ERP. We model:
+The CPG Reconciler trial is an **integration and reconciliation layer** between retailer-published facts and an external ERP. We model:
 
 - **Entity resolution** between retailer-side identifiers and ERP-side identifiers (§3).
 - **Demand alignment** between incompatible bases for the same demand quantity (§4).
@@ -540,7 +540,7 @@ Architecture uses **Option C (context hierarchy)**: `MarkovDriftContext(DriftCon
 
 Forecast lines whose mapping is `Blocked` or `NeedsVerification` are not turned into signals — they're counted under `summary["skipped_unmapped"]` to keep the signal stream clean while preserving the volume of un-comparable lines.
 
-Cross-references: `src/verdano/drift/` (module), `src/verdano/drift/markov.py` (TransitionMatrix, MarkovDriftContext, markov_strategy), `src/verdano/pipeline/drift.py` (entry-point), `tests/drift/test_baseline.py` (plausibility + infrastructure tests), `tests/drift/test_residual.py` (residual mode tests), `tests/drift/test_markov.py` (Markov mode tests, 45 tests).
+Cross-references: `src/cpg_reconciler/drift/` (module), `src/cpg_reconciler/drift/markov.py` (TransitionMatrix, MarkovDriftContext, markov_strategy), `src/cpg_reconciler/pipeline/drift.py` (entry-point), `tests/drift/test_baseline.py` (plausibility + infrastructure tests), `tests/drift/test_residual.py` (residual mode tests), `tests/drift/test_markov.py` (Markov mode tests, 45 tests).
 
 ---
 
@@ -549,6 +549,6 @@ Cross-references: `src/verdano/drift/` (module), `src/verdano/drift/markov.py` (
 - [`raw-truth.md`](../process/raw-truth.md) — Gemini conversation transcripts (source).
 - [`primitives/CPG/`](../../primitives/CPG/) — conceptual ontology, cross-references this doc.
 - [`primitives/ERP/`](../../primitives/ERP/) — grounding context, out of operational scope per **D-005**.
-- [`docs/architecture/verdano-problem-entity-model.md`](verdano-problem-entity-model.md) — entity model.
+- [`docs/architecture/cpg-reconciler-problem-entity-model.md`](cpg-reconciler-problem-entity-model.md) — entity model.
 - [`docs/architecture/storage-runtime-decision.md`](storage-runtime-decision.md) — Polars + DuckDB decision.
 - [`DECISIONS.md`](../../DECISIONS.md) — chronological decision log.

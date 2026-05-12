@@ -22,8 +22,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from verdano.erp import Client
-from verdano.mcp_server.server import build_server, get_tool_handler
+from cpg_reconciler.erp import Client
+from cpg_reconciler.mcp_server.server import build_server, get_tool_handler
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 RETAILER = "tesco"

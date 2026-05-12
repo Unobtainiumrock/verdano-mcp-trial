@@ -1,6 +1,6 @@
 # ERP Functional Primitives — the Application Modules
 
-This file populates the **functional** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+This file populates the **functional** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/cpg-reconciler-problem-entity-model.md](../../docs/architecture/cpg-reconciler-problem-entity-model.md).
 
 ---
 
@@ -73,7 +73,7 @@ This narrowness is a feature, not a limitation. It maps directly to the README's
 
 ## Cross-references
 
-- Canonical entity model: [verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+- Canonical entity model: [cpg-reconciler-problem-entity-model.md](../../docs/architecture/cpg-reconciler-problem-entity-model.md).
 - Process layer (O2C scope): [process-primitives.md](process-primitives.md).
 - Architectural layer (DB / RBAC / GL): [architectural-primitives.md](architectural-primitives.md).
 - Data layer (master / transactional / metadata): [data-primitives.md](data-primitives.md).

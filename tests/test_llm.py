@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from verdano.llm.client import LLMClient, OpenAIClient, create_llm_client
+from cpg_reconciler.llm.client import LLMClient, OpenAIClient, create_llm_client
 
 
 class FakeLLMClient:
@@ -57,10 +57,10 @@ class TestCreateLLMClient:
 
 class TestLLMEntityResolution:
     def test_llm_augmented_handler_returns_result(self) -> None:
-        from verdano.canonical import MappingResult, RetailerProductKey
-        from verdano.erp.models import Product
-        from verdano.llm.entity_resolution import make_llm_stratum
-        from verdano.mapping.resolver import MasterIndex
+        from cpg_reconciler.canonical import MappingResult, RetailerProductKey
+        from cpg_reconciler.erp.models import Product
+        from cpg_reconciler.llm.entity_resolution import make_llm_stratum
+        from cpg_reconciler.mapping.resolver import MasterIndex
 
         products = [
             Product(
@@ -82,8 +82,8 @@ class TestLLMEntityResolution:
 
         handler = make_llm_stratum(client, master, min_confidence=0.3)
 
-        from verdano.mapping.resolver import ResolverContext
-        from verdano.mapping.priors import DEFAULT_PRIORS
+        from cpg_reconciler.mapping.resolver import ResolverContext
+        from cpg_reconciler.mapping.priors import DEFAULT_PRIORS
 
         ctx = ResolverContext(
             master=master,
@@ -104,11 +104,11 @@ class TestLLMEntityResolution:
         assert result.evidence.stratum == "llm_augmented"
 
     def test_llm_augmented_handler_returns_none_on_low_confidence(self) -> None:
-        from verdano.canonical import RetailerProductKey
-        from verdano.erp.models import Product
-        from verdano.llm.entity_resolution import make_llm_stratum
-        from verdano.mapping.resolver import MasterIndex, ResolverContext
-        from verdano.mapping.priors import DEFAULT_PRIORS
+        from cpg_reconciler.canonical import RetailerProductKey
+        from cpg_reconciler.erp.models import Product
+        from cpg_reconciler.llm.entity_resolution import make_llm_stratum
+        from cpg_reconciler.mapping.resolver import MasterIndex, ResolverContext
+        from cpg_reconciler.mapping.priors import DEFAULT_PRIORS
 
         products = [
             Product(
@@ -145,11 +145,11 @@ class TestLLMEntityResolution:
         assert result is None
 
     def test_llm_augmented_handler_returns_none_on_json_error(self) -> None:
-        from verdano.canonical import RetailerProductKey
-        from verdano.erp.models import Product
-        from verdano.llm.entity_resolution import make_llm_stratum
-        from verdano.mapping.resolver import MasterIndex, ResolverContext
-        from verdano.mapping.priors import DEFAULT_PRIORS
+        from cpg_reconciler.canonical import RetailerProductKey
+        from cpg_reconciler.erp.models import Product
+        from cpg_reconciler.llm.entity_resolution import make_llm_stratum
+        from cpg_reconciler.mapping.resolver import MasterIndex, ResolverContext
+        from cpg_reconciler.mapping.priors import DEFAULT_PRIORS
 
         products = [
             Product(
@@ -186,8 +186,8 @@ class TestLLMEntityResolution:
 
 class TestLLMDepotFallback:
     def test_llm_depot_fallback_resolves(self) -> None:
-        from verdano.erp.models import Customer
-        from verdano.mapping.depot import resolve_depot
+        from cpg_reconciler.erp.models import Customer
+        from cpg_reconciler.mapping.depot import resolve_depot
 
         customers = [
             Customer(
@@ -212,8 +212,8 @@ class TestLLMDepotFallback:
         assert result == "SHIP-TESCO-DAV"
 
     def test_llm_depot_fallback_rejects_low_confidence(self) -> None:
-        from verdano.erp.models import Customer
-        from verdano.mapping.depot import resolve_depot
+        from cpg_reconciler.erp.models import Customer
+        from cpg_reconciler.mapping.depot import resolve_depot
 
         customers = [
             Customer(

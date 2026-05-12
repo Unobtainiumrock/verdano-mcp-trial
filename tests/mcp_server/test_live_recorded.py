@@ -16,7 +16,7 @@ from typing import Any
 
 import pytest
 
-from verdano.mcp_server.server import build_server, get_tool_handler as _get_handler
+from cpg_reconciler.mcp_server.server import build_server, get_tool_handler as _get_handler
 
 
 @pytest.mark.vcr

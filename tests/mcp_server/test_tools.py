@@ -18,8 +18,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from verdano.mcp_server.server import build_server, get_tool_handler
-from verdano.pipeline import ErpSnapshot
+from cpg_reconciler.mcp_server.server import build_server, get_tool_handler
+from cpg_reconciler.pipeline import ErpSnapshot
 
 
 @pytest.fixture()
@@ -188,14 +188,14 @@ def test_create_drafts_skips_zero_quantity_safe_lines(
     """Safe lines with quantity_cases=0 must not produce draft requests."""
     from unittest.mock import patch as mock_patch
 
-    from verdano.canonical import (
+    from cpg_reconciler.canonical import (
         CanonicalDemandLine,
         FulfillmentClassification,
         MappingEvidence,
         MappingResult,
         RetailerProductKey,
     )
-    from verdano.pipeline import AnalysisResult
+    from cpg_reconciler.pipeline import AnalysisResult
 
     zero_demand = CanonicalDemandLine(
         retailer="tesco", iso_week="2026-W20",
@@ -222,7 +222,7 @@ def test_create_drafts_skips_zero_quantity_safe_lines(
     handler = _get_tool_handler(server, "create_drafts_for_safe_lines_tool")
 
     with mock_patch(
-        "verdano.mcp_server.server.analyze_week_fulfillment", return_value=fake_result,
+        "cpg_reconciler.mcp_server.server.analyze_week_fulfillment", return_value=fake_result,
     ):
         result = handler(
             retailer="tesco", iso_week="2026-W20",

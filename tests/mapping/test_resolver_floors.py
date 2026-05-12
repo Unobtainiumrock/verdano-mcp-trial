@@ -15,9 +15,9 @@ Three regressions surfaced by an empirical probe of the live ERP master:
 
 from __future__ import annotations
 
-from verdano.canonical import RetailerProductKey
-from verdano.erp.models import Product
-from verdano.mapping import MasterIndex, Resolver
+from cpg_reconciler.canonical import RetailerProductKey
+from cpg_reconciler.erp.models import Product
+from cpg_reconciler.mapping import MasterIndex, Resolver
 
 
 def _p(sku: str, name: str, aliases: list[str] | None = None) -> Product:

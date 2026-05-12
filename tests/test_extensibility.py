@@ -12,21 +12,21 @@ from pathlib import Path
 
 import pytest
 
-from verdano.adapters.kernel import (
+from cpg_reconciler.adapters.kernel import (
     DEFAULT_KERNEL_LEARNER,
     KernelLearner,
     NNLSKernelLearner,
     StaticKernelLearner,
 )
-from verdano.adapters.spec import DEFAULT_DOW_KERNEL, DOWKernel
-from verdano.canonical import MappingEvidence, MappingResult, RetailerProductKey
-from verdano.mapping.calibration import (
+from cpg_reconciler.adapters.spec import DEFAULT_DOW_KERNEL, DOWKernel
+from cpg_reconciler.canonical import MappingEvidence, MappingResult, RetailerProductKey
+from cpg_reconciler.mapping.calibration import (
     DEFAULT_CALIBRATOR,
     Calibrator,
     SupervisedCalibrator,
     UnsupervisedCalibrator,
 )
-from verdano.storage import (
+from cpg_reconciler.storage import (
     AuditEntry,
     DuckDBRepository,
     InMemoryRepository,
@@ -389,7 +389,7 @@ class TestDuckDBSpecific:
         assert fetched.erp_sku == "SKU-001"
 
     def test_config_driven_selection(self, tmp_path: Path) -> None:
-        from verdano.config import Settings
+        from cpg_reconciler.config import Settings
         cfg = Settings(
             erp_api_key="test",  # type: ignore[arg-type]
             storage_backend="duckdb",

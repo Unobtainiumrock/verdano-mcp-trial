@@ -7,9 +7,9 @@ implicitly.
 
 from __future__ import annotations
 
-from verdano.adapters.adapter import Adapter
-from verdano.adapters.raw import RawDemandLine
-from verdano.canonical import RetailerProductKey
+from cpg_reconciler.adapters.adapter import Adapter
+from cpg_reconciler.adapters.raw import RawDemandLine
+from cpg_reconciler.canonical import RetailerProductKey
 
 
 def _key(name: str = "Product A", gtin: str | None = None) -> RetailerProductKey:

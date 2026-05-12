@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from verdano.allocation.ftp import FTPCalculator
-from verdano.erp.models import InventoryPosition, OpenOrder, OrderLine, Product, Warehouse
+from cpg_reconciler.allocation.ftp import FTPCalculator
+from cpg_reconciler.erp.models import InventoryPosition, OpenOrder, OrderLine, Product, Warehouse
 
 _NOW = datetime(2026, 5, 10, 0, 0, 0)
 

@@ -75,7 +75,7 @@ These are three distinct passes, in this order. Conflating them produces silentl
 
 ## Connection to the canonical entity model
 
-Demand alignment populates `CanonicalDemandLine` from raw `ForecastDemandLine` rows. The `iso_week` field is *always* present; `delivery_date` is present only for Tesco; `location_label` carries the original retailer string (`"Daventry Chilled"` or `"All Depots"`); `quantity_cases` is the canonicalized output. See [`docs/architecture/verdano-problem-entity-model.md`](../../docs/architecture/verdano-problem-entity-model.md).
+Demand alignment populates `CanonicalDemandLine` from raw `ForecastDemandLine` rows. The `iso_week` field is *always* present; `delivery_date` is present only for Tesco; `location_label` carries the original retailer string (`"Daventry Chilled"` or `"All Depots"`); `quantity_cases` is the canonicalized output. See [`docs/architecture/cpg-reconciler-problem-entity-model.md`](../../docs/architecture/cpg-reconciler-problem-entity-model.md).
 
 ## Cross-references
 

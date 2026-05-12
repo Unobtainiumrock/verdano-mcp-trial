@@ -2,9 +2,9 @@
 
 **Decision:** Logged as **D-002** in [DECISIONS.md](../../DECISIONS.md). Status: locked.
 
-This document records the rationale for committing to **Polars** (compute) plus **DuckDB** (persistence) as the data substrate for the Verdano MCP work-trial.
+This document records the rationale for committing to **Polars** (compute) plus **DuckDB** (persistence) as the data substrate for the CPG Reconciler work-trial.
 
-> **Status:** Polars is fully operational as the compute engine. DuckDB persistence is **implemented** (D-025): `DuckDBRepository` provides a 4-table auto-init schema (mapping cache, review labels, audit log, residual history). Enable via `VERDANO_STORAGE_BACKEND=duckdb` in `.env`; the default remains `InMemoryRepository` for lightweight trial usage. See [`docs/usage.md`](../usage.md) for configuration details.
+> **Status:** Polars is fully operational as the compute engine. DuckDB persistence is **implemented** (D-025): `DuckDBRepository` provides a 4-table auto-init schema (mapping cache, review labels, audit log, residual history). Enable via `CPG_RECONCILER_STORAGE_BACKEND=duckdb` in `.env`; the default remains `InMemoryRepository` for lightweight trial usage. See [`docs/usage.md`](../usage.md) for configuration details.
 
 ## Stack
 
@@ -50,9 +50,9 @@ This optionality is the main reason DuckDB beat "in-memory only" — the file-ba
 
 ## Dev-experience notes
 
-- The DuckDB file path is configurable via `VERDANO_DUCKDB_PATH` (default: `./.local/verdano.duckdb`).
+- The DuckDB file path is configurable via `CPG_RECONCILER_DUCKDB_PATH` (default: `./.local/cpg_reconciler.duckdb`).
 - Add `.local/` and `*.duckdb` to `.gitignore` when the project skeleton lands (Step 6 of the active plan).
-- For interactive inspection: `duckdb ./.local/verdano.duckdb` (CLI), or `pl.read_database("SELECT * FROM ...", con)` from a notebook.
+- For interactive inspection: `duckdb ./.local/cpg_reconciler.duckdb` (CLI), or `pl.read_database("SELECT * FROM ...", con)` from a notebook.
 
 ## Cross-references
 

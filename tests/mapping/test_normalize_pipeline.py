@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from verdano.mapping.normalize import (
+from cpg_reconciler.mapping.normalize import (
     DEFAULT_PIPELINE,
     NormalizationPipeline,
     collapse_whitespace,

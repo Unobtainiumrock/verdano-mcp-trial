@@ -1,6 +1,6 @@
 # ERP Architectural Primitives — the System Layer
 
-This file populates the **architectural** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+This file populates the **architectural** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/cpg-reconciler-problem-entity-model.md](../../docs/architecture/cpg-reconciler-problem-entity-model.md).
 
 ---
 
@@ -32,7 +32,7 @@ For this trial, the "single shared database" primitive is realized by the **ERP 
 
 The ERP API uses bearer-token auth: `Authorization: Bearer <api_key>`.
 
-- The **trial API key** (`VERDANO_ERP_API_KEY` in `.env`) is the only identity primitive available in this trial. There is no per-user identity, no SoD between agents.
+- The **trial API key** (`CPG_RECONCILER_ERP_API_KEY` in `.env`) is the only identity primitive available in this trial. There is no per-user identity, no SoD between agents.
 - `GET /erp/order-drafts` returns drafts created with *this* API key — the key itself acts as the implicit principal. This is a thin RBAC story but it's the one the trial provides.
 - **Out of scope** but worth noting: a full SoD model would require distinguishing the agent that *creates* a draft from the agent that *promotes* it to a real sales order. The trial does not expose draft promotion, so this is moot here.
 - **Secrets handling.** The key lives in `.env`, which is git-ignored. We never log it; vcrpy cassettes scrub the `Authorization` header before commit.
@@ -51,7 +51,7 @@ What this means concretely:
 
 ## Cross-references
 
-- Canonical entity model: [verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+- Canonical entity model: [cpg-reconciler-problem-entity-model.md](../../docs/architecture/cpg-reconciler-problem-entity-model.md).
 - ERP API auth and endpoints: [ERP API.md](../../docs/reference/erp-api.md).
 - `.env` and gitignore policy: [.gitignore](../../.gitignore).
 - Decisions referenced: D-002 (storage cache, not source-of-truth), D-004 (primitives backbone). See [DECISIONS.md](../../DECISIONS.md).

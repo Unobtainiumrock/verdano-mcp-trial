@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────────────
-# Verdano MCP — one-command setup for Cursor and Claude Desktop
+# CPG Reconciler — one-command setup for Cursor and Claude Desktop
 #
 # Usage:  ./scripts/setup-mcp.sh
 #
@@ -44,29 +44,29 @@ if [ ! -f "$ENV_FILE" ]; then
     info "Created .env from .env.example"
   else
     cat > "$ENV_FILE" <<'ENVEOF'
-# Verdano ERP credentials — get the API key from the trial instructions.
-VERDANO_ERP_BASE_URL=https://erp.corvera.ai
-VERDANO_ERP_API_KEY=
+# ERP credentials — get the API key from the trial instructions.
+CPG_RECONCILER_ERP_BASE_URL=https://erp.corvera.ai
+CPG_RECONCILER_ERP_API_KEY=
 ENVEOF
     info "Created .env template"
   fi
 fi
 
 # Prompt for API key if empty
-if ! grep -qE '^VERDANO_ERP_API_KEY=.+' "$ENV_FILE" 2>/dev/null; then
-  warn "VERDANO_ERP_API_KEY is not set in $ENV_FILE"
+if ! grep -qE '^CPG_RECONCILER_ERP_API_KEY=.+' "$ENV_FILE" 2>/dev/null; then
+  warn "CPG_RECONCILER_ERP_API_KEY is not set in $ENV_FILE"
   printf "  Enter your ERP API key (or press Enter to skip): "
   read -r api_key
   if [ -n "$api_key" ]; then
-    if grep -q '^VERDANO_ERP_API_KEY=' "$ENV_FILE"; then
+    if grep -q '^CPG_RECONCILER_ERP_API_KEY=' "$ENV_FILE"; then
       # Replace existing empty line
       python3 -c "
 import re, pathlib
 p = pathlib.Path('$ENV_FILE')
-p.write_text(re.sub(r'^VERDANO_ERP_API_KEY=.*$', 'VERDANO_ERP_API_KEY=$api_key', p.read_text(), flags=re.M))
+p.write_text(re.sub(r'^CPG_RECONCILER_ERP_API_KEY=.*$', 'CPG_RECONCILER_ERP_API_KEY=$api_key', p.read_text(), flags=re.M))
 "
     else
-      echo "VERDANO_ERP_API_KEY=$api_key" >> "$ENV_FILE"
+      echo "CPG_RECONCILER_ERP_API_KEY=$api_key" >> "$ENV_FILE"
     fi
     ok "API key saved to .env"
   else
@@ -86,8 +86,8 @@ project_root = '$PROJECT_ROOT'
 
 entry = {
     'command': 'uv',
-    'args': ['--directory', project_root, 'run', 'verdano-mcp'],
-    'env': {'VERDANO_PROJECT_ROOT': project_root}
+    'args': ['--directory', project_root, 'run', 'cpg-reconciler'],
+    'env': {'CPG_RECONCILER_PROJECT_ROOT': project_root}
 }
 
 if config_path.exists():
@@ -97,7 +97,7 @@ else:
 
 # Cursor uses top-level 'mcpServers'; Claude uses 'mcpServers' too.
 servers = cfg.setdefault('mcpServers', {})
-servers['verdano'] = entry
+servers['cpg-reconciler'] = entry
 config_path.parent.mkdir(parents=True, exist_ok=True)
 config_path.write_text(json.dumps(cfg, indent=2) + '\n')
 "
@@ -125,7 +125,7 @@ inject_config "Claude Desktop" "$CLAUDE_CONFIG"
 # ── 4. health check ──────────────────────────────────────────────────
 info "Running health check …"
 echo ""
-if (cd "$PROJECT_ROOT" && VERDANO_PROJECT_ROOT="$PROJECT_ROOT" uv run verdano-mcp --health); then
+if (cd "$PROJECT_ROOT" && CPG_RECONCILER_PROJECT_ROOT="$PROJECT_ROOT" uv run cpg-reconciler --health); then
   echo ""
   ok "Setup complete!"
 else

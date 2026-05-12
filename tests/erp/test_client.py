@@ -15,7 +15,7 @@ from datetime import date
 
 import pytest
 
-from verdano.erp import (
+from cpg_reconciler.erp import (
     Client,
     OrderDraftLine,
     OrderDraftRequest,

@@ -32,4 +32,4 @@ These files derive from [`raw-truth.md`](../../docs/process/raw-truth.md) iterat
 
 - ERP-internal mechanics — see [`primitives/ERP/`](../ERP/).
 - Decisions or rationale — see [`DECISIONS.md`](../../DECISIONS.md).
-- Implementation guidance — that lives in `src/verdano/` once we re-engage the build phase.
+- Implementation guidance — that lives in `src/cpg_reconciler/` once we re-engage the build phase.

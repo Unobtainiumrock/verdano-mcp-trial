@@ -1,6 +1,6 @@
 # ERP Process Primitives — the Workflow Layer
 
-This file populates the **process** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+This file populates the **process** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/cpg-reconciler-problem-entity-model.md](../../docs/architecture/cpg-reconciler-problem-entity-model.md).
 
 ---
 
@@ -63,7 +63,7 @@ Period-close, consolidation, and financial reporting are downstream of every ent
 
 ## Process-primitive implications for adapter design
 
-Mapping the O2C entrypoint to the [canonical entity model](../../docs/architecture/verdano-problem-entity-model.md):
+Mapping the O2C entrypoint to the [canonical entity model](../../docs/architecture/cpg-reconciler-problem-entity-model.md):
 
 | O2C step | Canonical entity | What we do |
 |---|---|---|
@@ -78,7 +78,7 @@ The "compare next week" output is essentially an **O2C feasibility report** befo
 
 ## Cross-references
 
-- Canonical entity model: [verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+- Canonical entity model: [cpg-reconciler-problem-entity-model.md](../../docs/architecture/cpg-reconciler-problem-entity-model.md).
 - Architectural layer: [architectural-primitives.md](architectural-primitives.md).
 - ERP API endpoints: [ERP API.md](../../docs/reference/erp-api.md).
 - Decisions referenced: D-001 (adapter shape), D-004 (primitives backbone). See [DECISIONS.md](../../DECISIONS.md).

@@ -29,4 +29,4 @@ These files derive from [`raw-truth.md`](../../docs/process/raw-truth.md) iterat
 - Mathematical models we operate on.
 - Decisions about adapter design, mapping logic, FTP math, or workflow.
 
-Those live in [`primitives/CPG/`](../CPG/), [`docs/architecture/formalism.md`](../../docs/architecture/formalism.md), [`DECISIONS.md`](../../DECISIONS.md), and [`docs/architecture/verdano-problem-entity-model.md`](../../docs/architecture/verdano-problem-entity-model.md).
+Those live in [`primitives/CPG/`](../CPG/), [`docs/architecture/formalism.md`](../../docs/architecture/formalism.md), [`DECISIONS.md`](../../DECISIONS.md), and [`docs/architecture/cpg-reconciler-problem-entity-model.md`](../../docs/architecture/cpg-reconciler-problem-entity-model.md).

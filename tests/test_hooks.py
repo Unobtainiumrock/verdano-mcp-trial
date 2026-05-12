@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import pytest
 
-from verdano.erp.models import Product
-from verdano.mapping.hooks import (
+from cpg_reconciler.erp.models import Product
+from cpg_reconciler.mapping.hooks import (
     ConfidenceHook,
     DEFAULT_HOOKS,
     temperature_band_penalty,
@@ -125,13 +125,13 @@ class TestHookComposition:
 
 class TestHookInResolverContext:
     def test_build_result_applies_hooks(self) -> None:
-        from verdano.mapping.resolver import MasterIndex, ResolverContext
+        from cpg_reconciler.mapping.resolver import MasterIndex, ResolverContext
 
         product = _product(sku="SKU-001", name="Frozen Peas", band="ambient")
         master = MasterIndex([product])
         hook = temperature_band_penalty(lambda_penalty=0.3)
 
-        from verdano.mapping.priors import DEFAULT_PRIORS
+        from cpg_reconciler.mapping.priors import DEFAULT_PRIORS
 
         ctx = ResolverContext(
             master=master,
@@ -142,7 +142,7 @@ class TestHookInResolverContext:
             fuzzy_jw_min_score=0.30,
             confidence_hooks=[hook],
         )
-        from verdano.canonical import RetailerProductKey
+        from cpg_reconciler.canonical import RetailerProductKey
 
         key = RetailerProductKey(retailer="tesco", name="Frozen Peas", gtin="1234567890123")
         result = ctx.build_result(key, "SKU-001", 0.95, "gtin_current", "1234567890123", 1)
@@ -150,12 +150,12 @@ class TestHookInResolverContext:
         assert result.state == "NeedsVerification"
 
     def test_build_result_no_hooks_preserves_behavior(self) -> None:
-        from verdano.mapping.resolver import MasterIndex, ResolverContext
+        from cpg_reconciler.mapping.resolver import MasterIndex, ResolverContext
 
         product = _product(sku="SKU-001")
         master = MasterIndex([product])
 
-        from verdano.mapping.priors import DEFAULT_PRIORS
+        from cpg_reconciler.mapping.priors import DEFAULT_PRIORS
 
         ctx = ResolverContext(
             master=master,
@@ -165,7 +165,7 @@ class TestHookInResolverContext:
             tfidf_min_matched_tokens=2,
             fuzzy_jw_min_score=0.30,
         )
-        from verdano.canonical import RetailerProductKey
+        from cpg_reconciler.canonical import RetailerProductKey
 
         key = RetailerProductKey(retailer="tesco", name="Spicy Chorizo", gtin="1234567890123")
         result = ctx.build_result(key, "SKU-001", 0.95, "gtin_current", "1234567890123", 1)
@@ -177,13 +177,13 @@ class TestConfigIntegration:
     def test_config_default_disabled(self) -> None:
         import os
         env = {
-            "VERDANO_ERP_API_KEY": "test-key",
-            "VERDANO_TEMP_BAND_PENALTY_ENABLED": "false",
+            "CPG_RECONCILER_ERP_API_KEY": "test-key",
+            "CPG_RECONCILER_TEMP_BAND_PENALTY_ENABLED": "false",
         }
         for k, v in env.items():
             os.environ[k] = v
         try:
-            from verdano.config import Settings
+            from cpg_reconciler.config import Settings
             cfg = Settings()
             assert cfg.temp_band_penalty_enabled is False
             assert cfg.temp_band_penalty_lambda == 0.3
@@ -194,14 +194,14 @@ class TestConfigIntegration:
     def test_config_enabled_with_custom_lambda(self) -> None:
         import os
         env = {
-            "VERDANO_ERP_API_KEY": "test-key",
-            "VERDANO_TEMP_BAND_PENALTY_ENABLED": "true",
-            "VERDANO_TEMP_BAND_PENALTY_LAMBDA": "0.5",
+            "CPG_RECONCILER_ERP_API_KEY": "test-key",
+            "CPG_RECONCILER_TEMP_BAND_PENALTY_ENABLED": "true",
+            "CPG_RECONCILER_TEMP_BAND_PENALTY_LAMBDA": "0.5",
         }
         for k, v in env.items():
             os.environ[k] = v
         try:
-            from verdano.config import Settings
+            from cpg_reconciler.config import Settings
             cfg = Settings()
             assert cfg.temp_band_penalty_enabled is True
             assert cfg.temp_band_penalty_lambda == 0.5

@@ -1,4 +1,4 @@
-# Decisions log — Verdano MCP work-trial
+# Decisions log — CPG Reconciler work-trial
 
 Chronological log of architectural and process decisions. New entries append at the bottom. Each entry: ID, date, the decision, alternatives considered, the *why*, and a status.
 
@@ -61,7 +61,7 @@ Status legend: **locked** (committed, not revisiting without cause), **provision
 **Date:** 2026-05-06
 **Status:** locked
 
-**Decision.** The four-layer ERP primitives ontology in `raw-truth.md` (Data / Architectural / Process / Functional) is the source of truth for the ERP-side concepts. The skeleton at `primitives/ERP/{data,architectural,process,functional}-primitives.md` is populated from `raw-truth.md` with trial-specific instantiation. The canonical entity model in `docs/architecture/verdano-problem-entity-model.md` cross-references these primitives.
+**Decision.** The four-layer ERP primitives ontology in `raw-truth.md` (Data / Architectural / Process / Functional) is the source of truth for the ERP-side concepts. The skeleton at `primitives/ERP/{data,architectural,process,functional}-primitives.md` is populated from `raw-truth.md` with trial-specific instantiation. The canonical entity model in `docs/architecture/cpg-reconciler-problem-entity-model.md` cross-references these primitives.
 
 **Alternatives.**
 
@@ -315,7 +315,7 @@ with thresholds $[\tau_{\text{low}},\, \tau_{\text{high}}] = [0.5,\, 1.5]$ (conf
 
 **Why.** The fixture forces the framing. Naming what we *can* compute (recency-baseline) honestly is more rigorous than overclaiming classical drift. The promo-segmentation gate handles the fixture's most obvious noise source. Markov is reserved, not discarded — D-006 already established that intent.
 
-**Captured in:** [`docs/architecture/formalism.md`](docs/architecture/formalism.md) §10, [`src/verdano/drift/`](src/verdano/drift/) (module), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (entry-point), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (`compare_actuals_vs_forecast_tool`), [`tests/drift/test_baseline.py`](tests/drift/test_baseline.py) (7 tests).
+**Captured in:** [`docs/architecture/formalism.md`](docs/architecture/formalism.md) §10, [`src/cpg_reconciler/drift/`](src/cpg_reconciler/drift/) (module), [`src/cpg_reconciler/pipeline/drift.py`](src/cpg_reconciler/pipeline/drift.py) (entry-point), [`src/cpg_reconciler/mcp_server/server.py`](src/cpg_reconciler/mcp_server/server.py) (`compare_actuals_vs_forecast_tool`), [`tests/drift/test_baseline.py`](tests/drift/test_baseline.py) (7 tests).
 
 ---
 
@@ -335,7 +335,7 @@ $$
 \text{normalize}(s) \;=\; \text{size-rescale}\bigl(\text{lower}(s)\bigr)
 $$
 
-where the size rescale is `(\d+(?:\.\d+)?)\s*(kg|l)\b` → `value × 1000` with the unit swapped. Idempotent. Falsifies on `100ml`, `1lb`, `kgallon` (regex word-boundary guards). Implementation in `src/verdano/mapping/normalize.py`.
+where the size rescale is `(\d+(?:\.\d+)?)\s*(kg|l)\b` → `value × 1000` with the unit swapped. Idempotent. Falsifies on `100ml`, `1lb`, `kgallon` (regex word-boundary guards). Implementation in `src/cpg_reconciler/mapping/normalize.py`.
 
 This closes the size half of the deliberate fixture gotcha **"Tom Basil Soup 0.5kg" ↔ "Tomato Soup 500g"** at the lexical layer (the alias-curation half is already handled by the ERP master).
 
@@ -351,7 +351,7 @@ Range $[0, 1]$. Interpret as the fraction of the retailer string's information c
 
 **Cascade firing rule:** `tfidf_overlap` fires when `alias_exact` misses and the top TF-IDF score $\geq \tau_{\text{tfidf}}$ (default 0.5, configurable). Below the threshold, fall through to `fuzzy_jw`. **Confidence emitted** = `top_score × (1 − ε) / K_x^α`, applying the same Fellegi-Sunter ambiguity penalty as `alias_exact` (so tied candidates collapse to NeedsVerification).
 
-Smoothed IDF: `log(N / (1 + df)) + 1` (sklearn-style; never zero, never negative). Implementation in `src/verdano/mapping/tfidf.py`.
+Smoothed IDF: `log(N / (1 + df)) + 1` (sklearn-style; never zero, never negative). Implementation in `src/cpg_reconciler/mapping/tfidf.py`.
 
 **Cascade after D-013:**
 
@@ -378,7 +378,7 @@ Smoothed IDF: `log(N / (1 + df)) + 1` (sklearn-style; never zero, never negative
 - Tokenization is whitespace-only. Punctuation handling is implicit (whitespace-collapse strips leading/trailing punctuation but doesn't split `a&b` into `a` and `b`). Trial fixtures don't trigger this; if production data does, the normalizer is the place to extend.
 - The IDF table is built once at `MasterIndex` construction. If the ERP master grows substantially (drops a token's df), recompute by reconstructing the index — there's no incremental update.
 
-**Captured in:** [`src/verdano/mapping/normalize.py`](src/verdano/mapping/normalize.py), [`src/verdano/mapping/tfidf.py`](src/verdano/mapping/tfidf.py), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (cascade integration), [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (Stratum registry includes `tfidf_overlap`), [`tests/mapping/test_normalize.py`](tests/mapping/test_normalize.py) (23 tests), [`tests/mapping/test_tfidf.py`](tests/mapping/test_tfidf.py) (7 tests), [`docs/architecture/formalism.md`](docs/architecture/formalism.md) §3.5 (cascade table).
+**Captured in:** [`src/cpg_reconciler/mapping/normalize.py`](src/cpg_reconciler/mapping/normalize.py), [`src/cpg_reconciler/mapping/tfidf.py`](src/cpg_reconciler/mapping/tfidf.py), [`src/cpg_reconciler/mapping/resolver.py`](src/cpg_reconciler/mapping/resolver.py) (cascade integration), [`src/cpg_reconciler/canonical/models.py`](src/cpg_reconciler/canonical/models.py) (Stratum registry includes `tfidf_overlap`), [`tests/mapping/test_normalize.py`](tests/mapping/test_normalize.py) (23 tests), [`tests/mapping/test_tfidf.py`](tests/mapping/test_tfidf.py) (7 tests), [`docs/architecture/formalism.md`](docs/architecture/formalism.md) §3.5 (cascade table).
 
 ---
 
@@ -408,7 +408,7 @@ Empirical stress test surfaced the failure mode:
 
 Every garbage retailer string returned *some* candidate. The operator UI surfaces these as "Bicycle Tyre might be Chickpea Curry 400g — please verify." That's actively misleading: no candidate is the truthful response. Better to return **Unmapped** below a confidence floor.
 
-**Fix.** Add `fuzzy_jw_min_score` (originally `e4_min_score`, renamed per D-018; default `0.30` — empirically catches the worst garbage strings without cutting borderline-legitimate fuzzy matches). Below the floor, the cascade returns `Unmapped` instead of `NeedsVerification` with a wrong candidate. The legacy env var `VERDANO_E4_MIN_SCORE` is still accepted via a backward-compat alias.
+**Fix.** Add `fuzzy_jw_min_score` (originally `e4_min_score`, renamed per D-018; default `0.30` — empirically catches the worst garbage strings without cutting borderline-legitimate fuzzy matches). Below the floor, the cascade returns `Unmapped` instead of `NeedsVerification` with a wrong candidate. The legacy env var `CPG_RECONCILER_E4_MIN_SCORE` is still accepted via a backward-compat alias.
 
 **Pushback worth recording.** The floor value is itself an unsupervised choice. At trial scope `0.30` is calibrated against the observed JW² range of obvious-garbage inputs (`0.20–0.34`). Production-scope tuning would benefit from labeled review-queue resolutions: count garbage flagged as Unmapped vs. legitimate matches accidentally suppressed, learn the boundary.
 
@@ -445,7 +445,7 @@ The retailer sending the literal string `"VD"` would auto-allocate against Lenti
 | `"Falafel Bowl"` | E3b K=2 w=0.346 NeedsVerification ✓ | E3b K=2 w=0.346 NeedsVerification ✓ (unchanged) |
 | `"Falafel only"` (1 retailer token, 1 match) | E3b K=2 w=auto-Resolved ❌ | E4 fall-through w=0.78 NeedsVerification ✓ |
 
-**Captured in:** [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (`MasterIndex` set-based dedup; `Resolver` floor + min-tokens parameters; `_count_matched_tokens` helper), [`tests/mapping/test_resolver_floors.py`](tests/mapping/test_resolver_floors.py) (7 tests covering all three fixes + their configurability).
+**Captured in:** [`src/cpg_reconciler/mapping/resolver.py`](src/cpg_reconciler/mapping/resolver.py) (`MasterIndex` set-based dedup; `Resolver` floor + min-tokens parameters; `_count_matched_tokens` helper), [`tests/mapping/test_resolver_floors.py`](tests/mapping/test_resolver_floors.py) (7 tests covering all three fixes + their configurability).
 
 ---
 
@@ -457,7 +457,7 @@ The retailer sending the literal string `"VD"` would auto-allocate against Lenti
 
 **Resolution:** `RetailerCode` is now a plain `str` alias with a runtime registry. `register_retailer(code, spec)` in `adapters/spec.py` is the single entry point for onboarding — it registers both the spec and the retailer code. MCP tool boundaries call `validate_retailer_code()` for runtime validation. Trade-off: FastMCP tool schemas now accept any string instead of showing an enum (type safety at small scale vs extensibility at large scale).
 
-**Captured in:** [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (registry + validation), [`src/verdano/adapters/spec.py`](src/verdano/adapters/spec.py) (`register_retailer`), [`tests/test_negative.py`](tests/test_negative.py) (4 registry tests).
+**Captured in:** [`src/cpg_reconciler/canonical/models.py`](src/cpg_reconciler/canonical/models.py) (registry + validation), [`src/cpg_reconciler/adapters/spec.py`](src/cpg_reconciler/adapters/spec.py) (`register_retailer`), [`tests/test_negative.py`](tests/test_negative.py) (4 registry tests).
 
 ---
 
@@ -467,11 +467,11 @@ The retailer sending the literal string `"VD"` would auto-allocate against Lenti
 
 **Context:** Twelve numeric thresholds were scattered as constructor defaults across `classify.py`, `resolver.py`, `priors.py`, `baseline.py`, and `depot.py`. Changing any value required a code deploy. Operators and reviewers had no single surface to inspect or override tuning parameters.
 
-**Resolution:** All thresholds now live in `src/verdano/config.py::Settings`, inheriting `VERDANO_` env-prefix via pydantic-settings. Non-secret values can be set in `.env` or as env vars; secrets (`llm_api_key`) use `SecretStr`. The MCP server loads `Settings` once at startup and passes values through to the pipeline, resolver, classifier, and drift comparator. Existing default values are preserved — the change is purely structural, no behavioral regression.
+**Resolution:** All thresholds now live in `src/cpg_reconciler/config.py::Settings`, inheriting `CPG_RECONCILER_` env-prefix via pydantic-settings. Non-secret values can be set in `.env` or as env vars; secrets (`llm_api_key`) use `SecretStr`. The MCP server loads `Settings` once at startup and passes values through to the pipeline, resolver, classifier, and drift comparator. Existing default values are preserved — the change is purely structural, no behavioral regression.
 
 **Additionally:** `FulfillmentClass`, `MappingState`, `DriftClass`, and `Stratum` were converted from `Literal` types to `str` aliases with runtime registries (same pattern as `RetailerCode` in D-015). This enables adding new classification tiers, mapping states, or cascade strata without editing source files. Strata now use semantic names per D-018.
 
-**Captured in:** [`src/verdano/config.py`](src/verdano/config.py), [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (registries), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (wiring), [`.env.example`](.env.example).
+**Captured in:** [`src/cpg_reconciler/config.py`](src/cpg_reconciler/config.py), [`src/cpg_reconciler/canonical/models.py`](src/cpg_reconciler/canonical/models.py) (registries), [`src/cpg_reconciler/mcp_server/server.py`](src/cpg_reconciler/mcp_server/server.py) (wiring), [`.env.example`](.env.example).
 
 ---
 
@@ -481,17 +481,17 @@ The retailer sending the literal string `"VD"` would auto-allocate against Lenti
 
 **Context:** Entity resolution strata `gtin_current`–`fuzzy_jw` (formerly E1–E4) are purely algorithmic. For ambiguous or novel product names that none of the strata resolve confidently, a language model can provide a contextual fallback. Similarly, depot-string resolution sometimes fails on novel location labels.
 
-**Resolution:** New `src/verdano/llm/` package with:
+**Resolution:** New `src/cpg_reconciler/llm/` package with:
 - `LLMClient` protocol + `OpenAIClient` implementation using configurable `base_url` (OpenAI, Azure, Ollama, vLLM all speak the same API).
 - `llm_augmented` (formerly E5) stratum handler (`make_llm_stratum`) that sends top-N fuzzy candidates to the LLM for disambiguation. Plugs into the cascade via the handler chain — no if/elif surgery.
 - LLM depot fallback in `depot.py` — if fuzzy match fails and an `LLMClient` is available, asks the LLM to interpret the location label.
-- All LLM features are **optional**: if `VERDANO_LLM_API_KEY` is empty, `create_llm_client` returns `None` and the cascade works exactly as before.
+- All LLM features are **optional**: if `CPG_RECONCILER_LLM_API_KEY` is empty, `create_llm_client` returns `None` and the cascade works exactly as before.
 
 The normalizer was refactored from a monolithic function into a composable `NormalizationPipeline` of `NormalizerStep` callables, enabling extension (brand stripping, stop words) without editing source. The resolver was refactored from hardcoded if/elif blocks to an ordered `StratumHandler` chain.
 
 **Trade-off:** LLM calls add latency and cost. The `llm_augmented` stratum only fires after the algorithmic strata fail, and only when configured. Operators can disable it by omitting the API key.
 
-**Captured in:** [`src/verdano/llm/`](src/verdano/llm/) (client, entity_resolution), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (handler chain), [`src/verdano/mapping/normalize.py`](src/verdano/mapping/normalize.py) (pipeline), [`src/verdano/mapping/depot.py`](src/verdano/mapping/depot.py) (LLM fallback).
+**Captured in:** [`src/cpg_reconciler/llm/`](src/cpg_reconciler/llm/) (client, entity_resolution), [`src/cpg_reconciler/mapping/resolver.py`](src/cpg_reconciler/mapping/resolver.py) (handler chain), [`src/cpg_reconciler/mapping/normalize.py`](src/cpg_reconciler/mapping/normalize.py) (pipeline), [`src/cpg_reconciler/mapping/depot.py`](src/cpg_reconciler/mapping/depot.py) (LLM fallback).
 
 ---
 
@@ -516,7 +516,7 @@ The rename spans source files, tests, and active documentation. The mathematical
 
 **Trade-off:** New strata can now be inserted anywhere in the chain with descriptive names (e.g. `brand_prefix`, `embedding_similarity`) without the E-numbering fragility. Anyone reading older decisions or the formalism can cross-reference via the mapping table above.
 
-**Captured in:** [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (handler renames + DEFAULT_HANDLERS), [`src/verdano/canonical/models.py`](src/verdano/canonical/models.py) (registry seeds), [`src/verdano/llm/entity_resolution.py`](src/verdano/llm/entity_resolution.py), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py), 8 test files.
+**Captured in:** [`src/cpg_reconciler/mapping/resolver.py`](src/cpg_reconciler/mapping/resolver.py) (handler renames + DEFAULT_HANDLERS), [`src/cpg_reconciler/canonical/models.py`](src/cpg_reconciler/canonical/models.py) (registry seeds), [`src/cpg_reconciler/llm/entity_resolution.py`](src/cpg_reconciler/llm/entity_resolution.py), [`src/cpg_reconciler/mcp_server/server.py`](src/cpg_reconciler/mcp_server/server.py), 8 test files.
 
 ---
 
@@ -536,7 +536,7 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 
 **Trade-off:** The existing `llm_augmented` fallback stratum is *preserved* for total cascade misses. The re-ranker is orthogonal — it validates *successful* cascade hits. Without an LLM key the re-ranker is a complete no-op. High-confidence GTIN matches (0.98+) are never sent to the LLM, keeping API cost proportional to ambiguity. All three parameters are configurable via `Settings` / environment variables.
 
-**Captured in:** [`src/verdano/llm/reranker.py`](src/verdano/llm/reranker.py) (core logic), [`src/verdano/pipeline/analyze.py`](src/verdano/pipeline/analyze.py) (integration), [`src/verdano/config.py`](src/verdano/config.py) (settings), [`tests/test_reranker.py`](tests/test_reranker.py) (16 tests).
+**Captured in:** [`src/cpg_reconciler/llm/reranker.py`](src/cpg_reconciler/llm/reranker.py) (core logic), [`src/cpg_reconciler/pipeline/analyze.py`](src/cpg_reconciler/pipeline/analyze.py) (integration), [`src/cpg_reconciler/config.py`](src/cpg_reconciler/config.py) (settings), [`tests/test_reranker.py`](tests/test_reranker.py) (16 tests).
 
 ---
 
@@ -557,7 +557,7 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 
 **Trade-off:** The existing `plausibility` mode behavior is preserved exactly — all 7 original drift tests pass unchanged. The refactor adds 20 new tests (27 at time of D-020; later extended to 72 by D-024). The MCP tool signature is backward-compatible; callers that don't pass `mode` get the current behavior. Future drift modes slot in as additional strategy functions registered in `DEFAULT_STRATEGIES`.
 
-**Captured in:** [`src/verdano/drift/types.py`](src/verdano/drift/types.py) (registry), [`src/verdano/drift/baseline.py`](src/verdano/drift/baseline.py) (protocol + plausibility), [`src/verdano/drift/strategies.py`](src/verdano/drift/strategies.py) (residual), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (entry-point), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (tool + CSV resolver), [`src/verdano/config.py`](src/verdano/config.py) (threshold), [`tests/drift/`](tests/drift/) (72 tests as of D-024).
+**Captured in:** [`src/cpg_reconciler/drift/types.py`](src/cpg_reconciler/drift/types.py) (registry), [`src/cpg_reconciler/drift/baseline.py`](src/cpg_reconciler/drift/baseline.py) (protocol + plausibility), [`src/cpg_reconciler/drift/strategies.py`](src/cpg_reconciler/drift/strategies.py) (residual), [`src/cpg_reconciler/pipeline/drift.py`](src/cpg_reconciler/pipeline/drift.py) (entry-point), [`src/cpg_reconciler/mcp_server/server.py`](src/cpg_reconciler/mcp_server/server.py) (tool + CSV resolver), [`src/cpg_reconciler/config.py`](src/cpg_reconciler/config.py) (threshold), [`tests/drift/`](tests/drift/) (72 tests as of D-024).
 
 ---
 
@@ -577,7 +577,7 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 
 **Trade-off:** All three defaults reproduce the exact pre-refactor behavior — zero functional change. At time of writing, 218 existing + 38 new = 256 total tests passed; subsequent D-entries have grown this to 354. Implementing the production backends becomes: (a) write the backend class satisfying the protocol, (b) pass it to `Resolver` / `build_server` / wherever the protocol is consumed. No core code surgery required.
 
-**Captured in:** [`src/verdano/mapping/calibration.py`](src/verdano/mapping/calibration.py) (protocol + 2 backends), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (wiring), [`src/verdano/adapters/kernel.py`](src/verdano/adapters/kernel.py) (protocol + 2 backends), [`src/verdano/storage/`](src/verdano/storage/) (protocol + 2 backends + models), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (repository injection + audit logging), [`tests/test_extensibility.py`](tests/test_extensibility.py) (56 tests — parametrized across InMemory + DuckDB per D-025).
+**Captured in:** [`src/cpg_reconciler/mapping/calibration.py`](src/cpg_reconciler/mapping/calibration.py) (protocol + 2 backends), [`src/cpg_reconciler/mapping/resolver.py`](src/cpg_reconciler/mapping/resolver.py) (wiring), [`src/cpg_reconciler/adapters/kernel.py`](src/cpg_reconciler/adapters/kernel.py) (protocol + 2 backends), [`src/cpg_reconciler/storage/`](src/cpg_reconciler/storage/) (protocol + 2 backends + models), [`src/cpg_reconciler/mcp_server/server.py`](src/cpg_reconciler/mcp_server/server.py) (repository injection + audit logging), [`tests/test_extensibility.py`](tests/test_extensibility.py) (56 tests — parametrized across InMemory + DuckDB per D-025).
 
 ---
 
@@ -599,7 +599,7 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 
 **Trade-off:** Option B (post-calibration hooks) was chosen over Option A (Calibrator decorator) because calibration and contextual validation are genuinely different concerns. The Calibrator answers "what's the probability this match is correct?" while hooks answer "given that probability, is there external evidence this is wrong?" No existing D-021 patterns needed updating — hooks are a new layer, not a replacement.
 
-**Captured in:** [`src/verdano/mapping/hooks.py`](src/verdano/mapping/hooks.py) (ConfidenceHook type + temperature_band_penalty factory), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (hook application in build_result), [`src/verdano/config.py`](src/verdano/config.py) (2 new config fields), [`src/verdano/pipeline/analyze.py`](src/verdano/pipeline/analyze.py) (threading), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (config-driven activation), [`tests/test_hooks.py`](tests/test_hooks.py) (17 tests).
+**Captured in:** [`src/cpg_reconciler/mapping/hooks.py`](src/cpg_reconciler/mapping/hooks.py) (ConfidenceHook type + temperature_band_penalty factory), [`src/cpg_reconciler/mapping/resolver.py`](src/cpg_reconciler/mapping/resolver.py) (hook application in build_result), [`src/cpg_reconciler/config.py`](src/cpg_reconciler/config.py) (2 new config fields), [`src/cpg_reconciler/pipeline/analyze.py`](src/cpg_reconciler/pipeline/analyze.py) (threading), [`src/cpg_reconciler/mcp_server/server.py`](src/cpg_reconciler/mcp_server/server.py) (config-driven activation), [`tests/test_hooks.py`](tests/test_hooks.py) (17 tests).
 
 ---
 
@@ -631,7 +631,7 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 
 **Trade-off:** Threading the normalizer through the stack adds one parameter to several constructors and pipeline functions. This is a one-time cost that enables runtime pipeline customization — no source-code changes needed to activate brand stripping or stop-word removal in a specific deployment.
 
-**Captured in:** [`src/verdano/mapping/normalize.py`](src/verdano/mapping/normalize.py) (`build_pipeline` factory), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (`MasterIndex` normalizer injection), [`src/verdano/mapping/tfidf.py`](src/verdano/mapping/tfidf.py) (normalizer injection), [`src/verdano/config.py`](src/verdano/config.py) (4 new config fields + helpers), [`src/verdano/pipeline/analyze.py`](src/verdano/pipeline/analyze.py) (threading), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (threading), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (pipeline construction + threading), [`tests/test_normalization_config.py`](tests/test_normalization_config.py) (18 tests).
+**Captured in:** [`src/cpg_reconciler/mapping/normalize.py`](src/cpg_reconciler/mapping/normalize.py) (`build_pipeline` factory), [`src/cpg_reconciler/mapping/resolver.py`](src/cpg_reconciler/mapping/resolver.py) (`MasterIndex` normalizer injection), [`src/cpg_reconciler/mapping/tfidf.py`](src/cpg_reconciler/mapping/tfidf.py) (normalizer injection), [`src/cpg_reconciler/config.py`](src/cpg_reconciler/config.py) (4 new config fields + helpers), [`src/cpg_reconciler/pipeline/analyze.py`](src/cpg_reconciler/pipeline/analyze.py) (threading), [`src/cpg_reconciler/pipeline/drift.py`](src/cpg_reconciler/pipeline/drift.py) (threading), [`src/cpg_reconciler/mcp_server/server.py`](src/cpg_reconciler/mcp_server/server.py) (pipeline construction + threading), [`tests/test_normalization_config.py`](tests/test_normalization_config.py) (18 tests).
 
 ---
 
@@ -665,7 +665,7 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 
 **Trade-off:** The context hierarchy pattern adds one subclass per strategy that needs custom data. This is a deliberate trade-off: a small per-strategy cost avoids base-type pollution that would grow linearly with the number of strategies. The pattern is identical to what a hypothetical "seasonal" or "ensemble" strategy would follow.
 
-**Captured in:** [`src/verdano/drift/markov.py`](src/verdano/drift/markov.py) (ResidualRecord re-export, TransitionMatrix, MarkovDriftContext, markov_strategy), [`src/verdano/storage/repository.py`](src/verdano/storage/repository.py) (ResidualRecord model, Repository protocol extension, InMemory + DuckDB impls), [`src/verdano/drift/types.py`](src/verdano/drift/types.py) (DriftSignal Markov fields), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (context construction, history accumulation), [`src/verdano/config.py`](src/verdano/config.py) (3 new config fields), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (Markov mode support, config wiring), [`tests/drift/test_markov.py`](tests/drift/test_markov.py) (45 tests).
+**Captured in:** [`src/cpg_reconciler/drift/markov.py`](src/cpg_reconciler/drift/markov.py) (ResidualRecord re-export, TransitionMatrix, MarkovDriftContext, markov_strategy), [`src/cpg_reconciler/storage/repository.py`](src/cpg_reconciler/storage/repository.py) (ResidualRecord model, Repository protocol extension, InMemory + DuckDB impls), [`src/cpg_reconciler/drift/types.py`](src/cpg_reconciler/drift/types.py) (DriftSignal Markov fields), [`src/cpg_reconciler/pipeline/drift.py`](src/cpg_reconciler/pipeline/drift.py) (context construction, history accumulation), [`src/cpg_reconciler/config.py`](src/cpg_reconciler/config.py) (3 new config fields), [`src/cpg_reconciler/mcp_server/server.py`](src/cpg_reconciler/mcp_server/server.py) (Markov mode support, config wiring), [`tests/drift/test_markov.py`](tests/drift/test_markov.py) (45 tests).
 
 ---
 
@@ -687,6 +687,30 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 
 **Trade-off:** JSON blob storage for `MappingResult` means no SQL queries on individual fields within the blob. This is acceptable because the mapping cache is keyed by `retailer_key_name` (a separate column), and the only operation is point-lookup by that key. If production needs arose for querying by `erp_sku` or `confidence`, a column extraction migration would be straightforward.
 
-**Captured in:** [`src/verdano/storage/repository.py`](src/verdano/storage/repository.py) (DuckDBRepository implementation), [`src/verdano/storage/__init__.py`](src/verdano/storage/__init__.py) (updated docstring), [`src/verdano/config.py`](src/verdano/config.py) (`storage_backend` field), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (backend selection wiring), [`tests/test_extensibility.py`](tests/test_extensibility.py) (56 tests), [`.env.example`](.env.example) (`VERDANO_STORAGE_BACKEND`).
+**Captured in:** [`src/cpg_reconciler/storage/repository.py`](src/cpg_reconciler/storage/repository.py) (DuckDBRepository implementation), [`src/cpg_reconciler/storage/__init__.py`](src/cpg_reconciler/storage/__init__.py) (updated docstring), [`src/cpg_reconciler/config.py`](src/cpg_reconciler/config.py) (`storage_backend` field), [`src/cpg_reconciler/mcp_server/server.py`](src/cpg_reconciler/mcp_server/server.py) (backend selection wiring), [`tests/test_extensibility.py`](tests/test_extensibility.py) (56 tests), [`.env.example`](.env.example) (`CPG_RECONCILER_STORAGE_BACKEND`).
+
+---
+
+## D-026: Rename "verdano" to "cpg-reconciler" for multi-client extensibility
+
+**Date:** 2026-05-11
+
+**Context:** The package was originally named `verdano-mcp` with a `VERDANO_` env prefix, tightly coupling the system identity to a single client (Verdano Foods). As the architecture matured through protocol-based extensibility (D-021), runtime registries (D-020), and configurable retailer adapters (D-001), the codebase became genuinely multi-client capable, but the naming didn't reflect that. A rename before any external consumers exist avoids a backward-compatibility burden later.
+
+**Resolution:**
+
+1. **Package**: `verdano-mcp` → `cpg-reconciler` (distribution name). Python import path: `verdano.*` → `cpg_reconciler.*`. Directory: `src/verdano/` → `src/cpg_reconciler/`.
+
+2. **Env prefix**: `VERDANO_` → `CPG_RECONCILER_` across all config fields, `.env.example`, `setup-mcp.sh`, and tests.
+
+3. **MCP server key**: `verdano` → `cpg-reconciler` in `setup-mcp.sh` and JSON config injection.
+
+4. **CLI entry-point**: `verdano-mcp` → `cpg-reconciler` in `pyproject.toml` scripts.
+
+5. **Preserved as-is**: (a) `brand_prefixes = "verdano,verdano foods"` — this is product data, not system identity, and is configurable per client. (b) `verdano-` prefix in ERP external references (`drafts.py`) and temp file prefixes (`erp/client.py`) — these are recorded in VCR cassettes and represent ERP-facing data. (c) All references to "Verdano Foods" as the brand/company in documentation — the company name is unchanged. (d) Test cassette YAML files — recorded HTTP payloads.
+
+**Trade-off:** No backward-compatibility layer for the old `VERDANO_` env prefix. This is acceptable because: no external consumers exist (pre-release), the `.env.example` documents the new names, and `setup-mcp.sh` generates correct config from scratch. Existing `.env` files need a one-time rename of their variable prefixes.
+
+**Captured in:** All files under `src/cpg_reconciler/`, all test files, [`pyproject.toml`](pyproject.toml), [`scripts/setup-mcp.sh`](scripts/setup-mcp.sh), [`.env.example`](.env.example), [`.gitignore`](.gitignore), all documentation files. 354 tests pass after rename.
 
 ---

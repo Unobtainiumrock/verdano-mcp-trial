@@ -1,5 +1,5 @@
 # --- Secrets / env ---
-# .env contains the VERDANO_ERP_API_KEY — never commit.
+# .env contains the CPG_RECONCILER_ERP_API_KEY — never commit.
 .env
 .env.*
 !.env.example

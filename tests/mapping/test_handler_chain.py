@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-from verdano.canonical import MappingResult, RetailerProductKey
-from verdano.erp.models import Product
-from verdano.mapping.resolver import (
+from cpg_reconciler.canonical import MappingResult, RetailerProductKey
+from cpg_reconciler.erp.models import Product
+from cpg_reconciler.mapping.resolver import (
     DEFAULT_HANDLERS,
     MasterIndex,
     Resolver,
     ResolverContext,
     StratumHandler,
 )
-from verdano.mapping.priors import DEFAULT_PRIORS
+from cpg_reconciler.mapping.priors import DEFAULT_PRIORS
 
 
 def _make_products() -> list[Product]:

@@ -8,8 +8,8 @@ from cassette.
 
 from __future__ import annotations
 
-from verdano.erp.models import Product
-from verdano.mapping.tfidf import TfIdfIndex
+from cpg_reconciler.erp.models import Product
+from cpg_reconciler.mapping.tfidf import TfIdfIndex
 
 
 def _p(sku: str, name: str, aliases: list[str] | None = None) -> Product:

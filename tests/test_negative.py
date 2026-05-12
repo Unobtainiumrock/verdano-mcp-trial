@@ -15,13 +15,13 @@ from pathlib import Path
 import polars as pl
 import pytest
 
-from verdano.adapters.adapter import Adapter
-from verdano.adapters.spec import get_spec, register_retailer
-from verdano.canonical import (
+from cpg_reconciler.adapters.adapter import Adapter
+from cpg_reconciler.adapters.spec import get_spec, register_retailer
+from cpg_reconciler.canonical import (
     known_retailer_codes,
     validate_retailer_code,
 )
-from verdano.drift.baseline import BaselineCompare
+from cpg_reconciler.drift.baseline import BaselineCompare
 
 
 @pytest.fixture()
@@ -133,14 +133,14 @@ class TestRetailerCodeRegistry:
             validate_retailer_code("nonexistent_retailer")
 
     def test_register_new_retailer(self) -> None:
-        from verdano.adapters.spec import TESCO_SPEC
+        from cpg_reconciler.adapters.spec import TESCO_SPEC
 
         register_retailer("test_retailer", TESCO_SPEC)
         try:
             assert "test_retailer" in known_retailer_codes()
             assert validate_retailer_code("test_retailer") == "test_retailer"
         finally:
-            from verdano.canonical.models import _RETAILER_REGISTRY
-            from verdano.adapters.spec import _REGISTRY
+            from cpg_reconciler.canonical.models import _RETAILER_REGISTRY
+            from cpg_reconciler.adapters.spec import _REGISTRY
             _RETAILER_REGISTRY.discard("test_retailer")
             _REGISTRY.pop("test_retailer", None)

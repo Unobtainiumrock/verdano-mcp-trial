@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from verdano.canonical.models import (
+from cpg_reconciler.canonical.models import (
     _FULFILLMENT_CLASS_REGISTRY,
     _MAPPING_STATE_REGISTRY,
     _STRATUM_REGISTRY,
@@ -15,8 +15,8 @@ from verdano.canonical.models import (
     register_mapping_state,
     register_stratum,
 )
-from verdano.drift.baseline import _DRIFT_CLASS_REGISTRY, register_drift_class
-from verdano.drift.types import known_drift_directions
+from cpg_reconciler.drift.baseline import _DRIFT_CLASS_REGISTRY, register_drift_class
+from cpg_reconciler.drift.types import known_drift_directions
 
 
 class TestFulfillmentClassRegistry:
@@ -77,7 +77,7 @@ class TestDriftClassRegistry:
         assert expected <= _DRIFT_CLASS_REGISTRY
 
     def test_residual_classes_registered(self) -> None:
-        import verdano.drift.strategies  # noqa: F401
+        import cpg_reconciler.drift.strategies  # noqa: F401
         expected = {"over_forecast", "under_forecast", "accurate"}
         assert expected <= _DRIFT_CLASS_REGISTRY
 
@@ -92,6 +92,6 @@ class TestDriftDirectionRegistry:
         assert {"high", "low", "ok"} <= known_drift_directions()
 
     def test_residual_directions_registered(self) -> None:
-        import verdano.drift.strategies  # noqa: F401
+        import cpg_reconciler.drift.strategies  # noqa: F401
         expected = {"over_forecast", "under_forecast", "accurate"}
         assert expected <= known_drift_directions()

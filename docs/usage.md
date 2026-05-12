@@ -1,4 +1,4 @@
-# Usage — Verdano MCP work-trial
+# Usage — CPG Reconciler work-trial
 
 Reviewer's guide to running, testing, and exercising the deliverable.
 
@@ -22,8 +22,8 @@ uv run python - <<'PY'
 import gzip, yaml
 from pathlib import Path
 from pydantic import TypeAdapter
-from verdano.erp.models import Product, Customer, Warehouse, InventoryPosition, OpenOrder
-from verdano.pipeline import ErpSnapshot, analyze_week_fulfillment
+from cpg_reconciler.erp.models import Product, Customer, Warehouse, InventoryPosition, OpenOrder
+from cpg_reconciler.pipeline import ErpSnapshot, analyze_week_fulfillment
 
 cdir = Path("tests/erp/cassettes/test_client")
 def load(name, T):
@@ -59,7 +59,7 @@ This runs the entire pipeline against cassette-recorded ERP state. Replace `tesc
 ## Project layout
 
 ```
-src/verdano/
+src/cpg_reconciler/
 ├── canonical/         entity contracts + runtime registries (RetailerCode, FulfillmentClass, Stratum, etc.)
 ├── adapters/          single Adapter class + RetailerSpec configs (Tesco, Sainsbury), KernelLearner protocol (D-021)
 ├── mapping/           cascade resolver (ordered handler chain), normalizer pipeline, depot resolver, Calibrator protocol (D-021), ConfidenceHook system (D-022)
@@ -81,7 +81,7 @@ docs/
 ├── live-run-results.md                    evidence from live ERP run
 ├── architecture/
 │   ├── formalism.md                       LaTeX math: morphisms, FS posteriors, change-of-basis, water-filling, FSM/DAG
-│   ├── verdano-problem-entity-model.md    ER diagram + flowcharts
+│   ├── cpg-reconciler-problem-entity-model.md    ER diagram + flowcharts
 │   └── storage-runtime-decision.md        Polars + DuckDB decision memo
 ├── reference/
 │   └── erp-api.md                         mock ERP HTTP API contract
@@ -119,7 +119,7 @@ After the script finishes, restart Cursor / Claude Desktop to pick up the new co
 Verify the server is healthy at any time:
 
 ```bash
-uv run verdano-mcp --health
+uv run cpg-reconciler --health
 ```
 
 ### Manual configuration (alternative)
@@ -133,11 +133,11 @@ If you prefer to configure MCP manually, add the following entry to your host's 
 ```json
 {
   "mcpServers": {
-    "verdano": {
+    "cpg-reconciler": {
       "command": "uv",
-      "args": ["--directory", "/absolute/path/to/challenge", "run", "verdano-mcp"],
+      "args": ["--directory", "/absolute/path/to/challenge", "run", "cpg-reconciler"],
       "env": {
-        "VERDANO_PROJECT_ROOT": "/absolute/path/to/challenge"
+        "CPG_RECONCILER_PROJECT_ROOT": "/absolute/path/to/challenge"
       }
     }
   }
@@ -201,7 +201,7 @@ uv run python scripts/live_draft_run.py
 
 For reviewers wanting to see the design reasoning rather than just the code:
 
-- **[`DECISIONS.md`](../DECISIONS.md)** — 25 chronological decisions (D-001..D-025), each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration), D-016 (config externalization), D-017 (LLM integration layer), D-018 (semantic stratum naming), D-019 (LLM re-ranker), D-020 (drift extensibility refactor), D-021 (P2 extensibility scaffolding), D-022 (post-calibration hooks), D-023 (normalization config wiring), D-024 (Markov regime-detection drift strategy), D-025 (DuckDB persistence) are the load-bearing ones.
+- **[`DECISIONS.md`](../DECISIONS.md)** — 26 chronological decisions (D-001..D-026), each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration), D-016 (config externalization), D-017 (LLM integration layer), D-018 (semantic stratum naming), D-019 (LLM re-ranker), D-020 (drift extensibility refactor), D-021 (P2 extensibility scaffolding), D-022 (post-calibration hooks), D-023 (normalization config wiring), D-024 (Markov regime-detection drift strategy), D-025 (DuckDB persistence), D-026 (multi-client rename) are the load-bearing ones.
 
 - **[`docs/architecture/formalism.md`](architecture/formalism.md)** — LaTeX-rendered mathematical model. §3 (entity resolution as stratified bipartite matching with FS posteriors), §4 (demand alignment as change-of-basis with non-trivial null space), §5 (allocation as constrained LP with water-filling), §6 (FSM-DAG interlock), §8 (11 explicit pushbacks against the Gemini source where the math diverged from the project's needs).
 
@@ -215,11 +215,11 @@ For reviewers wanting to see the design reasoning rather than just the code:
 
 A few patterns worth calling out if you're scanning the codebase for design quality:
 
-**Resolver as handler chain** ([`src/verdano/mapping/resolver.py`](../src/verdano/mapping/resolver.py)). The `StratumHandler` callable type + `ResolverContext` + ordered `DEFAULT_HANDLERS` list means adding a new matching stratum is `handlers.append(("name", my_handler))` — zero surgery on existing code. `ResolverContext.build_result` centralizes state/confidence logic so handlers can't reimplement it inconsistently. The separation between discovery order (handler chain) and scoring (Fellegi-Sunter posteriors) directly reflects the formalism (§3.5.3 — cascade is blocking strategy, not band constraint).
+**Resolver as handler chain** ([`src/cpg_reconciler/mapping/resolver.py`](../src/cpg_reconciler/mapping/resolver.py)). The `StratumHandler` callable type + `ResolverContext` + ordered `DEFAULT_HANDLERS` list means adding a new matching stratum is `handlers.append(("name", my_handler))` — zero surgery on existing code. `ResolverContext.build_result` centralizes state/confidence logic so handlers can't reimplement it inconsistently. The separation between discovery order (handler chain) and scoring (Fellegi-Sunter posteriors) directly reflects the formalism (§3.5.3 — cascade is blocking strategy, not band constraint).
 
-**Config-driven adapter** ([`src/verdano/adapters/`](../src/verdano/adapters/)). Adding a retailer is purely declarative: define a `RetailerSpec` with column mappings and register it. The Sainsbury's test (`test_sainsburys_config_only.py`) proves the claim — zero new Python was needed to onboard a second retailer. The adapter is a morphism (formalism §2) realized as config, not as a subclass — this passes the README's "2 to 200 customers" scaling criterion by inspection.
+**Config-driven adapter** ([`src/cpg_reconciler/adapters/`](../src/cpg_reconciler/adapters/)). Adding a retailer is purely declarative: define a `RetailerSpec` with column mappings and register it. The Sainsbury's test (`test_sainsburys_config_only.py`) proves the claim — zero new Python was needed to onboard a second retailer. The adapter is a morphism (formalism §2) realized as config, not as a subclass — this passes the README's "2 to 200 customers" scaling criterion by inspection.
 
-**Provenance as first-class data** ([`src/verdano/canonical/models.py`](../src/verdano/canonical/models.py)). `MappingEvidence` carries stratum + matched_value + collision_count, so the operator UI can always explain *why* a mapping was made. Runtime registries (D-015, D-016) enable extensibility without editing type definitions — adding a new fulfillment class or stratum is a function call, not a source change.
+**Provenance as first-class data** ([`src/cpg_reconciler/canonical/models.py`](../src/cpg_reconciler/canonical/models.py)). `MappingEvidence` carries stratum + matched_value + collision_count, so the operator UI can always explain *why* a mapping was made. Runtime registries (D-015, D-016) enable extensibility without editing type definitions — adding a new fulfillment class or stratum is a function call, not a source change.
 
 **Mathematical formalism with independent pushback** ([`docs/architecture/formalism.md`](architecture/formalism.md)). §8 documents 11 explicit divergences from the Gemini source material, each with mathematical justification (e.g., §8.8 — closed-form weighted allocation violates upper-bound constraints, use water-filling instead). The notation bridge (D-018) cleanly maps legacy LaTeX `$E_1$`–`$E_4$` identifiers to the semantic codebase names (`gtin_current`, `fuzzy_jw`, etc.).
 
@@ -239,27 +239,27 @@ The trial ships a complete, tested end-to-end pipeline. Several capabilities wer
 
 | Item | Trial ships | Production upgrade | Decision ref |
 |------|------------|-------------------|--------------|
-| DuckDB persistence (cache + audit + residual history) | Fully implemented: `DuckDBRepository` with 4-table auto-init schema, config-driven swap via `VERDANO_STORAGE_BACKEND=duckdb` (D-025) | Production-ready | D-002, D-025 |
+| DuckDB persistence (cache + audit + residual history) | Fully implemented: `DuckDBRepository` with 4-table auto-init schema, config-driven swap via `CPG_RECONCILER_STORAGE_BACKEND=duckdb` (D-025) | Production-ready | D-002, D-025 |
 | DOW kernel consumption | Static profile on spec | Pipeline disaggregation using `dow_kernel` | D-009 |
 | Simplex-NNLS learned kernel | Static config | At >= 26 weeks EPOS | D-009 |
 | Supervised calibrator (Cascaded Classification LR) | Fellegi-Sunter + JW² unsupervised | At >= 200 labels | D-011 |
 | Isotonic regression calibrator | n/a | At >= 1000 labels, replace LR-as-calibrator | D-011 |
 | Classical residual drift | Implemented as `residual` mode in drift strategy pattern (D-020) | Activate via `mode="residual"` when same-period data available | D-006, D-012, D-020 |
 | Markov drift detection | Implemented as `markov` mode — 3-state transition matrix, persistence + divergence signals, context hierarchy (D-024) | Activate via `mode="markov"` with accumulated residual history | D-006, D-024 |
-| Temperature-band confidence penalty | Implemented as post-calibration hook (D-022). Enabled via `VERDANO_TEMP_BAND_PENALTY_ENABLED=true` | Production-ready | D-022, formalism §3.2 |
+| Temperature-band confidence penalty | Implemented as post-calibration hook (D-022). Enabled via `CPG_RECONCILER_TEMP_BAND_PENALTY_ENABLED=true` | Production-ready | D-022, formalism §3.2 |
 | Retailer-depot-string mapping | Depot resolver (substring + fuzzy + optional LLM fallback) | Implemented in `mapping/depot.py` | D-015, D-017 |
-| Brand-prefix / stop-word normalization | Composable `NormalizationPipeline` with independent config toggles (`VERDANO_NORMALIZE_BRAND_STRIPPING`, `VERDANO_NORMALIZE_STOP_WORDS`). Normalizer injected through MasterIndex, TfIdfIndex, and all pipeline functions. | Config-driven activation (D-023) | D-013, D-023 |
+| Brand-prefix / stop-word normalization | Composable `NormalizationPipeline` with independent config toggles (`CPG_RECONCILER_NORMALIZE_BRAND_STRIPPING`, `CPG_RECONCILER_NORMALIZE_STOP_WORDS`). Normalizer injected through MasterIndex, TfIdfIndex, and all pipeline functions. | Config-driven activation (D-023) | D-013, D-023 |
 | `RetailerCode` runtime extensibility | Registry-constrained `str` (implemented) | `register_retailer()` + `validate_retailer_code()` | D-015 |
-| Config externalization | All thresholds in `Settings` with `VERDANO_` env prefix | Operator-tunable without code deploys | D-016 |
-| LLM entity resolution (`llm_augmented` stratum) | Provider-agnostic client, `llm_augmented` handler, depot LLM fallback — all optional | Enable via `VERDANO_LLM_API_KEY` | D-017 |
-| LLM post-cascade re-ranker | Validates low-confidence / ambiguous cascade matches via LLM second opinion (optional) | Tune via `VERDANO_RERANK_*` settings | D-019 |
+| Config externalization | All thresholds in `Settings` with `CPG_RECONCILER_` env prefix | Operator-tunable without code deploys | D-016 |
+| LLM entity resolution (`llm_augmented` stratum) | Provider-agnostic client, `llm_augmented` handler, depot LLM fallback — all optional | Enable via `CPG_RECONCILER_LLM_API_KEY` | D-017 |
+| LLM post-cascade re-ranker | Validates low-confidence / ambiguous cascade matches via LLM second opinion (optional) | Tune via `CPG_RECONCILER_RERANK_*` settings | D-019 |
 | FulfillmentClass / Stratum / MappingState / DriftClass extensibility | Runtime registries (same pattern as RetailerCode) | `register_*()` functions | D-016 |
 
 ## Non-goals (deliberate)
 
-- Markov drift detection is implemented (D-024) but requires accumulated residual history (multi-week `mode="residual"` runs) before it produces meaningful signals. With `DuckDBRepository` (D-025, set `VERDANO_STORAGE_BACKEND=duckdb`), residual history persists across process restarts.
+- Markov drift detection is implemented (D-024) but requires accumulated residual history (multi-week `mode="residual"` runs) before it produces meaningful signals. With `DuckDBRepository` (D-025, set `CPG_RECONCILER_STORAGE_BACKEND=duckdb`), residual history persists across process restarts.
 - Retailer-depot-string → `ship_to_location_id` mapping — now auto-resolved by `mapping/depot.py` (substring + fuzzy). `create_drafts_for_safe_lines_tool` still accepts an explicit override.
 - Supervised Cascaded Classification calibrator — D-011 names the path; the `Calibrator` protocol and `SupervisedCalibrator` placeholder are scaffolded (D-021). Implementation requires >= 200 labeled review-resolution entries.
 - Production-grade DOW kernel learning — D-009 uses the static UK-grocery profile; the `KernelLearner` protocol and `NNLSKernelLearner` placeholder are scaffolded (D-021). Implementation requires >= 4 weeks of daily EPOS data.
-- DuckDB persistence — fully implemented (D-025). `DuckDBRepository` provides file-backed storage with auto-init schema. Enable via `VERDANO_STORAGE_BACKEND=duckdb`; `InMemoryRepository` remains the default.
-- Temperature-band confidence penalty — implemented as a post-calibration hook (D-022). Detects keyword/band mismatches in the matched ERP product name and applies a multiplicative penalty. Enabled via `VERDANO_TEMP_BAND_PENALTY_ENABLED=true`.
+- DuckDB persistence — fully implemented (D-025). `DuckDBRepository` provides file-backed storage with auto-init schema. Enable via `CPG_RECONCILER_STORAGE_BACKEND=duckdb`; `InMemoryRepository` remains the default.
+- Temperature-band confidence penalty — implemented as a post-calibration hook (D-022). Detects keyword/band mismatches in the matched ERP product name and applies a multiplicative penalty. Enabled via `CPG_RECONCILER_TEMP_BAND_PENALTY_ENABLED=true`.

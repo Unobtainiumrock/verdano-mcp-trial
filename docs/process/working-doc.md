@@ -1,4 +1,4 @@
-# Verdano work-trial — working doc
+# CPG Reconciler work-trial — working doc
 
 This document is the **operating index**, not the authority. Authoritative content lives in the source-of-truth references below; this doc is a quick-scan workspace for active questions, tasks, gotchas, and design gaps.
 
@@ -8,7 +8,7 @@ This document is the **operating index**, not the authority. Authoritative conte
 - **ERP primitives (grounding context, not operational scope per D-005):** [`primitives/ERP/README.md`](../../primitives/ERP/README.md) + the four primitive files. Documents how an ERP is built; we treat the actual ERP as an external state machine over HTTP.
 - **CPG primitives (operational scope):** [`primitives/CPG/README.md`](../../primitives/CPG/README.md), [`entity-resolution.md`](../../primitives/CPG/entity-resolution.md), [`demand-alignment.md`](../../primitives/CPG/demand-alignment.md), [`allocation.md`](../../primitives/CPG/allocation.md), [`workflow.md`](../../primitives/CPG/workflow.md).
 - **Mathematical formalism (LaTeX):** [`formalism.md`](../architecture/formalism.md). Co-created from the Gemini source; explicit pushback section captures divergences.
-- **Entity/relationship model:** [`verdano-problem-entity-model.md`](../architecture/verdano-problem-entity-model.md).
+- **Entity/relationship model:** [`cpg-reconciler-problem-entity-model.md`](../architecture/cpg-reconciler-problem-entity-model.md).
 - **Storage / runtime decision:** [`storage-runtime-decision.md`](../architecture/storage-runtime-decision.md).
 - **Decisions log:** [`DECISIONS.md`](../../DECISIONS.md) — chronological with rationale.
 - **Trial brief:** [`README.md`](../../README.md), [`erp-api.md`](../reference/erp-api.md).
@@ -46,7 +46,7 @@ Each entry below points at its full decision record in [`DECISIONS.md`](../../DE
    - **Status:** provisionally locked as D-003 with explicit hesitation preserved. Expected to re-examine under a linear-algebra / mapping-of-spaces framing once `primitives/CPG/` lands (tracked as `MATH-SOT`). Adapters may turn out to be better modeled as *morphisms between primitive spaces* than as OOP-polymorphic classes — the polymorphic Pydantic surface is load-bearing scaffolding, not a final commitment.
 4. ~~Should the hallucination-detection framework be included anywhere in the stack for grounded behavior?~~ **Out of scope:** the pipeline is structured-data-in / structured-data-out; no generative LLM in the path. The MCP server exposes deterministic tools — hallucination risk is zero within the pipeline boundary.
 5. ~~Is a relational DB the sound approach?~~ **Resolved by D-002:** Polars + DuckDB. DuckDB provides a real SQL contract (columnar OLAP); we get the relational benefits without the Postgres setup overhead. See [storage-runtime-decision.md](../architecture/storage-runtime-decision.md).
-6. ~~Where do I get the API key?~~ **Resolved:** the trial brief includes it; copy from `README.md` into your `.env` as `VERDANO_ERP_API_KEY` (template in `.env.example`).
+6. ~~Where do I get the API key?~~ **Resolved:** the trial brief includes it; copy from `README.md` into your `.env` as `CPG_RECONCILER_ERP_API_KEY` (template in `.env.example`).
 
 ## Tasks
 
@@ -90,7 +90,7 @@ The README names three eval criteria: code quality, abstraction quality, and art
 2. **"2 → 200 customers" biases against per-retailer subclasses.** README explicitly tests scaling of form factor. If polymorphism (open question #3) means "one `TescoAdapter` / `SainsburysAdapter` subclass each", the architecture fails the 200-retailer test by inspection.
    - **Action:** adapter = (column-mapping spec) + (parsing/normalization rules) + (small pluggable resolver). Polymorphism for the **core entity contracts** (`DemandLine`, `ActualsLine`, `ProductKey`); **configuration** for the per-retailer specifics. Onboarding retailer #3 should be a YAML/Pydantic spec, not a new file of imperative code.
 
-3. ~~**Customer-hierarchy mapping is a parallel adapter problem.**~~ **Implemented** in `src/verdano/mapping/depot.py`. `resolve_depot(label, customers, retailer)` auto-resolves CSV location labels to ERP `ship_to` customer IDs via substring + fuzzy matching. `create_drafts_for_safe_lines_tool` now makes `ship_to_location_id` optional — if omitted, auto-resolved from the first forecast line's location label. Fan-out for `"All Depots"` picks the best fuzzy match; explicit override is always available.
+3. ~~**Customer-hierarchy mapping is a parallel adapter problem.**~~ **Implemented** in `src/cpg_reconciler/mapping/depot.py`. `resolve_depot(label, customers, retailer)` auto-resolves CSV location labels to ERP `ship_to` customer IDs via substring + fuzzy matching. `create_drafts_for_safe_lines_tool` now makes `ship_to_location_id` optional — if omitted, auto-resolved from the first forecast line's location label. Fan-out for `"All Depots"` picks the best fuzzy match; explicit override is always available.
 
 4. **Free-to-promise math needs to be pinned down.** Inputs are listed (available, allocated, open orders) but the formula isn't.
    - **Action:** standardize on `ftp_cases(sku, window) = available_cases − allocated_cases − Σ open_order_cases(required_date ∈ window)`. Make the `window` and the **temperature-compatible warehouse set** explicit parameters. This formula is the line between "safe" and "at risk" — reviewers will look for it.

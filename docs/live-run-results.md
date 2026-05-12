@@ -1,4 +1,4 @@
-# Live-run evidence — Verdano MCP draft creation
+# Live-run evidence — CPG Reconciler draft creation
 
 This file is reviewer evidence that the deliverable works end-to-end against the live trial ERP, not just against tests with faked/recorded data.
 
@@ -65,7 +65,7 @@ This confirms the **deterministic `external_reference` hash** (formalism §7) ac
 
 ## Live ERP draft inventory at end-of-run
 
-`Client.list_order_drafts()` (bypassing MCP, raw client call) returned 8 drafts with the `verdano-` prefix:
+`Client.list_order_drafts()` (bypassing MCP, raw client call) returned 8 drafts with the `cpg-reconciler-` prefix:
 
 | Draft ID | SKU | Qty | Ship-to | Source |
 |---|---|---|---|---|
@@ -76,16 +76,16 @@ This confirms the **deterministic `external_reference` hash** (formalism §7) ac
 | `DRAFT-E2CDA112` | `VG-TOMS-500` | 40 | `SHIP-TESCO-RDG` | this run (ambient) |
 | `DRAFT-6B4F09C8` | `VG-MUSH-500` | 22 | `SHIP-TESCO-RDG` | this run (ambient) |
 | `DRAFT-A452B9F6` | `VG-CARR-500` | 16 | `SHIP-TESCO-RDG` | this run (ambient) |
-| `DRAFT-C191E161` | `VG-FALA-500` | 8 | `SHIP-TESCO-DAV` | earlier cassette-recording smoke (`verdano-trial-smoke-001`) |
+| `DRAFT-C191E161` | `VG-FALA-500` | 8 | `SHIP-TESCO-DAV` | earlier cassette-recording smoke (`cpg-reconciler-trial-smoke-001`) |
 
 The 7 drafts from this run plus the one historical artifact from the earlier ERP-client cassette recording. No duplicates. No stragglers.
 
 ## What this validates
 
-1. **SSL through TLS-MITM proxy works** (the `_resolve_ssl_context` helper in `src/verdano/erp/client.py` correctly combines certifi roots with extra dev CAs).
+1. **SSL through TLS-MITM proxy works** (the `_resolve_ssl_context` helper in `src/cpg_reconciler/erp/client.py` correctly combines certifi roots with extra dev CAs).
 2. **The MCP tool's pre-filter on temperature band catches every incompatible draft** before the ERP sees it (`failed` empty across both ship_tos).
 3. **Idempotency is real, not hypothetical** — re-runs return `existing` for every previously-created draft, no new draft_ids appear.
-4. **The deterministic `external_reference` hash is correct** — the same (retailer, sku, week, ship_to) tuple always produces the same `verdano-<sha256-prefix>` string.
+4. **The deterministic `external_reference` hash is correct** — the same (retailer, sku, week, ship_to) tuple always produces the same `cpg-reconciler-<sha256-prefix>` string.
 5. **The full pipeline path agrees with the cassette-tested path** — same classifications, same SKUs flagged as Safe.
 
 ## Reproducing the run

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from verdano.mapping.normalize import normalize, tokens
+from cpg_reconciler.mapping.normalize import normalize, tokens
 
 
 @pytest.mark.parametrize(

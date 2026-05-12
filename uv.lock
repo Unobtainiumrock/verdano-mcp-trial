@@ -138,6 +138,62 @@ wheels = [
 ]
 
 [[package]]
+name = "cpg-reconciler"
+version = "0.0.1"
+source = { editable = "." }
+dependencies = [
+    { name = "certifi" },
+    { name = "httpx" },
+    { name = "mcp" },
+    { name = "polars" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "rapidfuzz" },
+    { name = "structlog" },
+]
+
+[package.optional-dependencies]
+llm = [
+    { name = "openai" },
+]
+storage = [
+    { name = "duckdb" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-recording" },
+    { name = "pyyaml" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "certifi", specifier = ">=2024.0.0" },
+    { name = "duckdb", marker = "extra == 'storage'", specifier = ">=1.0" },
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "mcp", specifier = ">=1.0" },
+    { name = "openai", marker = "extra == 'llm'", specifier = ">=1.30" },
+    { name = "polars", specifier = ">=1.0" },
+    { name = "pydantic", specifier = ">=2.7" },
+    { name = "pydantic-settings", specifier = ">=2.4" },
+    { name = "rapidfuzz", specifier = ">=3.14.5" },
+    { name = "structlog", specifier = ">=24.1" },
+]
+provides-extras = ["storage", "llm"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.10" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-recording", specifier = ">=0.13" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "ruff", specifier = ">=0.6" },
+]
+
+[[package]]
 name = "cryptography"
 version = "48.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1248,62 +1304,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b3/07/bcfd5ebd7cb308026ab78a353e091bd699593358be49197d39d004e5ad83/vcrpy-8.1.1.tar.gz", hash = "sha256:58e3053e33b423f3594031cb758c3f4d1df931307f1e67928e30cf352df7709f", size = 85770 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3a/d7/f79b05a5d728f8786876a7d75dfb0c5cae27e428081b2d60152fb52f155f/vcrpy-8.1.1-py3-none-any.whl", hash = "sha256:2d16f31ad56493efb6165182dd99767207031b0da3f68b18f975545ede8ac4b9", size = 42445 },
-]
-
-[[package]]
-name = "verdano-mcp"
-version = "0.0.1"
-source = { editable = "." }
-dependencies = [
-    { name = "certifi" },
-    { name = "httpx" },
-    { name = "mcp" },
-    { name = "polars" },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-    { name = "rapidfuzz" },
-    { name = "structlog" },
-]
-
-[package.optional-dependencies]
-llm = [
-    { name = "openai" },
-]
-storage = [
-    { name = "duckdb" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "pytest-recording" },
-    { name = "pyyaml" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "certifi", specifier = ">=2024.0.0" },
-    { name = "duckdb", marker = "extra == 'storage'", specifier = ">=1.0" },
-    { name = "httpx", specifier = ">=0.27" },
-    { name = "mcp", specifier = ">=1.0" },
-    { name = "openai", marker = "extra == 'llm'", specifier = ">=1.30" },
-    { name = "polars", specifier = ">=1.0" },
-    { name = "pydantic", specifier = ">=2.7" },
-    { name = "pydantic-settings", specifier = ">=2.4" },
-    { name = "rapidfuzz", specifier = ">=3.14.5" },
-    { name = "structlog", specifier = ">=24.1" },
-]
-provides-extras = ["storage", "llm"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy", specifier = ">=1.10" },
-    { name = "pytest", specifier = ">=8.0" },
-    { name = "pytest-recording", specifier = ">=0.13" },
-    { name = "pyyaml", specifier = ">=6.0" },
-    { name = "ruff", specifier = ">=0.6" },
 ]
 
 [[package]]

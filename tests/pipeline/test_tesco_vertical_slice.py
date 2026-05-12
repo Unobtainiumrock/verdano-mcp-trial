@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from verdano.pipeline import ErpSnapshot, analyze_week_fulfillment
+from cpg_reconciler.pipeline import ErpSnapshot, analyze_week_fulfillment
 
 
 def test_tesco_w20_pipeline_produces_classifications(

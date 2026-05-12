@@ -1,6 +1,6 @@
 # ERP Data Primitives — the Information Layer
 
-This file populates the **data** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+This file populates the **data** layer of the ERP-primitives ontology from [raw-truth.md](../../docs/process/raw-truth.md). Cross-references the canonical entity model in [docs/architecture/cpg-reconciler-problem-entity-model.md](../../docs/architecture/cpg-reconciler-problem-entity-model.md).
 
 ---
 
@@ -29,7 +29,7 @@ These come from the ERP API's read-only master endpoints; we never write canonic
 | `Customer` (`sold_to` / `bill_to` / `ship_to`) | `GET /erp/customers` | hierarchy | `ship_to_location_id` is required for `POST /erp/order-drafts`; depot-string → `ship_to_location_id` is its own mapping problem (parallel to product mapping). |
 | `Warehouse` | `GET /erp/warehouses` | `warehouse_id`, `temperature_band` | Free-to-promise sums available cases by *temperature-compatible* warehouse, not just by SKU. |
 
-Master data is **read** from the ERP and held in-memory for the duration of each pipeline run. Local persistence is available via `DuckDBRepository` (D-025) — mapping cache, review labels, audit log, and residual history are stored across sessions when `VERDANO_STORAGE_BACKEND=duckdb`. See [storage-runtime-decision.md](../../docs/architecture/storage-runtime-decision.md) and [`docs/usage.md`](../../docs/usage.md). We do not author master records.
+Master data is **read** from the ERP and held in-memory for the duration of each pipeline run. Local persistence is available via `DuckDBRepository` (D-025) — mapping cache, review labels, audit log, and residual history are stored across sessions when `CPG_RECONCILER_STORAGE_BACKEND=duckdb`. See [storage-runtime-decision.md](../../docs/architecture/storage-runtime-decision.md) and [`docs/usage.md`](../../docs/usage.md). We do not author master records.
 
 ### Transactional Data — Verdano
 
@@ -59,7 +59,7 @@ Metadata is versioned with the codebase and treated as part of the project's sou
 
 ## Cross-references
 
-- Canonical entity model: [verdano-problem-entity-model.md](../../docs/architecture/verdano-problem-entity-model.md).
+- Canonical entity model: [cpg-reconciler-problem-entity-model.md](../../docs/architecture/cpg-reconciler-problem-entity-model.md).
 - ERP API endpoints: [ERP API.md](../../docs/reference/erp-api.md).
 - Storage / runtime: [storage-runtime-decision.md](../../docs/architecture/storage-runtime-decision.md).
 - Decisions referenced: D-001 (adapter shape), D-002 (storage), D-004 (primitives backbone). See [DECISIONS.md](../../DECISIONS.md).

@@ -10,15 +10,15 @@ import os
 
 import pytest
 
-from verdano.erp.models import Product
-from verdano.mapping.normalize import (
+from cpg_reconciler.erp.models import Product
+from cpg_reconciler.mapping.normalize import (
     DEFAULT_PIPELINE,
     NormalizationPipeline,
     build_pipeline,
 )
-from verdano.mapping.resolver import MasterIndex, Resolver
-from verdano.mapping.tfidf import TfIdfIndex
-from verdano.canonical import RetailerProductKey
+from cpg_reconciler.mapping.resolver import MasterIndex, Resolver
+from cpg_reconciler.mapping.tfidf import TfIdfIndex
+from cpg_reconciler.canonical import RetailerProductKey
 
 
 def _product(
@@ -158,11 +158,11 @@ class TestResolverWithNormalizer:
 
 class TestConfigParsing:
     def test_default_disabled(self) -> None:
-        env = {"VERDANO_ERP_API_KEY": "test-key"}
+        env = {"CPG_RECONCILER_ERP_API_KEY": "test-key"}
         for k, v in env.items():
             os.environ[k] = v
         try:
-            from verdano.config import Settings
+            from cpg_reconciler.config import Settings
             cfg = Settings()
             assert cfg.normalize_brand_stripping is False
             assert cfg.normalize_stop_words is False
@@ -174,14 +174,14 @@ class TestConfigParsing:
 
     def test_brand_stripping_enabled(self) -> None:
         env = {
-            "VERDANO_ERP_API_KEY": "test-key",
-            "VERDANO_NORMALIZE_BRAND_STRIPPING": "true",
-            "VERDANO_BRAND_PREFIXES": "acme,acme foods",
+            "CPG_RECONCILER_ERP_API_KEY": "test-key",
+            "CPG_RECONCILER_NORMALIZE_BRAND_STRIPPING": "true",
+            "CPG_RECONCILER_BRAND_PREFIXES": "acme,acme foods",
         }
         for k, v in env.items():
             os.environ[k] = v
         try:
-            from verdano.config import Settings
+            from cpg_reconciler.config import Settings
             cfg = Settings()
             assert cfg.normalize_brand_stripping is True
             prefixes = cfg.get_brand_prefixes()
@@ -192,14 +192,14 @@ class TestConfigParsing:
 
     def test_stop_words_enabled(self) -> None:
         env = {
-            "VERDANO_ERP_API_KEY": "test-key",
-            "VERDANO_NORMALIZE_STOP_WORDS": "true",
-            "VERDANO_STOP_WORDS": "the,a,an",
+            "CPG_RECONCILER_ERP_API_KEY": "test-key",
+            "CPG_RECONCILER_NORMALIZE_STOP_WORDS": "true",
+            "CPG_RECONCILER_STOP_WORDS": "the,a,an",
         }
         for k, v in env.items():
             os.environ[k] = v
         try:
-            from verdano.config import Settings
+            from cpg_reconciler.config import Settings
             cfg = Settings()
             assert cfg.normalize_stop_words is True
             stops = cfg.get_stop_words()
@@ -210,14 +210,14 @@ class TestConfigParsing:
 
     def test_both_enabled_independently(self) -> None:
         env = {
-            "VERDANO_ERP_API_KEY": "test-key",
-            "VERDANO_NORMALIZE_BRAND_STRIPPING": "true",
-            "VERDANO_NORMALIZE_STOP_WORDS": "false",
+            "CPG_RECONCILER_ERP_API_KEY": "test-key",
+            "CPG_RECONCILER_NORMALIZE_BRAND_STRIPPING": "true",
+            "CPG_RECONCILER_NORMALIZE_STOP_WORDS": "false",
         }
         for k, v in env.items():
             os.environ[k] = v
         try:
-            from verdano.config import Settings
+            from cpg_reconciler.config import Settings
             cfg = Settings()
             assert cfg.get_brand_prefixes() is not None
             assert cfg.get_stop_words() is None

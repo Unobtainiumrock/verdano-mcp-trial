@@ -126,7 +126,7 @@ Once the LR has produced calibrated probabilities, the auto-allocate tripwire is
 
 ## Connection to the canonical entity model
 
-The mapping graph corresponds to the `RetailerToErpMapping` entity in [`docs/architecture/verdano-problem-entity-model.md`](../../docs/architecture/verdano-problem-entity-model.md), with the `MappingEvidence` table holding per-edge evidence records. The fall-through rungs are *not* a hard-coded sequence — they're declared in the retailer adapter spec (per **D-001** config-driven adapters), so different retailers can have different rung orderings if needed.
+The mapping graph corresponds to the `RetailerToErpMapping` entity in [`docs/architecture/cpg-reconciler-problem-entity-model.md`](../../docs/architecture/cpg-reconciler-problem-entity-model.md), with the `MappingEvidence` table holding per-edge evidence records. The fall-through rungs are *not* a hard-coded sequence — they're declared in the retailer adapter spec (per **D-001** config-driven adapters), so different retailers can have different rung orderings if needed.
 
 ## Cross-references
 

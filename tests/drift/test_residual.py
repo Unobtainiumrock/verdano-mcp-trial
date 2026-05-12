@@ -8,14 +8,14 @@ from __future__ import annotations
 
 import pytest
 
-from verdano.adapters.raw import RawActualsLine, RawDemandLine
-from verdano.pipeline import ErpSnapshot
-from verdano.canonical import MappingEvidence, MappingResult, RetailerProductKey
-from verdano.drift import DriftAnalyzer, DriftContext, DriftReport
-from verdano.drift.strategies import residual_strategy
-from verdano.drift.types import _DRIFT_DIRECTION_REGISTRY
-from verdano.erp.models import Product
-from verdano.pipeline.drift import analyze_drift
+from cpg_reconciler.adapters.raw import RawActualsLine, RawDemandLine
+from cpg_reconciler.pipeline import ErpSnapshot
+from cpg_reconciler.canonical import MappingEvidence, MappingResult, RetailerProductKey
+from cpg_reconciler.drift import DriftAnalyzer, DriftContext, DriftReport
+from cpg_reconciler.drift.strategies import residual_strategy
+from cpg_reconciler.drift.types import _DRIFT_DIRECTION_REGISTRY
+from cpg_reconciler.erp.models import Product
+from cpg_reconciler.pipeline.drift import analyze_drift
 
 
 # -------------------------------------------------------------------
@@ -258,7 +258,7 @@ def test_analyze_drift_plausibility_backward_compat(
     erp_snapshot: ErpSnapshot, project_root: Path,
 ) -> None:
     """analyze_drift with mode=plausibility matches analyze_forecast_plausibility."""
-    from verdano.pipeline import analyze_forecast_plausibility
+    from cpg_reconciler.pipeline import analyze_forecast_plausibility
 
     legacy = analyze_forecast_plausibility(
         retailer="tesco",

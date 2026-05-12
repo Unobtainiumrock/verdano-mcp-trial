@@ -16,11 +16,11 @@ from __future__ import annotations
 import pytest
 from datetime import datetime, timezone
 
-from verdano.adapters.raw import RawActualsLine, RawDemandLine
-from verdano.canonical import MappingEvidence, MappingResult, RetailerProductKey
-from verdano.config import Settings
-from verdano.drift import DriftAnalyzer, DriftContext, DriftReport
-from verdano.drift.markov import (
+from cpg_reconciler.adapters.raw import RawActualsLine, RawDemandLine
+from cpg_reconciler.canonical import MappingEvidence, MappingResult, RetailerProductKey
+from cpg_reconciler.config import Settings
+from cpg_reconciler.drift import DriftAnalyzer, DriftContext, DriftReport
+from cpg_reconciler.drift.markov import (
     MARKOV_STATES,
     MarkovDriftContext,
     TransitionMatrix,
@@ -28,8 +28,8 @@ from verdano.drift.markov import (
     _consecutive_tail_count,
     _kl_divergence,
 )
-from verdano.erp.models import Product
-from verdano.storage import InMemoryRepository, ResidualRecord
+from cpg_reconciler.erp.models import Product
+from cpg_reconciler.storage import InMemoryRepository, ResidualRecord
 
 
 # -------------------------------------------------------------------

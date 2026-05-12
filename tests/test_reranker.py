@@ -7,15 +7,15 @@ from typing import Any
 
 import pytest
 
-from verdano.canonical import MappingEvidence, MappingResult, RetailerProductKey
-from verdano.erp.models import Product
-from verdano.llm.reranker import (
+from cpg_reconciler.canonical import MappingEvidence, MappingResult, RetailerProductKey
+from cpg_reconciler.erp.models import Product
+from cpg_reconciler.llm.reranker import (
     ReRankResult,
     apply_rerank,
     rerank_mapping,
     should_rerank,
 )
-from verdano.mapping.resolver import MasterIndex
+from cpg_reconciler.mapping.resolver import MasterIndex
 
 
 class FakeLLMClient:

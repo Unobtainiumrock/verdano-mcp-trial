@@ -10,15 +10,15 @@ from datetime import datetime
 
 import pytest
 
-from verdano.allocation.classify import Classifier
-from verdano.allocation.ftp import FTPCalculator
-from verdano.canonical import (
+from cpg_reconciler.allocation.classify import Classifier
+from cpg_reconciler.allocation.ftp import FTPCalculator
+from cpg_reconciler.canonical import (
     CanonicalDemandLine,
     MappingEvidence,
     MappingResult,
     RetailerProductKey,
 )
-from verdano.erp.models import InventoryPosition, Product, Warehouse
+from cpg_reconciler.erp.models import InventoryPosition, Product, Warehouse
 
 _NOW = datetime(2026, 5, 10, 0, 0, 0)
 

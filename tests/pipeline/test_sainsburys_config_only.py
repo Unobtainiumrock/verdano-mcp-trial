@@ -1,7 +1,7 @@
 """Sainsbury's via config-only — validates the D-001 abstraction.
 
 The contract: onboarding Sainsbury's required *no new Python*. Only the
-`SAINSBURYS_SPEC` instance in `src/verdano/adapters/spec.py` (declarative
+`SAINSBURYS_SPEC` instance in `src/cpg_reconciler/adapters/spec.py` (declarative
 column mapping + unit/time mode + DOW kernel). Same Adapter, same Resolver,
 same FTP, same Classifier.
 
@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from verdano.pipeline import ErpSnapshot, analyze_week_fulfillment
+from cpg_reconciler.pipeline import ErpSnapshot, analyze_week_fulfillment
 
 
 def test_sainsburys_w20_pipeline_runs(
@@ -127,7 +127,7 @@ def test_units_to_cases_conversion_is_ceiling(
     case_pack_by_sku = {p.sku: p.case_pack for p in erp_snapshot.products}
 
     # Build a key → forecast_units map from the raw CSV via the adapter.
-    from verdano.adapters import SAINSBURYS_SPEC, Adapter
+    from cpg_reconciler.adapters import SAINSBURYS_SPEC, Adapter
     raw = Adapter(SAINSBURYS_SPEC).normalize_forecast(
         project_root / "data" / "sainsburys_forecast_week20.csv"
     )

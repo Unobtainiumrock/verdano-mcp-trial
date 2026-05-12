@@ -8,31 +8,31 @@ from unittest.mock import patch
 
 import pytest
 
-from verdano.config import Settings, _find_env_file
-from verdano.mcp_server.server import _validate_iso_week
+from cpg_reconciler.config import Settings, _find_env_file
+from cpg_reconciler.mcp_server.server import _validate_iso_week
 
 
 class TestFindEnvFile:
     """_find_env_file resolution logic."""
 
-    def test_verdano_project_root_takes_priority(self, tmp_path: Path) -> None:
+    def test_project_root_env_takes_priority(self, tmp_path: Path) -> None:
         env = tmp_path / ".env"
-        env.write_text("VERDANO_ERP_API_KEY=test\n")
-        with patch.dict(os.environ, {"VERDANO_PROJECT_ROOT": str(tmp_path)}):
+        env.write_text("CPG_RECONCILER_ERP_API_KEY=test\n")
+        with patch.dict(os.environ, {"CPG_RECONCILER_PROJECT_ROOT": str(tmp_path)}):
             result = _find_env_file()
         assert result == str(env)
 
     def test_walks_up_from_file_when_no_env_var(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.delenv("VERDANO_PROJECT_ROOT", raising=False)
+        monkeypatch.delenv("CPG_RECONCILER_PROJECT_ROOT", raising=False)
         result = _find_env_file()
         assert isinstance(result, str)
 
     def test_cwd_fallback_when_nothing_found(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        monkeypatch.delenv("VERDANO_PROJECT_ROOT", raising=False)
+        monkeypatch.delenv("CPG_RECONCILER_PROJECT_ROOT", raising=False)
         monkeypatch.chdir(tmp_path)
-        import verdano.config as cfg_mod
+        import cpg_reconciler.config as cfg_mod
         monkeypatch.setattr(cfg_mod, "__file__", str(tmp_path / "nonexistent" / "config.py"))
         result = _find_env_file()
         assert result == ".env"
@@ -79,12 +79,12 @@ class TestDriftResidualThreshold:
     """drift_residual_threshold config field."""
 
     def test_default_value(self) -> None:
-        with patch.dict(os.environ, {"VERDANO_ERP_API_KEY": "test"}, clear=False):
+        with patch.dict(os.environ, {"CPG_RECONCILER_ERP_API_KEY": "test"}, clear=False):
             cfg = Settings()  # type: ignore[call-arg]
         assert cfg.drift_residual_threshold == 0.10
 
     def test_env_override(self) -> None:
-        env = {"VERDANO_ERP_API_KEY": "test", "VERDANO_DRIFT_RESIDUAL_THRESHOLD": "0.25"}
+        env = {"CPG_RECONCILER_ERP_API_KEY": "test", "CPG_RECONCILER_DRIFT_RESIDUAL_THRESHOLD": "0.25"}
         with patch.dict(os.environ, env, clear=False):
             cfg = Settings()  # type: ignore[call-arg]
         assert cfg.drift_residual_threshold == 0.25

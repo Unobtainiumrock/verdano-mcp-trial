@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from verdano.erp.models import Customer
-from verdano.mapping.depot import resolve_depot
+from cpg_reconciler.erp.models import Customer
+from cpg_reconciler.mapping.depot import resolve_depot
 
 
 def _ship_to(

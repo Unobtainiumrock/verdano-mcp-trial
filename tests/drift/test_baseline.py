@@ -15,20 +15,20 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from verdano.drift import (
+from cpg_reconciler.drift import (
     DriftAnalyzer,
     DriftContext,
     plausibility_strategy,
 )
-from verdano.drift.baseline import DriftReport
-from verdano.drift.types import (
+from cpg_reconciler.drift.baseline import DriftReport
+from cpg_reconciler.drift.types import (
     DriftSignal,
     _DRIFT_DIRECTION_REGISTRY,
     known_drift_directions,
     register_drift_direction,
 )
-from verdano.mcp_server.server import build_server, get_tool_handler
-from verdano.pipeline import (
+from cpg_reconciler.mcp_server.server import build_server, get_tool_handler
+from cpg_reconciler.pipeline import (
     ErpSnapshot,
     analyze_forecast_plausibility,
 )

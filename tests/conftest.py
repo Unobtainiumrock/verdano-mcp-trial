@@ -13,14 +13,14 @@ import pytest
 import yaml
 from pydantic import TypeAdapter
 
-from verdano.erp.models import (
+from cpg_reconciler.erp.models import (
     Customer,
     InventoryPosition,
     OpenOrder,
     Product,
     Warehouse,
 )
-from verdano.pipeline import ErpSnapshot
+from cpg_reconciler.pipeline import ErpSnapshot
 
 CASSETTE_DIR = Path(__file__).resolve().parent / "erp" / "cassettes" / "test_client"
 
