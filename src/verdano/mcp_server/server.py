@@ -26,6 +26,8 @@ from verdano.config import Settings, load_settings
 from verdano.erp import Client
 from verdano.llm.client import LLMClient, create_llm_client
 from verdano.mapping.depot import resolve_depot
+from verdano.mapping.hooks import ConfidenceHook, temperature_band_penalty
+from verdano.mapping.normalize import NormalizationPipeline, build_pipeline
 from verdano.mapping.priors import CalibrationPriors
 from verdano.pipeline import (
     AnalysisResult,
@@ -34,6 +36,7 @@ from verdano.pipeline import (
 )
 from verdano.pipeline.drift import analyze_drift
 from verdano.pipeline.drafts import create_drafts
+from verdano.storage import AuditEntry, InMemoryRepository, Repository
 
 ErpClientFactory = Callable[[], AbstractContextManager[Client]]
 
@@ -128,6 +131,8 @@ def _run_analysis(
     llm_client: LLMClient | None,
     priors: CalibrationPriors,
     project_root: Path,
+    confidence_hooks: list[ConfidenceHook] | None = None,
+    normalizer: NormalizationPipeline | None = None,
 ) -> AnalysisResult:
     """Shared analysis pipeline invocation used by multiple tools."""
     return analyze_week_fulfillment(
@@ -145,6 +150,8 @@ def _run_analysis(
         rerank_threshold=cfg.rerank_threshold,
         rerank_strata=cfg.get_rerank_strata(),
         rerank_min_llm_confidence=cfg.rerank_min_llm_confidence,
+        confidence_hooks=confidence_hooks,
+        normalizer=normalizer,
     )
 
 
@@ -152,6 +159,7 @@ def build_server(
     project_root: Path | None = None,
     erp_client_factory: ErpClientFactory | None = None,
     settings: Settings | None = None,
+    repository: Repository | None = None,
 ) -> FastMCP:
     """Construct (but do not run) the MCP server.
 
@@ -162,11 +170,21 @@ def build_server(
     factory = erp_client_factory or Client.from_env
     cfg = settings or load_settings()
     llm_client = create_llm_client(cfg)
+    repo = repository or InMemoryRepository()
 
     priors = CalibrationPriors(
         epsilon=cfg.fs_epsilon,
         gamma=cfg.fs_gamma,
         alpha=cfg.fs_alpha,
+    )
+
+    hooks: list[ConfidenceHook] = []
+    if cfg.temp_band_penalty_enabled:
+        hooks.append(temperature_band_penalty(cfg.temp_band_penalty_lambda))
+
+    norm_pipeline = build_pipeline(
+        brand_prefixes=cfg.get_brand_prefixes(),
+        stop_words=cfg.get_stop_words(),
     )
 
     server: FastMCP = FastMCP("verdano-mcp")
@@ -194,7 +212,15 @@ def build_server(
             erp = _erp_snapshot_from_live(client)
         result = _run_analysis(
             retailer, iso_week, erp, cfg, llm_client, priors, project_root,
+            confidence_hooks=hooks or None,
+            normalizer=norm_pipeline,
         )
+        repo.log_audit(AuditEntry(
+            tool_name="analyze_week_fulfillment",
+            retailer=retailer,
+            iso_week=iso_week,
+            summary=f"{len(result.classifications)} lines classified",
+        ))
         return result.model_dump(mode="json")
 
     @server.tool()
@@ -220,11 +246,19 @@ def build_server(
             erp = _erp_snapshot_from_live(client)
         result = _run_analysis(
             retailer, iso_week, erp, cfg, llm_client, priors, project_root,
+            confidence_hooks=hooks or None,
+            normalizer=norm_pipeline,
         )
         review_items = [
             c for c in result.classifications
             if c.classification in {"Blocked", "AtRiskSevere", "NeedsVerification"}
         ]
+        repo.log_audit(AuditEntry(
+            tool_name="list_review_queue",
+            retailer=retailer,
+            iso_week=iso_week,
+            summary=f"{len(review_items)} items need review",
+        ))
         return {
             "retailer": retailer,
             "iso_week": iso_week,
@@ -273,6 +307,8 @@ def build_server(
             erp = _erp_snapshot_from_live(client)
             result = _run_analysis(
                 retailer, iso_week, erp, cfg, llm_client, priors, project_root,
+                confidence_hooks=hooks or None,
+                normalizer=norm_pipeline,
             )
 
             effective_ship_to = ship_to_location_id
@@ -294,7 +330,7 @@ def build_server(
                         ),
                     }
 
-            return create_drafts(
+            drafts_result = create_drafts(
                 result=result,
                 client=client,
                 customers=erp.customers,
@@ -305,6 +341,14 @@ def build_server(
                 required_date=req_date,
                 ship_to_location_id=effective_ship_to,
             )
+            repo.log_audit(AuditEntry(
+                tool_name="create_drafts_for_safe_lines",
+                retailer=retailer,
+                iso_week=iso_week,
+                parameters={"required_date": required_date, "ship_to": effective_ship_to},
+                summary=f"draft creation for {retailer} {iso_week}",
+            ))
+            return drafts_result
 
     @server.tool()
     def compare_actuals_vs_forecast_tool(
@@ -315,7 +359,7 @@ def build_server(
     ) -> dict[str, Any]:
         """Drift analysis comparing a retailer's forecast against actuals.
 
-        Supports two modes (D-020):
+        Supports three modes (D-020, D-024):
 
         **plausibility** (default): Lagged-actuals ratio check. Computes
         ``forecast_eaches / max(lagged_actuals_eaches, 1)`` per resolved SKU
@@ -328,11 +372,15 @@ def build_server(
         ``iso_week_forecast == iso_week_actuals``. Returns direction as
         ``over_forecast`` / ``under_forecast`` / ``accurate``.
 
+        **markov**: Regime-detection via Markov transition-matrix analysis
+        over multi-week residual histories (D-024). Requires accumulated
+        residual history from prior ``residual`` runs.
+
         Args:
             retailer: Registered retailer code (e.g. "tesco", "sainsburys").
             iso_week_forecast: e.g. "2026-W20".
             iso_week_actuals:  e.g. "2026-W19".
-            mode: "plausibility" (default) or "residual".
+            mode: "plausibility" (default), "residual", or "markov".
         """
         if err := _validate_retailer(retailer):
             return err
@@ -365,9 +413,21 @@ def build_server(
                 threshold_low=cfg.drift_threshold_low,
                 threshold_high=cfg.drift_threshold_high,
                 residual_threshold=cfg.drift_residual_threshold,
+                normalizer=norm_pipeline,
+                repository=repo,
+                markov_min_weeks=cfg.drift_markov_min_weeks,
+                markov_persistence_threshold=cfg.drift_markov_persistence_threshold,
+                markov_max_weeks=cfg.drift_markov_max_weeks,
             )
         except ValueError as exc:
             return {"error": str(exc)}
+        repo.log_audit(AuditEntry(
+            tool_name="compare_actuals_vs_forecast",
+            retailer=retailer,
+            iso_week=iso_week_forecast,
+            parameters={"iso_week_actuals": iso_week_actuals, "mode": mode},
+            summary=f"{mode} drift: {len(report.signals)} signals",
+        ))
         return report.model_dump(mode="json")
 
     return server

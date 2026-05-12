@@ -1,4 +1,4 @@
-"""Forecast-vs-actuals drift detection (D-012, D-020).
+"""Forecast-vs-actuals drift detection (D-012, D-020, D-024).
 
 Supports multiple drift modes via a strategy pattern:
 
@@ -6,8 +6,11 @@ Supports multiple drift modes via a strategy pattern:
   forward-week forecast against the prior week's EPOS actuals.
 - **residual** (D-020): classical signed-residual check for same-period
   forecast vs actuals.
+- **markov** (D-024): regime-detection via Markov transition-matrix
+  analysis over multi-week residual histories.
 
-New strategies register without modifying existing code — see ``strategies.py``.
+New strategies register without modifying existing code — see ``strategies.py``
+and ``markov.py``.
 """
 
 from verdano.drift.baseline import (
@@ -18,6 +21,12 @@ from verdano.drift.baseline import (
     DriftStrategy,
     register_drift_class,
     plausibility_strategy,
+)
+from verdano.drift.markov import (
+    MARKOV_STATES,
+    MarkovDriftContext,
+    TransitionMatrix,
+    markov_strategy,
 )
 from verdano.drift.strategies import residual_strategy
 from verdano.drift.types import (
@@ -33,7 +42,11 @@ __all__ = [
     "DriftReport",
     "DriftSignal",
     "DriftStrategy",
+    "MARKOV_STATES",
+    "MarkovDriftContext",
+    "TransitionMatrix",
     "known_drift_directions",
+    "markov_strategy",
     "plausibility_strategy",
     "register_drift_class",
     "register_drift_direction",

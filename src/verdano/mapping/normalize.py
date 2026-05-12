@@ -94,6 +94,33 @@ class NormalizationPipeline:
 DEFAULT_PIPELINE = NormalizationPipeline([lowercase, collapse_whitespace, normalize_sizes])
 
 
+def build_pipeline(
+    *,
+    brand_prefixes: set[str] | None = None,
+    stop_words: set[str] | None = None,
+) -> NormalizationPipeline:
+    """Construct a pipeline from config toggles.
+
+    Always starts with the three core steps (lowercase, collapse_whitespace,
+    normalize_sizes). Optionally appends brand-prefix stripping and/or
+    stop-word removal, in the correct order:
+
+        lowercase -> collapse_whitespace -> strip_brand_prefixes
+        -> normalize_sizes -> remove_stop_words
+
+    Brand stripping is placed before size normalization so prefixes are
+    matched against lowered, whitespace-collapsed input. Stop-word removal
+    comes last so it operates on fully canonicalized tokens.
+    """
+    steps: list[NormalizerStep] = [lowercase, collapse_whitespace]
+    if brand_prefixes:
+        steps.append(strip_brand_prefixes(brand_prefixes))
+    steps.append(normalize_sizes)
+    if stop_words:
+        steps.append(remove_stop_words(stop_words))
+    return NormalizationPipeline(steps)
+
+
 # ---------------------------------------------------------------------------
 # Backward-compatible API used by resolver, tfidf, and depot modules
 # ---------------------------------------------------------------------------

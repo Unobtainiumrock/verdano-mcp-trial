@@ -36,6 +36,8 @@ from verdano.erp.models import (
     Warehouse,
 )
 from verdano.mapping import MasterIndex, Resolver
+from verdano.mapping.hooks import ConfidenceHook
+from verdano.mapping.normalize import NormalizationPipeline
 from verdano.mapping.priors import DEFAULT_PRIORS, CalibrationPriors
 from verdano.mapping.resolver import DEFAULT_HANDLERS, StratumHandler
 
@@ -151,6 +153,8 @@ def analyze_week_fulfillment(
     rerank_threshold: float = 0.92,
     rerank_strata: frozenset[str] = frozenset({"tfidf_overlap", "fuzzy_jw"}),
     rerank_min_llm_confidence: float = 0.70,
+    confidence_hooks: list[ConfidenceHook] | None = None,
+    normalizer: NormalizationPipeline | None = None,
 ) -> AnalysisResult:
     """Run the DAG end-to-end for a single (retailer, week) input.
 
@@ -169,7 +173,7 @@ def analyze_week_fulfillment(
     raw_lines = adapter.normalize_forecast(forecast_csv)
     raw_lines = [r for r in raw_lines if r.iso_week == iso_week]
 
-    master = MasterIndex(erp.products)
+    master = MasterIndex(erp.products, normalizer=normalizer)
 
     effective_handlers = list(handlers or DEFAULT_HANDLERS)
     if llm_client is not None:
@@ -185,6 +189,7 @@ def analyze_week_fulfillment(
         tfidf_min_matched_tokens=tfidf_min_matched_tokens,
         fuzzy_jw_min_score=fuzzy_jw_min_score,
         handlers=effective_handlers,
+        confidence_hooks=confidence_hooks,
     )
     products_by_sku = {p.sku: p for p in erp.products}
 

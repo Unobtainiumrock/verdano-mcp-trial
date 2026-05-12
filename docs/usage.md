@@ -13,7 +13,7 @@ uv sync
 cp .env.example .env
 # then edit .env and paste in the trial API key from the README brief.
 
-# 3. Confirm everything is wired up (218 tests, fully offline — no .env needed).
+# 3. Confirm everything is wired up (336 tests, fully offline — no .env needed).
 uv run pytest
 
 # 4. Run a one-shot analysis (paste into a Python REPL or a script).
@@ -61,12 +61,13 @@ This runs the entire pipeline against cassette-recorded ERP state. Replace `tesc
 ```
 src/verdano/
 ├── canonical/         entity contracts + runtime registries (RetailerCode, FulfillmentClass, Stratum, etc.)
-├── adapters/          single Adapter class + RetailerSpec configs (Tesco, Sainsbury)
-├── mapping/           cascade resolver (ordered handler chain), normalizer pipeline, depot resolver
+├── adapters/          single Adapter class + RetailerSpec configs (Tesco, Sainsbury), KernelLearner protocol (D-021)
+├── mapping/           cascade resolver (ordered handler chain), normalizer pipeline, depot resolver, Calibrator protocol (D-021), ConfidenceHook system (D-022)
+├── storage/           Repository protocol + InMemoryRepository / DuckDB placeholder (D-021)
 ├── allocation/        FTP math + Safe/AtRisk/AtRiskSevere/NeedsVerification/Blocked classifier
 ├── pipeline/          analyze_week_fulfillment DAG + draft-creation logic (drafts.py)
 ├── erp/               hand-rolled HTTP client + Pydantic response models
-├── drift/             extensible drift analysis — strategy pattern (plausibility + residual modes)
+├── drift/             extensible drift analysis — strategy pattern (plausibility + residual + markov modes)
 ├── llm/               provider-agnostic LLM client + llm_augmented stratum + post-cascade re-ranker (optional)
 ├── mcp_server/        FastMCP server exposing 4 tools
 ├── config.py          .env loader (pydantic-settings) — all thresholds + LLM config
@@ -173,14 +174,17 @@ uv run pytest -v
 | `tests/allocation/test_ftp.py` | FTPCalculator unit tests — band filtering, open-order week filtering, `sold_to=None` conservative path, negative FTP clamping, unknown SKU (8 tests). |
 | `tests/allocation/test_classifier.py` | Classifier unit tests — Safe, AtRisk, AtRiskSevere, NeedsVerification, Blocked, zero-demand, threshold boundaries, frozen band (10 tests). |
 | `tests/mcp_server/` | MCP tool surface against a faked ERP client. Draft-tool validation errors, retailer + iso_week rejection, exact classification counts, zero-qty skip, live-cassette regression (13 tests). |
-| `tests/drift/` | Drift analysis — plausibility (ratio, promo segmentation, MCP tool wiring), residual (synthetic fixtures, direction registry, analyzer dispatch), invalid-mode error path, backward compatibility (27 tests). |
+| `tests/drift/` | Drift analysis -- plausibility (ratio, promo segmentation, MCP tool wiring), residual (synthetic fixtures, direction registry, analyzer dispatch), Markov (TransitionMatrix math, persistence/divergence detection, 4/8/12/52-week histories, insufficient-data skip, config parsing, incremental update), invalid-mode error path, backward compatibility (72 tests). |
 | `tests/mapping/` | Cascade resolver, TF-IDF index, normalizer, depot resolver — stratified matching, collision handling, floor gating, Jaro-Winkler scoring, depot auto-resolution (46 tests). |
 | `tests/test_negative.py` | Error paths — empty/malformed CSV, non-numeric quantities, float truncation, invalid drift thresholds, unknown retailer spec, registry validation (13 tests). |
 | `tests/test_config.py` | Config resolution (`_find_env_file` paths), `_validate_iso_week` edge cases, and `drift_residual_threshold` field (12 tests). |
 | `tests/test_registries.py` | Runtime registries for FulfillmentClass, MappingState, Stratum, DriftClass, DriftDirection — builtins, residual extensions, registration, idempotency, ordered insertion (14 tests). |
-| `tests/test_llm.py` | LLM client protocol, factory, `llm_augmented` stratum handler (mocked), depot LLM fallback — confidence gating, JSON error handling (7 tests). |
+| `tests/test_extensibility.py` | P2 extensibility scaffolding — Calibrator, KernelLearner, Repository protocols; default + placeholder backends; custom plug-in; InMemoryRepository CRUD + edge cases; DuckDB error paths (38 tests). |
+| `tests/test_hooks.py` | Post-calibration confidence hooks (D-022) — temperature-band penalty, hook composition, ResolverContext integration, config defaults (17 tests). |
+| `tests/test_normalization_config.py` | Normalization config wiring (D-023) — build_pipeline, MasterIndex/TfIdfIndex normalizer injection, resolver with brand stripping, config parsing (18 tests). |
+| `tests/test_llm.py` | LLM client protocol, factory, `llm_augmented` stratum handler (mocked), depot LLM fallback — confidence gating, JSON error handling (9 tests). |
 | `tests/test_reranker.py` | LLM post-cascade re-ranker (D-019) — should_rerank gating, agree/disagree/low-conf/failure paths, integration flow (16 tests). |
-| `tests/mapping/test_normalize_pipeline.py` | Composable NormalizationPipeline — individual steps, brand stripping, stop words, pipeline composition, backward compatibility (12 tests). |
+| `tests/mapping/test_normalize_pipeline.py` | Composable NormalizationPipeline — individual steps, brand stripping, stop words, pipeline composition, backward compatibility (14 tests). |
 | `tests/mapping/test_handler_chain.py` | Stratum handler chain — default registration, custom handler short-circuit, append, `gtin_current` preemption, config exposure (5 tests). |
 | `tests/adapters/test_aggregation.py` | `_aggregate_to_weekly` unit tests — promo-flag OR-ing, note dedup/sort, quantity summing, grouping-key correctness (9 tests). |
 
@@ -198,7 +202,7 @@ uv run python scripts/live_draft_run.py
 
 For reviewers wanting to see the design reasoning rather than just the code:
 
-- **[`DECISIONS.md`](../DECISIONS.md)** — 20 chronological decisions (D-001..D-020), each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration), D-016 (config externalization), D-017 (LLM integration layer), D-018 (semantic stratum naming), D-019 (LLM re-ranker), D-020 (drift extensibility refactor) are the load-bearing ones.
+- **[`DECISIONS.md`](../DECISIONS.md)** — 24 chronological decisions (D-001..D-024), each with rule + alternatives + why. The single most important file for understanding *why* the system is shaped this way. D-001 (config-driven adapters), D-002 (Polars + DuckDB), D-009/D-010/D-011 (the math-derived locks for kernel / allocation / calibration), D-016 (config externalization), D-017 (LLM integration layer), D-018 (semantic stratum naming), D-019 (LLM re-ranker), D-020 (drift extensibility refactor), D-021 (P2 extensibility scaffolding), D-022 (post-calibration hooks), D-023 (normalization config wiring), D-024 (Markov regime-detection drift strategy) are the load-bearing ones.
 
 - **[`docs/architecture/formalism.md`](architecture/formalism.md)** — LaTeX-rendered mathematical model. §3 (entity resolution as stratified bipartite matching with FS posteriors), §4 (demand alignment as change-of-basis with non-trivial null space), §5 (allocation as constrained LP with water-filling), §6 (FSM-DAG interlock), §8 (11 explicit pushbacks against the Gemini source where the math diverged from the project's needs).
 
@@ -230,10 +234,10 @@ The trial ships a complete, tested end-to-end pipeline. Several capabilities wer
 | Supervised calibrator (Cascaded Classification LR) | Fellegi-Sunter + JW² unsupervised | At >= 200 labels | D-011 |
 | Isotonic regression calibrator | n/a | At >= 1000 labels, replace LR-as-calibrator | D-011 |
 | Classical residual drift | Implemented as `residual` mode in drift strategy pattern (D-020) | Activate via `mode="residual"` when same-period data available | D-006, D-012, D-020 |
-| Markov drift detection | Reserved | Multi-week residual history | D-006 |
+| Markov drift detection | Implemented as `markov` mode — 3-state transition matrix, persistence + divergence signals, context hierarchy (D-024) | Activate via `mode="markov"` with accumulated residual history | D-006, D-024 |
 | Temperature-band confidence penalty | Documented, deferred | Pass band through RetailerProductKey | formalism §3.2 |
 | Retailer-depot-string mapping | Depot resolver (substring + fuzzy + optional LLM fallback) | Implemented in `mapping/depot.py` | D-015, D-017 |
-| Brand-prefix / stop-word normalization | Composable `NormalizationPipeline`; brand/stop-word steps available but not default | Activate via config or custom pipeline | D-013, D-017 |
+| Brand-prefix / stop-word normalization | Composable `NormalizationPipeline` with independent config toggles (`VERDANO_NORMALIZE_BRAND_STRIPPING`, `VERDANO_NORMALIZE_STOP_WORDS`). Normalizer injected through MasterIndex, TfIdfIndex, and all pipeline functions. | Config-driven activation (D-023) | D-013, D-023 |
 | `RetailerCode` runtime extensibility | Registry-constrained `str` (implemented) | `register_retailer()` + `validate_retailer_code()` | D-015 |
 | Config externalization | All thresholds in `Settings` with `VERDANO_` env prefix | Operator-tunable without code deploys | D-016 |
 | LLM entity resolution (`llm_augmented` stratum) | Provider-agnostic client, `llm_augmented` handler, depot LLM fallback — all optional | Enable via `VERDANO_LLM_API_KEY` | D-017 |
@@ -242,8 +246,9 @@ The trial ships a complete, tested end-to-end pipeline. Several capabilities wer
 
 ## Non-goals (deliberate)
 
-- Markov-style true drift detection (formalism §9.2) — named, deferred. Classical residual drift is implemented as `mode="residual"` (D-020); Markov requires multi-week residual history.
+- Markov drift detection is implemented (D-024) but requires accumulated residual history (multi-week `mode="residual"` runs) before it produces meaningful signals. With `InMemoryRepository` data is per-process; production-grade persistence awaits DuckDB (P2-c).
 - Retailer-depot-string → `ship_to_location_id` mapping — now auto-resolved by `mapping/depot.py` (substring + fuzzy). `create_drafts_for_safe_lines_tool` still accepts an explicit override.
-- Supervised Cascaded Classification calibrator — D-011 names the path; trial scope ships only the unsupervised Fellegi-Sunter posteriors.
-- Production-grade DOW kernel learning — D-009 uses the static UK-grocery profile; the simplex-NNLS upgrade path is documented for ≥ ~26 weeks of EPOS.
-- Temperature-band confidence penalty — documented in formalism §3.2; deferred because the resolver doesn't have access to the retailer-side band at its call site. Production scope: pass band through `RetailerProductKey` or as a resolver parameter.
+- Supervised Cascaded Classification calibrator — D-011 names the path; the `Calibrator` protocol and `SupervisedCalibrator` placeholder are scaffolded (D-021). Implementation requires >= 200 labeled review-resolution entries.
+- Production-grade DOW kernel learning — D-009 uses the static UK-grocery profile; the `KernelLearner` protocol and `NNLSKernelLearner` placeholder are scaffolded (D-021). Implementation requires >= 4 weeks of daily EPOS data.
+- DuckDB persistence — the `Repository` protocol and `DuckDBRepository` placeholder are scaffolded (D-021); `InMemoryRepository` is the trial default.
+- Temperature-band confidence penalty — implemented as a post-calibration hook (D-022). Detects keyword/band mismatches in the matched ERP product name and applies a multiplicative penalty. Enabled via `VERDANO_TEMP_BAND_PENALTY_ENABLED=true`.

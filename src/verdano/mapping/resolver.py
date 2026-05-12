@@ -23,7 +23,9 @@ from verdano.canonical import (
     Stratum,
 )
 from verdano.erp.models import Product
-from verdano.mapping.normalize import normalize as _norm, tokens as _tokens
+from verdano.mapping.calibration import DEFAULT_CALIBRATOR, Calibrator
+from verdano.mapping.hooks import DEFAULT_HOOKS, ConfidenceHook
+from verdano.mapping.normalize import NormalizationPipeline, normalize as _default_norm, tokens as _tokens
 from verdano.mapping.priors import DEFAULT_PRIORS, CalibrationPriors
 from verdano.mapping.tfidf import TfIdfIndex
 
@@ -46,6 +48,8 @@ class ResolverContext:
         tfidf_min_score: float,
         tfidf_min_matched_tokens: int,
         fuzzy_jw_min_score: float,
+        calibrator: Calibrator = DEFAULT_CALIBRATOR,
+        confidence_hooks: list[ConfidenceHook] | None = None,
     ) -> None:
         self.master = master
         self.priors = priors
@@ -53,6 +57,8 @@ class ResolverContext:
         self.tfidf_min_score = tfidf_min_score
         self.tfidf_min_matched_tokens = tfidf_min_matched_tokens
         self.fuzzy_jw_min_score = fuzzy_jw_min_score
+        self.calibrator = calibrator
+        self.confidence_hooks = confidence_hooks if confidence_hooks is not None else list(DEFAULT_HOOKS)
 
     def build_result(
         self,
@@ -63,7 +69,10 @@ class ResolverContext:
         matched_value: str,
         k_x: int,
     ) -> MappingResult:
-        confidence = max(0.0, min(1.0, score))
+        confidence = self.calibrator.calibrate(score, stratum, k_x)
+        for hook in self.confidence_hooks:
+            confidence = hook(confidence, sku, self.master.products)
+        confidence = max(0.0, min(1.0, confidence))
         state: MappingState = (
             "Resolved" if confidence >= self.auto_threshold else "NeedsVerification"
         )
@@ -123,15 +132,16 @@ def _count_matched_tokens(
     master: "MasterIndex", retailer_name: str, sku: str
 ) -> int:
     """How many retailer tokens appear in the product's vocabulary?"""
-    retailer_tokens = set(_tokens(_norm(retailer_name)))
+    norm = master._norm
+    retailer_tokens = set(_tokens(norm(retailer_name)))
     if not retailer_tokens:
         return 0
     product = master.products.get(sku)
     if product is None:
         return 0
-    product_tokens = set(_tokens(_norm(product.name)))
+    product_tokens = set(_tokens(norm(product.name)))
     for alias in product.aliases:
-        product_tokens.update(_tokens(_norm(alias)))
+        product_tokens.update(_tokens(norm(alias)))
     return len(retailer_tokens & product_tokens)
 
 
@@ -188,7 +198,12 @@ class MasterIndex:
     per stratum lookup.
     """
 
-    def __init__(self, products: list[Product]) -> None:
+    def __init__(
+        self,
+        products: list[Product],
+        normalizer: NormalizationPipeline | None = None,
+    ) -> None:
+        self._norm = normalizer or _default_norm
         self._products = {p.sku: p for p in products}
         current_gtin_index: dict[str, set[str]] = defaultdict(set)
         legacy_gtin_index: dict[str, set[str]] = defaultdict(set)
@@ -201,9 +216,9 @@ class MasterIndex:
             for g in p.legacy_gtins:
                 legacy_gtin_index[g].add(p.sku)
             for a in p.aliases:
-                alias_index[_norm(a)].add(p.sku)
-            alias_index[_norm(p.name)].add(p.sku)
-            name_index[_norm(p.name)].add(p.sku)
+                alias_index[self._norm(a)].add(p.sku)
+            alias_index[self._norm(p.name)].add(p.sku)
+            name_index[self._norm(p.name)].add(p.sku)
 
         self._by_current_gtin: dict[str, list[str]] = {
             k: sorted(v) for k, v in current_gtin_index.items()
@@ -219,7 +234,7 @@ class MasterIndex:
             k: sorted(v) for k, v in name_index.items()
         }
 
-        self._tfidf = TfIdfIndex(products)
+        self._tfidf = TfIdfIndex(products, normalizer=self._norm)
 
     @property
     def products(self) -> dict[str, Product]:
@@ -236,7 +251,7 @@ class MasterIndex:
         return list(self._by_legacy_gtin.get(gtin, ()))
 
     def lookup_alias(self, name: str) -> list[str]:
-        return list(self._by_alias.get(_norm(name), ()))
+        return list(self._by_alias.get(self._norm(name), ()))
 
     def tfidf_lookup(self, name: str, min_score: float) -> tuple[list[str], float] | None:
         top_skus, top_score = self._tfidf.best_match(name)
@@ -259,7 +274,7 @@ class MasterIndex:
         JW similarity of ~0.93) are still scanned, but the linear scan is
         short-circuited once a perfect match (sim == 1.0) is found.
         """
-        target = _norm(name)
+        target = self._norm(name)
         best_score = -1.0
         best_norm: str | None = None
         for n in self._name_index:
@@ -293,6 +308,8 @@ class Resolver:
         tfidf_min_matched_tokens: int = 2,
         fuzzy_jw_min_score: float = 0.30,
         handlers: list[tuple[str, StratumHandler]] | None = None,
+        calibrator: Calibrator = DEFAULT_CALIBRATOR,
+        confidence_hooks: list[ConfidenceHook] | None = None,
     ) -> None:
         self._ctx = ResolverContext(
             master=master,
@@ -301,6 +318,8 @@ class Resolver:
             tfidf_min_score=tfidf_min_score,
             tfidf_min_matched_tokens=tfidf_min_matched_tokens,
             fuzzy_jw_min_score=fuzzy_jw_min_score,
+            calibrator=calibrator,
+            confidence_hooks=confidence_hooks,
         )
         self._handlers = handlers if handlers is not None else list(DEFAULT_HANDLERS)
 

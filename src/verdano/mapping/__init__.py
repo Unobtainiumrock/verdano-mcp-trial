@@ -8,11 +8,36 @@ Per D-011 + formalism §3:
     fuzzy_jw       →  w = JW(name)²
 
 The cascade governs *discovery order* (gtin_current preempts gtin_legacy
-preempts ... preempts fuzzy_jw). Scores are independent of stratum-of-origin
-once the resolver fires.
+preempts ... preempts fuzzy_jw). Raw scores are stratum-specific; the
+pluggable ``Calibrator`` (D-021) transforms them into final confidence
+values (default: clamp to [0, 1]). Post-calibration ``ConfidenceHook``
+functions (D-022) apply contextual penalties (e.g., temperature-band
+mismatch) before the auto/review threshold is evaluated.
 """
 
+from verdano.mapping.calibration import (
+    Calibrator,
+    DEFAULT_CALIBRATOR,
+    SupervisedCalibrator,
+    UnsupervisedCalibrator,
+)
+from verdano.mapping.hooks import (
+    ConfidenceHook,
+    DEFAULT_HOOKS,
+    temperature_band_penalty,
+)
 from verdano.mapping.priors import CalibrationPriors
 from verdano.mapping.resolver import MasterIndex, Resolver
 
-__all__ = ["CalibrationPriors", "MasterIndex", "Resolver"]
+__all__ = [
+    "Calibrator",
+    "CalibrationPriors",
+    "ConfidenceHook",
+    "DEFAULT_CALIBRATOR",
+    "DEFAULT_HOOKS",
+    "MasterIndex",
+    "Resolver",
+    "SupervisedCalibrator",
+    "UnsupervisedCalibrator",
+    "temperature_band_penalty",
+]

@@ -1,9 +1,10 @@
-"""Drift analysis framework (D-012, D-020).
+"""Drift analysis framework (D-012, D-020, D-024).
 
 Provides a strategy-based drift analyzer that dispatches to pluggable
 strategy functions. The built-in ``plausibility`` strategy implements the
-lagged-actuals ratio check from D-012. Additional strategies (``residual``,
-future Markov) register without modifying this file.
+lagged-actuals ratio check from D-012. Additional strategies (``residual``
+in ``strategies.py``, ``markov`` in ``markov.py``) register into
+``DEFAULT_STRATEGIES`` without modifying this file.
 """
 
 from __future__ import annotations
@@ -232,6 +233,7 @@ class DriftAnalyzer:
             self._strategies = strategies
         else:
             import verdano.drift.strategies  # noqa: F401 — registers into DEFAULT_STRATEGIES
+            import verdano.drift.markov  # noqa: F401 — registers markov_strategy
             self._strategies = dict(DEFAULT_STRATEGIES)
 
     @property

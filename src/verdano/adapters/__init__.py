@@ -7,6 +7,12 @@ adapter; its parameterization is the spec.
 """
 
 from verdano.adapters.adapter import Adapter
+from verdano.adapters.kernel import (
+    DEFAULT_KERNEL_LEARNER,
+    KernelLearner,
+    NNLSKernelLearner,
+    StaticKernelLearner,
+)
 from verdano.adapters.spec import (
     SAINSBURYS_SPEC,
     TESCO_SPEC,
@@ -20,8 +26,12 @@ __all__ = [
     "SAINSBURYS_SPEC",
     "TESCO_SPEC",
     "Adapter",
+    "DEFAULT_KERNEL_LEARNER",
     "DOWKernel",
+    "KernelLearner",
+    "NNLSKernelLearner",
     "RetailerSpec",
+    "StaticKernelLearner",
     "UnitMode",
     "get_spec",
 ]

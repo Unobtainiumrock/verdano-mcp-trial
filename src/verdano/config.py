@@ -78,6 +78,39 @@ class Settings(BaseSettings):
         description="Residual-mode tolerance: abs(pct_error) within this is 'accurate'.",
     )
 
+    # --- Markov drift (D-024) ---
+    drift_markov_min_weeks: int = Field(
+        default=4, ge=2,
+        description="Minimum weeks of residual history before Markov analysis runs.",
+    )
+    drift_markov_persistence_threshold: int = Field(
+        default=3, ge=2,
+        description="Consecutive non-accurate weeks to flag persistence.",
+    )
+    drift_markov_max_weeks: int = Field(
+        default=52, ge=4,
+        description="Maximum weeks of history to load per SKU (caps query cost).",
+    )
+
+    # --- Normalization (D-023) ---
+    normalize_brand_stripping: bool = Field(default=False)
+    brand_prefixes: str = Field(
+        default="verdano,verdano foods",
+        description="Comma-separated brand prefixes to strip (lowercased).",
+    )
+    normalize_stop_words: bool = Field(default=False)
+    stop_words: str = Field(
+        default="the,and,with,pack,of,for",
+        description="Comma-separated stop words to remove.",
+    )
+
+    # --- Confidence hooks (D-022) ---
+    temp_band_penalty_enabled: bool = Field(default=False)
+    temp_band_penalty_lambda: float = Field(
+        default=0.3, gt=0.0, le=1.0,
+        description="Multiplicative penalty when temperature-band keywords mismatch.",
+    )
+
     # --- Depot resolver ---
     depot_fuzzy_threshold: int = Field(default=75, ge=0, le=100)
     depot_llm_min_confidence: float = Field(default=0.50, ge=0.0, le=1.0)
@@ -95,6 +128,18 @@ class Settings(BaseSettings):
     def get_rerank_strata(self) -> frozenset[str]:
         """Parse comma-separated stratum names into a frozenset."""
         return frozenset(s.strip() for s in self.rerank_strata.split(",") if s.strip())
+
+    def get_brand_prefixes(self) -> set[str] | None:
+        """Return brand prefixes if stripping is enabled, else None."""
+        if not self.normalize_brand_stripping:
+            return None
+        return {s.strip() for s in self.brand_prefixes.split(",") if s.strip()}
+
+    def get_stop_words(self) -> set[str] | None:
+        """Return stop words if removal is enabled, else None."""
+        if not self.normalize_stop_words:
+            return None
+        return {s.strip() for s in self.stop_words.split(",") if s.strip()}
 
 
 def load_settings() -> Settings:

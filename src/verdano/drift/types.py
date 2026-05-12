@@ -1,8 +1,9 @@
 """Drift-signal record carrying provenance for the operator UI.
 
-Supports multiple drift modes (D-020):
+Supports multiple drift modes (D-020, D-024):
 - ``plausibility``: ratio-based lagged-actuals check (D-012)
 - ``residual``: classical signed residual for same-period comparison
+- ``markov``: regime-detection via transition-matrix analysis (D-024)
 """
 
 from __future__ import annotations
@@ -41,6 +42,7 @@ class DriftSignal(BaseModel):
 
     - **plausibility** (D-012): ``ratio = forecast_eaches / max(actuals_eaches, 1)``
     - **residual** (D-020): ``residual = actuals_eaches - forecast_eaches``
+    - **markov** (D-024): regime-detection via transition-matrix analysis
 
     Common fields (``forecast_eaches``, ``actuals_eaches``, ``direction``,
     ``reason``) are always populated. Mode-specific fields are ``None`` when
@@ -71,3 +73,9 @@ class DriftSignal(BaseModel):
     promo_flag: bool = False
     promo_segmented: bool = False
     reason: str
+
+    persistence_weeks: int | None = None
+    """Markov mode: consecutive weeks in current non-accurate state."""
+
+    transition_probability: float | None = None
+    """Markov mode: P(staying in current state) from the transition matrix."""

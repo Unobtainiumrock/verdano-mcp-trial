@@ -22,9 +22,12 @@ from __future__ import annotations
 
 import math
 from collections import defaultdict
+from collections.abc import Callable
 
 from verdano.erp.models import Product
-from verdano.mapping.normalize import normalize, tokens
+from verdano.mapping.normalize import normalize as _default_normalize, tokens
+
+Normalizer = Callable[[str], str]
 
 
 class TfIdfIndex:
@@ -36,17 +39,20 @@ class TfIdfIndex:
     optimizations not built here (deferred).
     """
 
-    def __init__(self, products: list[Product]) -> None:
-        # Per-product vocabulary set (deduplicated tokens from name + aliases).
+    def __init__(
+        self,
+        products: list[Product],
+        normalizer: Normalizer | None = None,
+    ) -> None:
+        self._normalize = normalizer or _default_normalize
         self._vocab: dict[str, frozenset[str]] = {}
-        # Document frequency: how many products contain each token.
         doc_freq: dict[str, int] = defaultdict(int)
 
         for p in products:
             seen: set[str] = set()
-            seen.update(tokens(normalize(p.name)))
+            seen.update(tokens(self._normalize(p.name)))
             for alias in p.aliases:
-                seen.update(tokens(normalize(alias)))
+                seen.update(tokens(self._normalize(alias)))
             self._vocab[p.sku] = frozenset(seen)
             for token in seen:
                 doc_freq[token] += 1
@@ -71,7 +77,7 @@ class TfIdfIndex:
         vocab = self._vocab.get(sku)
         if vocab is None:
             return 0.0
-        s_tokens = tokens(normalize(s))
+        s_tokens = tokens(self._normalize(s))
         if not s_tokens:
             return 0.0
         # IDF for unseen tokens defaults to log(N / 1) + 1 = log(N) + 1

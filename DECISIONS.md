@@ -555,8 +555,116 @@ If the LLM agrees, the mapping is unchanged. If the LLM disagrees with sufficien
 5. **Generic CSV resolver:** `_data_csv_for(retailer, kind, iso_week, root)` tries `{retailer}_{kind}_week{NN}.csv` first, then falls back to legacy filenames, so the system works with new data files without code changes.
 6. **Config:** Added `drift_residual_threshold` (default 0.10) to `Settings`.
 
-**Trade-off:** The existing `plausibility` mode behavior is preserved exactly — all 7 original drift tests pass unchanged. The refactor adds 19 new tests (26 total drift tests). The MCP tool signature is backward-compatible; callers that don't pass `mode` get the current behavior. Future drift modes (Markov, learned DOW kernel) slot in as additional strategy functions registered in `DEFAULT_STRATEGIES`.
+**Trade-off:** The existing `plausibility` mode behavior is preserved exactly — all 7 original drift tests pass unchanged. The refactor adds 20 new tests (27 total drift tests). The MCP tool signature is backward-compatible; callers that don't pass `mode` get the current behavior. Future drift modes (Markov, learned DOW kernel) slot in as additional strategy functions registered in `DEFAULT_STRATEGIES`.
 
-**Captured in:** [`src/verdano/drift/types.py`](src/verdano/drift/types.py) (registry), [`src/verdano/drift/baseline.py`](src/verdano/drift/baseline.py) (protocol + plausibility), [`src/verdano/drift/strategies.py`](src/verdano/drift/strategies.py) (residual), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (entry-point), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (tool + CSV resolver), [`src/verdano/config.py`](src/verdano/config.py) (threshold), [`tests/drift/`](tests/drift/) (26 tests).
+**Captured in:** [`src/verdano/drift/types.py`](src/verdano/drift/types.py) (registry), [`src/verdano/drift/baseline.py`](src/verdano/drift/baseline.py) (protocol + plausibility), [`src/verdano/drift/strategies.py`](src/verdano/drift/strategies.py) (residual), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (entry-point), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (tool + CSV resolver), [`src/verdano/config.py`](src/verdano/config.py) (threshold), [`tests/drift/`](tests/drift/) (27 tests).
+
+---
+
+## D-021: P2 extensibility scaffolding — protocols for calibration, kernel learning, and persistence
+
+**Date:** 2026-05-10
+
+**Context:** The three P2 work items — supervised calibration (Cascaded Classification LR), learned DOW kernel (simplex-NNLS from EPOS), and DuckDB persistence — are all data-blocked. However, the code currently has no extension points for them: the resolver hard-clamps confidence to `[0, 1]` inline; DOW weights are a static tuple on `RetailerSpec`; and there is no persistence layer at all. When data does arrive, the alternative is modifying core production code to wire in new backends — exactly the kind of surgery our earlier extensibility refactors (D-016, D-018, D-020) were designed to prevent.
+
+**Resolution:** Scaffold all three as protocol + default + placeholder, following the same pattern as `DriftStrategy` (D-020) and `StratumHandler` (D-018):
+
+1. **`Calibrator` protocol** (`mapping/calibration.py`): `calibrate(score, stratum, k_x) → float`. `UnsupervisedCalibrator` (clamp-to-[0,1]) is the default — preserves exact current behavior. `SupervisedCalibrator` is a placeholder that raises `NotImplementedError` until a trained model is available (>= 200 labeled examples). Wired into `ResolverContext.build_result` and `Resolver.__init__` via dependency injection.
+
+2. **`KernelLearner` protocol** (`adapters/kernel.py`): `learn(retailer_code) → DOWKernel`. `StaticKernelLearner` returns the existing UK-grocery profile — exact current behavior. `NNLSKernelLearner` is a placeholder that raises `NotImplementedError` until >= 4 weeks of daily EPOS data is available per retailer.
+
+3. **`Repository` protocol** (`storage/repository.py`): Seven methods across three domains — mapping cache, review labels, and audit log. `InMemoryRepository` provides process-lifetime storage (suitable for trial + tests). `DuckDBRepository` is a placeholder that raises `NotImplementedError`. The MCP server's `build_server()` now accepts an optional `repository` parameter (defaults to `InMemoryRepository`) and logs audit entries on tool invocations.
+
+**Trade-off:** All three defaults reproduce the exact pre-refactor behavior — zero functional change. The full test suite passes unchanged (218 existing + 38 new = 256 total). Implementing the production backends becomes: (a) write the backend class satisfying the protocol, (b) pass it to `Resolver` / `build_server` / wherever the protocol is consumed. No core code surgery required.
+
+**Captured in:** [`src/verdano/mapping/calibration.py`](src/verdano/mapping/calibration.py) (protocol + 2 backends), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (wiring), [`src/verdano/adapters/kernel.py`](src/verdano/adapters/kernel.py) (protocol + 2 backends), [`src/verdano/storage/`](src/verdano/storage/) (protocol + 2 backends + models), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (repository injection + audit logging), [`tests/test_extensibility.py`](tests/test_extensibility.py) (38 tests).
+
+---
+
+## D-022: Post-calibration confidence hooks — temperature-band penalty
+
+**Date:** 2026-05-10
+
+**Context:** The formalism (section 3.2) specifies a multiplicative penalty `λ · w(e)` for temperature-band mismatches. The Calibrator protocol (D-021) answers "how confident is this match?" but has no mechanism for contextual red-flag checks like "the product name says 'frozen' but the matched ERP SKU is ambient." The Calibrator's signature (`calibrate(score, stratum, k_x)`) deliberately doesn't include the matched SKU or product master — it's a pure score-to-probability transform. Adding contextual penalties inside the Calibrator would either (a) widen the Protocol, breaking the existing interface, or (b) violate single-responsibility by mixing calibration with contextual validation.
+
+**Resolution:** Introduce a post-calibration hook system as a new, orthogonal layer:
+
+1. **`ConfidenceHook` callable type** (`mapping/hooks.py`): `(confidence, sku, products) → float`. Hooks apply multiplicative adjustments after calibration but before the auto/review threshold is evaluated. Multiple hooks compose via multiplication.
+
+2. **`temperature_band_penalty(lambda_penalty)` factory**: Returns a `ConfidenceHook` that detects keyword/band mismatches. Keyword sets for chilled (`fresh`, `chilled`, `refrigerated`, `cold`), frozen (`frozen`, `freeze`, `ice`), and ambient (`ambient`, `shelf`, `dry`, `long life`, `longlife`) are checked against the matched product's `temperature_band`. Mismatch → `confidence *= lambda_penalty`.
+
+3. **Wiring**: `ResolverContext` accepts `confidence_hooks: list[ConfidenceHook]` (default empty). `build_result` applies all hooks sequentially after `self.calibrator.calibrate()` and re-clamps to `[0, 1]`. Threaded through `Resolver`, `analyze_week_fulfillment`, and the MCP server's `build_server` (gated by `temp_band_penalty_enabled` config).
+
+4. **Config**: `temp_band_penalty_enabled: bool = False` and `temp_band_penalty_lambda: float = 0.3` on `Settings`. Default off — preserves exact pre-D-022 behavior.
+
+**Trade-off:** Option B (post-calibration hooks) was chosen over Option A (Calibrator decorator) because calibration and contextual validation are genuinely different concerns. The Calibrator answers "what's the probability this match is correct?" while hooks answer "given that probability, is there external evidence this is wrong?" No existing D-021 patterns needed updating — hooks are a new layer, not a replacement.
+
+**Captured in:** [`src/verdano/mapping/hooks.py`](src/verdano/mapping/hooks.py) (ConfidenceHook type + temperature_band_penalty factory), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (hook application in build_result), [`src/verdano/config.py`](src/verdano/config.py) (2 new config fields), [`src/verdano/pipeline/analyze.py`](src/verdano/pipeline/analyze.py) (threading), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (config-driven activation), [`tests/test_hooks.py`](tests/test_hooks.py) (17 tests).
+
+---
+
+## D-023: Normalization pipeline config wiring — independent brand-prefix and stop-word activation
+
+**Date:** 2026-05-10
+
+**Context:** `strip_brand_prefixes` and `remove_stop_words` are fully implemented and tested (14 tests in `test_normalize_pipeline.py`) but not wired into the system. The `DEFAULT_PIPELINE` only runs `lowercase → collapse_whitespace → normalize_sizes`. There's no way to activate the extra steps without modifying source code. Additionally, the module-level `normalize()` function is hardcoded throughout `MasterIndex`, `TfIdfIndex`, and the resolver handlers — making it impossible to inject a custom pipeline at construction time.
+
+**Design decision:** Independent toggles (Option 2 from the P3-a analysis) were chosen over a single boolean toggle (Option 1) or list-based step names (Option 3). Rationale:
+
+- **Debugging granularity:** when a mapping regresses, operators can isolate which normalization step caused it by toggling them independently.
+- **Pattern consistency:** follows the existing config surface (boolean + string fields, no list-of-names).
+- **Future extensibility:** a third normalization step can be added the same way without redesigning the toggle mechanism.
+
+**Resolution:**
+
+1. **Config fields** (`config.py`): `normalize_brand_stripping: bool = False`, `brand_prefixes: str`, `normalize_stop_words: bool = False`, `stop_words: str`. Helper methods `get_brand_prefixes()` and `get_stop_words()` return `set[str] | None` based on toggle state.
+
+2. **`build_pipeline()` factory** (`normalize.py`): Constructs a `NormalizationPipeline` from config toggles. Step ordering: `lowercase → collapse_whitespace → [strip_brand_prefixes] → normalize_sizes → [remove_stop_words]`. Brand stripping before size normalization ensures prefixes match lowered/collapsed input; stop-word removal last ensures it operates on fully canonicalized tokens.
+
+3. **Normalizer injection** through the stack:
+   - `MasterIndex.__init__` accepts `normalizer: NormalizationPipeline | None` — indexes products with the custom pipeline.
+   - `TfIdfIndex.__init__` accepts `normalizer: Normalizer | None` — uses it for both indexing and scoring.
+   - `analyze_week_fulfillment` and `analyze_drift` accept and forward `normalizer`.
+   - `_run_analysis` and `build_server` construct the pipeline from config and pass it through all tool invocations.
+
+4. **Backward compatibility:** `normalizer=None` everywhere defaults to the original `DEFAULT_PIPELINE` behavior. All 273 pre-existing tests pass unchanged.
+
+**Trade-off:** Threading the normalizer through the stack adds one parameter to several constructors and pipeline functions. This is a one-time cost that enables runtime pipeline customization — no source-code changes needed to activate brand stripping or stop-word removal in a specific deployment.
+
+**Captured in:** [`src/verdano/mapping/normalize.py`](src/verdano/mapping/normalize.py) (`build_pipeline` factory), [`src/verdano/mapping/resolver.py`](src/verdano/mapping/resolver.py) (`MasterIndex` normalizer injection), [`src/verdano/mapping/tfidf.py`](src/verdano/mapping/tfidf.py) (normalizer injection), [`src/verdano/config.py`](src/verdano/config.py) (4 new config fields + helpers), [`src/verdano/pipeline/analyze.py`](src/verdano/pipeline/analyze.py) (threading), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (threading), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (pipeline construction + threading), [`tests/test_normalization_config.py`](tests/test_normalization_config.py) (18 tests).
+
+---
+
+## D-024: Markov regime-detection drift strategy — context hierarchy pattern
+
+**Date:** 2026-05-11
+
+**Context:** The two existing drift strategies (plausibility D-012, residual D-020) answer point-in-time questions about a single week-pair. Neither detects systematic forecast deterioration over time — a SKU oscillating around ±8% for six weeks (noise) is indistinguishable from one drifting to +15%, +18%, +22% over three weeks (regime change). The formalism (section 8.1, 10.4) and D-006 explicitly reserve Markov-style transition models for this purpose: forecast residuals form a discrete-state stochastic process where state persistence and transition asymmetry are the signals that matter.
+
+**Design decision:** Option C (context hierarchy via `MarkovDriftContext(DriftContext)` subclass) was chosen over:
+
+- **Option A** (add optional fields to `DriftContext`): Pollutes a shared dataclass with fields that 2 of 3 strategies ignore. Future strategies would further bloat `DriftContext`.
+- **Option B** (strategy does I/O via Repository): Breaks the pure-function contract established in D-020. Strategies become untestable without a real or mocked repository.
+- **Option C** (subclass `MarkovDriftContext`): Each strategy's data requirements are self-contained. The base `DriftContext` stays clean. Future strategies define their own context subclasses. The pipeline constructs the right type for the right mode. Liskov-compatible: `MarkovDriftContext` IS a `DriftContext`.
+
+**Resolution:**
+
+1. **Data model** (`storage/repository.py`): `ResidualRecord` model (erp_sku, iso_week, direction, pct_error, timestamp). `Repository` protocol extended with `save_residual_history` and `get_residual_history(erp_sku, max_weeks)`.
+
+2. **TransitionMatrix** (`drift/markov.py`): Pure-math class with Laplace smoothing. Supports both batch construction (`from_history`) and incremental streaming (`update_transition`). Computes stationary distribution via power iteration, persistence probability via `p_ss^k`.
+
+3. **Context hierarchy** (`drift/markov.py`): `MarkovDriftContext(DriftContext)` carries `residual_history`, `min_weeks`, `persistence_threshold`, `max_history_weeks`. The `DriftStrategy` protocol signature stays `Callable[[DriftContext], DriftReport]` — Liskov substitution.
+
+4. **Strategy function** (`drift/markov.py`): `markov_strategy` checks `isinstance(ctx, MarkovDriftContext)`, returns empty report if not. For each SKU with sufficient history: builds transition matrix, checks persistence (consecutive non-accurate weeks ≥ threshold), checks divergence (KL divergence of per-SKU stationary distribution vs population). Directions: `persistent_over`, `persistent_under`, `regime_drift`, `stable`, `skipped_insufficient_data`.
+
+5. **Pipeline wiring** (`pipeline/drift.py`): When `mode="markov"`, loads history from Repository, builds `MarkovDriftContext`. When `mode="residual"`, writes results back to Repository for automatic history accumulation.
+
+6. **Config** (`config.py`): `drift_markov_min_weeks: int = 4`, `drift_markov_persistence_threshold: int = 3`, `drift_markov_max_weeks: int = 52`.
+
+7. **DriftSignal extensions** (`drift/types.py`): `persistence_weeks: int | None` and `transition_probability: float | None` — populated by Markov mode, `None` for other modes.
+
+**Trade-off:** The context hierarchy pattern adds one subclass per strategy that needs custom data. This is a deliberate trade-off: a small per-strategy cost avoids base-type pollution that would grow linearly with the number of strategies. The pattern is identical to what a hypothetical "seasonal" or "ensemble" strategy would follow.
+
+**Captured in:** [`src/verdano/drift/markov.py`](src/verdano/drift/markov.py) (ResidualRecord re-export, TransitionMatrix, MarkovDriftContext, markov_strategy), [`src/verdano/storage/repository.py`](src/verdano/storage/repository.py) (ResidualRecord model, Repository protocol extension, InMemory + DuckDB impls), [`src/verdano/drift/types.py`](src/verdano/drift/types.py) (DriftSignal Markov fields), [`src/verdano/pipeline/drift.py`](src/verdano/pipeline/drift.py) (context construction, history accumulation), [`src/verdano/config.py`](src/verdano/config.py) (3 new config fields), [`src/verdano/mcp_server/server.py`](src/verdano/mcp_server/server.py) (Markov mode support, config wiring), [`tests/drift/test_markov.py`](tests/drift/test_markov.py) (45 tests).
 
 ---

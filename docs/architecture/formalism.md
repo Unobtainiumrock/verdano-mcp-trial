@@ -394,7 +394,7 @@ These are deliberate departures from [`raw-truth.md`](../process/raw-truth.md). 
 
 **Gemini:** "Markov Chains (Discard). Order fulfillment and supply chain reconciliation are not stochastic processes."
 
-**Our position:** Discard for **workflow** (the FSM is deterministic). Reserve for **forecast drift detection** if that capability is built — EPOS-vs-forecast residuals are a noisy signal and signal-detection / Markov-style transition models are appropriate there. The full discard is too sweeping by one component.
+**Our position:** Discard for **workflow** (the FSM is deterministic). Reserve for **forecast drift detection** — EPOS-vs-forecast residuals are a noisy signal and signal-detection / Markov-style transition models are appropriate there. The full discard is too sweeping by one component. **D-024 implements this**: a 3-state Markov chain over per-SKU residual histories with persistence and divergence signals.
 
 ### 8.2 Adapter shape: morphism formalism, config-driven implementation
 
@@ -468,7 +468,7 @@ Status legend: ✅ resolved · 🟡 partially resolved · ⏳ still open.
 
 1. ✅ **Confidence calibration.** Resolved by D-011 (Jaro-Winkler² for $E_4$, Platt scaling at $N \gtrsim 200$ for production). Two sub-gaps remain (band derivation for $E_1$/$E_2$/$E_3$; cascade-band consistency under JW²) — tracked under MATH-SOT-IT3, still open.
 
-2. 🟡 **Drift detection as signal-detection.** Trial-scope answer locked by **D-012**: lagged-actuals plausibility check (ratio $\rho = f_{t+1} / \max(a_t, 1)$ with thresholds $[0.5, 1.5]$, promo-segmented). See §10. **D-020** adds a classical residual mode ($r = a_t - f_t$, same-period) via the strategy pattern; Markov-style drift over multi-week histories remains open per **D-006**.
+2. ✅ **Drift detection as signal-detection.** Trial-scope answer locked by **D-012**: lagged-actuals plausibility check (ratio $\rho = f_{t+1} / \max(a_t, 1)$ with thresholds $[0.5, 1.5]$, promo-segmented). See §10. **D-020** adds a classical residual mode ($r = a_t - f_t$, same-period) via the strategy pattern. **D-024** implements Markov regime-detection over multi-week residual histories (3-state transition matrix, persistence + divergence signals, context hierarchy pattern). All three modes are live via `DriftAnalyzer`.
 
 3. ✅ **Allocation policy under supply constraint.** Resolved by D-010 (pro-rata default; water-filling for weighted; fill-rate thresholding tripwire with config $\tau_{\text{safe}}$). See §5.3.
 
@@ -523,17 +523,24 @@ where $\pi = \mathbb{1}[\text{promo}_{t+1}]$. The signal record carries both `pr
 
 **Retailer asymmetry.** Tesco publishes `promo_flag` per row; Sainsbury's does not. For Sainsbury's, $\pi$ is always False with a known-unknown caveat in the reason text. We do not infer promo state for retailers that don't publish it.
 
-### 10.4 What this is *not*
+### 10.4 Beyond point-in-time: regime detection
 
-This framing is not classical residual drift. The fixture forces it. **Markov-style true-drift detection is reserved per D-006** for the production scope where multi-week residual histories accumulate. Forecast-vs-actuals residuals over the same period are a noisy signal best modeled as a stochastic process; the lagged-actuals check is a deterministic diagnostic.
+The plausibility and residual modes are point-in-time diagnostics. **D-024** adds a Markov regime-detection mode that models per-SKU residual histories as a discrete-state stochastic process:
 
-> **D-020 addendum:** A `residual` strategy is now available alongside this plausibility check. When same-period forecast + actuals CSVs exist, `analyze_drift(mode="residual")` computes $r = a_t - f_t$ with a configurable percentage-error threshold (`drift_residual_threshold`, default 10%). The strategy pattern in `drift/baseline.py` dispatches to either mode. See `drift/strategies.py` for the residual implementation.
+- **State space:** $S = \{\text{accurate}, \text{over\_forecast}, \text{under\_forecast}\}$, discretized using `residual_threshold`.
+- **Transition matrix:** Empirical 3×3 matrix with Laplace smoothing: $p_{ij} = (c_{ij} + 1) / (c_i + |S|)$.
+- **Persistence signal:** SKU stuck in non-accurate state for $k \geq$ threshold consecutive weeks; probability $p_{ss}^k$.
+- **Divergence signal:** KL divergence between per-SKU stationary distribution and population-level matrix.
+
+Architecture uses **Option C (context hierarchy)**: `MarkovDriftContext(DriftContext)` carries `residual_history` without polluting the base context. Future strategies follow the same subclass pattern.
+
+> **D-020 addendum:** A `residual` strategy is available alongside the plausibility check. When same-period forecast + actuals CSVs exist, `analyze_drift(mode="residual")` computes $r = a_t - f_t$ with a configurable percentage-error threshold (`drift_residual_threshold`, default 10%). After each residual run, results are written to the Repository for automatic Markov history accumulation.
 
 ### 10.5 Mapping flow
 
 Forecast lines whose mapping is `Blocked` or `NeedsVerification` are not turned into signals — they're counted under `summary["skipped_unmapped"]` to keep the signal stream clean while preserving the volume of un-comparable lines.
 
-Cross-references: `src/verdano/drift/` (module), `src/verdano/pipeline/drift.py` (entry-point), `tests/drift/test_baseline.py` (plausibility + infrastructure tests), `tests/drift/test_residual.py` (residual mode tests).
+Cross-references: `src/verdano/drift/` (module), `src/verdano/drift/markov.py` (TransitionMatrix, MarkovDriftContext, markov_strategy), `src/verdano/pipeline/drift.py` (entry-point), `tests/drift/test_baseline.py` (plausibility + infrastructure tests), `tests/drift/test_residual.py` (residual mode tests), `tests/drift/test_markov.py` (Markov mode tests, 45 tests).
 
 ---
 
